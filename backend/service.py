@@ -172,8 +172,8 @@ JUDGE_PROMPT = """你是高校理工科阅卷老师。下面给出一道题的�
 }}
 
 【记号规范】
-- comment 与 key_mistake 中的数学表达式用 $...$ 包裹的 LaTeX 书写，如 $C_2 e^{3x}$
-- 禁止 Unicode 数学字母（𝑥 ℝ）与 Unicode 上下标（C₁ e²），下标写 C_1，上标写 e^{2x}
+- comment 与 key_mistake 中的数学表达式用 $...$ 包裹的 LaTeX 书写，如 $C_2 e^{{3x}}$
+- 禁止 Unicode 数学字母（𝑥 ℝ）与 Unicode 上下标（C₁ e²），下标写 C_1，上标写 e^{{2x}}
 - 纯中文叙述不加 $
 """
 
