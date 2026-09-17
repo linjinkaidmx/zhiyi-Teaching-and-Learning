@@ -6,23 +6,14 @@
         <span class="slogan">知一而通万 · 举一反三</span>
       </div>
       <div class="nav">
-        <el-button :type="view === 'home' ? 'primary' : 'default'" text @click="view = 'home'">
-          拍题
-        </el-button>
-        <el-button :type="view === 'book' ? 'primary' : 'default'" text @click="goBook">
-          练习本
-        </el-button>
-        <el-button :type="view === 'quiz' ? 'primary' : 'default'" text @click="view = 'quiz'">
-          自测
-        </el-button>
-        <el-button :type="view === 'forum' ? 'primary' : 'default'" text @click="view = 'forum'">
-          论坛
-        </el-button>
-        <el-button :type="view === 'group' ? 'primary' : 'default'" text @click="view = 'group'">
-          小组
-        </el-button>
-        <el-tag v-if="online" type="success" effect="plain" size="small">后端已连接</el-tag>
-        <el-tag v-else type="danger" effect="plain" size="small">后端未连接</el-tag>
+        <span class="nav-link" :class="{ active: view === 'home' }" @click="view = 'home'">拍题</span>
+        <span class="nav-link" :class="{ active: view === 'book' }" @click="goBook">练习本</span>
+        <span class="nav-link" :class="{ active: view === 'quiz' }" @click="view = 'quiz'">自测</span>
+        <span class="nav-link" :class="{ active: view === 'forum' }" @click="view = 'forum'">论坛</span>
+        <span class="nav-link" :class="{ active: view === 'group' }" @click="view = 'group'">小组</span>
+        <span class="net-chip" :class="online ? 'on' : 'off'">
+          {{ online ? '后端已连接' : '后端未连接' }}
+        </span>
 
         <el-dropdown v-if="user.token" trigger="click" @command="onUserCommand">
           <span class="user-chip">

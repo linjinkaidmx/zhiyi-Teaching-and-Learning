@@ -186,7 +186,7 @@ def click_nav(tab, txt, tries=15):
     """点击头部导航按钮，带重试；返回是否成功。"""
     for _ in range(tries):
         try:
-            if tab.js(click_js("'header .nav .el-button'", f"'{txt}'")):
+            if tab.js(click_js("'header .nav .nav-link'", f"'{txt}'")):
                 time.sleep(0.8)
                 return True
         except Exception:
@@ -366,7 +366,7 @@ def main():
         check(tab.js("!!document.querySelector('.katex')"), "KaTeX 公式已渲染")
 
         step("5. 分享错题到论坛")
-        if not tab.js(click_js("'.el-button'", "'分享'")):
+        if not tab.js(click_js("'.row-ops .link-act'", "'分享'")):
             fail("练习本找不到分享按钮")
             return
         time.sleep(1.2)

@@ -7,7 +7,7 @@
         :key="ring"
         :points="ringPoints(ring)"
         fill="none"
-        stroke="#d3d1c7"
+        stroke="var(--border-strong)"
         stroke-width="0.6"
       />
       <!-- 轴线 -->
@@ -18,11 +18,11 @@
         :y1="cy"
         :x2="p.x2"
         :y2="p.y2"
-        stroke="#d3d1c7"
+        stroke="var(--border-strong)"
         stroke-width="0.6"
       />
       <!-- 数据区域 -->
-      <polygon :points="dataPoints" fill="#534ab7" fill-opacity="0.25" stroke="#534ab7" stroke-width="1.6" />
+      <polygon :points="dataPoints" fill=var(--brand) fill-opacity="0.25" stroke=var(--brand) stroke-width="1.6" />
       <!-- 顶点 -->
       <circle
         v-for="(p, i) in points"
@@ -30,7 +30,7 @@
         :cx="p.x"
         :cy="p.y"
         r="3"
-        fill="#534ab7"
+        fill=var(--brand)
       />
       <!-- 标签 -->
       <text
@@ -40,7 +40,7 @@
         :y="p.ly"
         :text-anchor="p.anchor"
         font-size="11"
-        fill="#5f5e5a"
+        fill="var(--text-sub)"
       >
         {{ shorten(p.name) }}
       </text>

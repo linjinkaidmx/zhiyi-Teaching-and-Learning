@@ -1,13 +1,14 @@
 <template>
   <div class="book">
-    <div class="stats">
-      <div class="stat"><div class="num">{{ stats.total }}</div><div class="lb">练习总数</div></div>
-      <div class="stat hl"><div class="num">{{ stats.pending }}</div><div class="lb">待复习</div></div>
-      <div class="stat ok"><div class="num">{{ stats.mastered }}</div><div class="lb">已掌握</div></div>
-      <div class="stat">
-        <div class="num">{{ quizAccuracy }}<i>%</i></div>
-        <div class="lb">自测正确率</div>
-      </div>
+    <!-- 顶部一行紧凑统计（替代 4 张大卡片） -->
+    <div class="stat-line">
+      <span class="st"><b>{{ stats.total }}</b> 题</span>
+      <span class="sep">·</span>
+      <span class="st">待复习 <b class="warn">{{ stats.pending }}</b></span>
+      <span class="sep">·</span>
+      <span class="st">已掌握 <b>{{ stats.mastered }}</b></span>
+      <span class="sep">·</span>
+      <span class="st">自测正确率 <b>{{ quizAccuracy }}%</b></span>
     </div>
 
     <div v-if="list.length" class="mid">
@@ -61,25 +62,23 @@
         @click="emit('review', it)"
       >
         <div class="tags">
-          <el-tag size="small" effect="plain">{{ it.subject || '未分类' }}</el-tag>
-          <el-tag v-if="hasErrorType(it)" size="small" type="danger" effect="light">
+          <span class="tag-chip brand">{{ it.subject || '未分类' }}</span>
+          <span v-if="hasErrorType(it)" class="tag-chip" style="color: var(--danger); border-color: rgba(192,86,75,0.35); background: var(--danger-soft)">
             {{ it.error_type }}
-          </el-tag>
-          <el-tag v-else size="small" type="primary" effect="light">待练习</el-tag>
-          <el-tag v-for="k in it.knowledge_points || []" :key="k" size="small" effect="plain">
-            {{ k }}
-          </el-tag>
+          </span>
+          <span v-else class="tag-chip">待练习</span>
+          <span v-for="k in it.knowledge_points || []" :key="k" class="tag-chip">{{ k }}</span>
           <span class="time">{{ fmt(it.createdAt) }}</span>
         </div>
         <div class="q"><MathText :text="it.question" /></div>
         <div class="row-ops">
-          <el-button link type="primary" @click.stop="emit('review', it)">查看解析</el-button>
-          <el-button link type="warning" @click.stop="emit('share', it)">分享</el-button>
-          <el-button v-if="it.status !== '已掌握'" link type="success" @click.stop="mark(it.id, '已掌握')">
+          <button class="link-act" @click.stop="emit('review', it)">查看解析</button>
+          <button class="link-act" @click.stop="emit('share', it)">分享</button>
+          <button v-if="it.status !== '已掌握'" class="link-act" @click.stop="mark(it.id, '已掌握')">
             标记已掌握
-          </el-button>
-          <el-button v-else link @click.stop="mark(it.id, '复习中')">重新复习</el-button>
-          <el-button link type="danger" @click.stop="del(it.id)">删除</el-button>
+          </button>
+          <button v-else class="link-act" @click.stop="mark(it.id, '复习中')">重新复习</button>
+          <button class="link-act danger" @click.stop="del(it.id)">删除</button>
         </div>
       </div>
     </div>
@@ -159,7 +158,10 @@ function startReview() {
 }
 
 function fmt(ts) {
-  const d = new Date(ts)
+  // 脏数据兜底：createdAt 缺失或非法时不渲染 NaN
+  if (!ts || Number.isNaN(Number(ts))) return ''
+  const d = new Date(Number(ts))
+  if (Number.isNaN(d.getTime())) return ''
   return `${d.getMonth() + 1}-${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(
     d.getMinutes()
   ).padStart(2, '0')}`
@@ -167,43 +169,41 @@ function fmt(ts) {
 </script>
 
 <style scoped>
-.stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+/* 顶部一行紧凑统计 */
+.stat-line {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 4px 16px;
+  font-size: 13px;
+  color: var(--text-sub);
+  border-bottom: 1px solid var(--border);
   margin-bottom: 18px;
 }
-.stat {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 16px;
-  text-align: center;
+.stat-line .st b {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin-right: 2px;
 }
-.stat .num {
-  font-size: 26px;
-  font-weight: 500;
-}
-.stat .lb {
-  font-size: 12px;
-  color: var(--text-sub);
-  margin-top: 4px;
-}
-.stat.hl .num {
+.stat-line .st b.warn {
   color: var(--brand);
 }
-.stat.ok .num {
-  color: var(--success);
+.stat-line .sep {
+  color: var(--border-strong);
 }
 .mid {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 18px;
-  margin-bottom: 18px;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
 }
 .sec-t {
-  font-size: 14px;
-  font-weight: 500;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
   margin-bottom: 12px;
 }
 .legend {
@@ -235,25 +235,20 @@ function fmt(ts) {
   gap: 10px;
   flex-wrap: wrap;
 }
-.stat .num i {
-  font-size: 15px;
-  font-style: normal;
-  color: var(--text-sub);
-  margin-left: 1px;
-}
 .nm {
   flex: 1;
 }
 .plan-n {
-  font-size: 15px;
+  font-size: 14px;
   margin-bottom: 6px;
 }
 .plan-n b {
   color: var(--brand);
   font-size: 20px;
+  font-family: var(--font-display);
 }
 .plan-s {
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--text-sub);
   margin-bottom: 14px;
 }
@@ -263,19 +258,22 @@ function fmt(ts) {
   align-items: center;
   margin-bottom: 14px;
 }
+.list-head .sec-t {
+  margin-bottom: 0;
+}
 .row {
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
   margin-bottom: 10px;
+  background: #fff;
 }
 .row.clickable {
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.15s;
 }
 .row.clickable:hover {
   border-color: var(--brand);
-  box-shadow: 0 2px 10px rgba(83, 74, 183, 0.12);
 }
 .row.done {
   opacity: 0.55;
@@ -289,7 +287,7 @@ function fmt(ts) {
 }
 .time {
   font-size: 12px;
-  color: var(--text-sub);
+  color: var(--text-faint);
   margin-left: auto;
 }
 .q {
@@ -299,11 +297,11 @@ function fmt(ts) {
 }
 .row-ops {
   text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  gap: 2px;
 }
 @media (max-width: 900px) {
-  .stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
   .mid {
     grid-template-columns: 1fr;
   }

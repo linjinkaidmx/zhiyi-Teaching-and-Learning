@@ -416,7 +416,7 @@ function quit() {
   margin-bottom: 8px;
 }
 .ai {
-  background: var(--brand-light);
+  background: var(--brand-soft);
   border-radius: 8px;
   padding: 12px 14px;
   margin-bottom: 16px;

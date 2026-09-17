@@ -202,7 +202,7 @@ function join() {
 .insight {
   font-size: 14px;
   line-height: 1.75;
-  background: var(--brand-light);
+  background: var(--brand-soft);
   padding: 12px 14px;
   border-radius: 8px;
 }

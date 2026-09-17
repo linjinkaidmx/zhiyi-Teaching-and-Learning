@@ -1,5 +1,6 @@
 <template>
-  <div class="upload">
+  <div class="upload-layout">
+    <!-- 左：上传区（60%） -->
     <div
       class="dropzone"
       :class="{ active: dragging }"
@@ -9,11 +10,8 @@
       @click="pick"
     >
       <div class="dz-icon">+</div>
-      <div class="dz-title">粘贴或拖入题目图片</div>
-      <div class="dz-sub">
-        支持 Ctrl+V 粘贴截图 / JPG / PNG，单张 ≤ 10MB<br />
-        系统自动判断：有作答痕迹就查错因，只有题目就给解答
-      </div>
+      <div class="dz-title">拖入题目截图，或直接 Ctrl+V 粘贴</div>
+      <div class="dz-sub">JPG / PNG ≤ 10MB · 自动判断查错因还是给解答</div>
       <el-button type="primary" size="large" @click.stop="pick">选择文件</el-button>
       <input
         ref="fileInput"
@@ -24,13 +22,37 @@
       />
     </div>
 
-    <div class="ways">
-      <div class="way"><b>粘贴截图</b><span>Ctrl+V 直接粘贴</span></div>
-      <div class="way"><b>拖拽上传</b><span>把图片拖进上方区域</span></div>
-      <div class="way"><b>选择文件</b><span>从本地挑选图片</span></div>
-    </div>
+    <!-- 右：竖排三步流程（替代原三卡片） -->
+    <div class="side">
+      <div class="steps">
+        <div class="step">
+          <span class="step-num">1</span>
+          <div class="step-text">
+            <b>拍题即诊断</b>
+            <span>识别错因、知识点与解答</span>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">2</span>
+          <div class="step-text">
+            <b>间隔自测</b>
+            <span>按掌握度智能组卷复习</span>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">3</span>
+          <div class="step-text">
+            <b>小组互鉴</b>
+            <span>共享错题，看同伴在哪摔跤</span>
+          </div>
+        </div>
+      </div>
 
-    <p class="tip">在页面任意位置按 Ctrl+V，即可直接粘贴剪贴板中的截图</p>
+      <div class="brand-card">
+        <b>知一而通万</b>
+        <span>今天也要举一反三</span>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -89,64 +111,134 @@ onUnmounted(() => window.removeEventListener('paste', onPaste))
 </script>
 
 <style scoped>
+.upload-layout {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 20px;
+  align-items: start;
+}
+
 .dropzone {
-  border: 2px dashed var(--border);
-  border-radius: 16px;
-  height: 300px;
+  border: 1.5px dashed var(--border-strong);
+  border-radius: var(--radius);
+  min-height: 380px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 12px;
   cursor: pointer;
   background: #fff;
-  transition: all 0.2s;
+  transition: border-color 0.2s, background 0.2s;
 }
 .dropzone:hover,
 .dropzone.active {
   border-color: var(--brand);
-  background: var(--brand-light);
+  background: var(--brand-soft);
 }
 .dz-icon {
-  font-size: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  font-size: 26px;
+  font-weight: 300;
   color: var(--brand);
+  border: 1.5px solid rgba(47, 111, 94, 0.4);
+  border-radius: 50%;
   line-height: 1;
 }
 .dz-title {
-  font-size: 20px;
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
 }
 .dz-sub {
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--text-sub);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
-.ways {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-top: 20px;
+
+/* 右侧 */
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
-.way {
+
+.steps {
   background: #fff;
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px;
-  text-align: center;
+  border-radius: var(--radius);
+  padding: 8px 20px;
 }
-.way b {
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 0;
+}
+
+.step + .step {
+  border-top: 1px solid var(--border);
+}
+
+.step-num {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border-radius: 50%;
+}
+
+.step-text b {
   display: block;
   font-size: 14px;
-  margin-bottom: 4px;
+  font-weight: 600;
+  color: var(--text);
 }
-.way span {
+
+.step-text span {
+  font-size: 12.5px;
+  color: var(--text-sub);
+}
+
+.brand-card {
+  padding: 18px 20px;
+  background: var(--brand);
+  border-radius: var(--radius);
+  color: #fff;
+}
+
+.brand-card b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.brand-card span {
+  display: block;
+  margin-top: 4px;
   font-size: 12px;
-  color: var(--text-sub);
+  opacity: 0.85;
 }
-.tip {
-  text-align: center;
-  color: var(--text-sub);
-  font-size: 13px;
-  margin-top: 18px;
+
+@media (max-width: 860px) {
+  .upload-layout {
+    grid-template-columns: 1fr;
+  }
+  .dropzone {
+    min-height: 280px;
+  }
 }
 </style>

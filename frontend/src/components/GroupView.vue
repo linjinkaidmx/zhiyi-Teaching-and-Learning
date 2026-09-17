@@ -551,7 +551,7 @@ function truncate(s, n) {
   font-weight: 600;
 }
 .rank-2 {
-  background: #d3d1c7;
+  background: var(--border-strong);
   color: #444441;
   font-weight: 600;
 }

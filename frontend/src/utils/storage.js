@@ -77,6 +77,7 @@ function normalize(it) {
   return {
     ...it,
     source: it.source || 'diagnose',
+    createdAt: it.createdAt || Date.now(),
     quizCount: it.quizCount || 0,
     correctCount: it.correctCount || 0,
     streak: it.streak || 0,

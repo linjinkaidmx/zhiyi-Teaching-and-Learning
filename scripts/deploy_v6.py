@@ -33,7 +33,8 @@ def get_json(path, timeout=20):
 
 
 def main():
-    if not PWD:/n        print("请先设置环境变量 ZHIYI_SSH_PWD（服务器 SSH 密码）")
+    if not PWD:
+        print("请先设置环境变量 ZHIYI_SSH_PWD（服务器 SSH 密码）")
         return 1
     assert os.path.isdir(DIST), f"构建产物不存在: {DIST}"
     assets = os.listdir(os.path.join(DIST, "assets"))
@@ -77,7 +78,7 @@ def main():
     m = re.search(r'assets/([^"]+\.js)', html)
     js = m.group(1) if m else "?"
     print("  页面 JS:", js)
-    print("  含新构建(DwL6sZWN):", "DwL6sZWN" in html)
+    print("  含新构建(D-7t_1E1):", "D-7t_1E1" in html)
 
     # 校验主 JS 与主 CSS 可访问
     for ref in re.findall(r'assets/([^"]+\.(?:js|css))', html):

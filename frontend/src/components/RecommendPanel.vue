@@ -124,7 +124,7 @@ function join(q) {
 .detail {
   margin-top: 10px;
   padding: 10px 12px;
-  background: var(--brand-light);
+  background: var(--brand-soft);
   border-radius: 8px;
   font-size: 13px;
   line-height: 1.7;
