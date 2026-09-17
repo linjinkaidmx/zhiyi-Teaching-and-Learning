@@ -2,6 +2,9 @@
 .env
 .env.*
 !.env.example
+# .env.production 不含密钥，只把 API 基址置空走同源相对路径，
+# 必须提交：否则 clone 后构建会回退到源码默认的 http://127.0.0.1:8000，线上全部接口失败。
+!.env.production
 
 # Python
 __pycache__/

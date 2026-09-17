@@ -96,11 +96,26 @@ const kpInput = ref('')
 const importId = ref('')
 const loading = ref(false)
 
-const myBook = computed(() => getBook().filter((x) => (x.question || '').trim()))
+/**
+ * 练习本里可选的题。用 ref + 每次打开弹窗刷新，而不是 computed ——
+ * getBook() 读的是 localStorage，不是响应式依赖，computed 会永久缓存首次求值结果，
+ * 导致「打开弹窗前才加入的题」在下拉里不出现。
+ */
+const myBook = ref([])
+
+function refreshBook() {
+  try {
+    myBook.value = getBook().filter((x) => (x.question || '').trim())
+  } catch (e) {
+    console.warn('[PostDialog] getBook failed:', e)
+    myBook.value = []
+  }
+}
 
 watch(visible, (v) => {
   if (!v) return
   importId.value = ''
+  refreshBook()
   if (props.preset) {
     // 从练习本分享：预填错题卡
     Object.assign(form, {

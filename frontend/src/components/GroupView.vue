@@ -62,7 +62,7 @@
           <!-- 共享错题 -->
           <el-tab-pane label="共享错题" name="shares">
             <div class="shares-toolbar">
-              <el-button type="primary" plain size="small" @click="shareDialogVisible = true">
+              <el-button type="primary" plain size="small" @click="openShareDialog">
                 分享我的错题进组
               </el-button>
             </div>
@@ -176,7 +176,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import MathText from './MathText.vue'
 import { groupApi } from '../api/auth'
 import { isLoggedIn, user } from '../store/user'
-import { addRecord } from '../utils/storage'
+import { addRecord, getBook } from '../utils/storage'
 
 const SUBJECTS = ['高等数学', '线性代数', '概率论与数理统计', '数据结构', '算法', '操作系统', '计算机网络']
 
@@ -277,18 +277,33 @@ const rankedMembers = computed(() =>
   [...members.value].sort((a, b) => (b.accuracy || 0) - (a.accuracy || 0)
     || b.recordTotal - a.recordTotal))
 
-/** 可以分享的题：排除本组已经分享过的 */
-const shareableBook = computed(() => {
-  const shared = new Set(shares.value.map((s) => s.rid))
-  return getBookSafe().filter((x) => (x.question || '').trim() && !shared.has(String(x.id)))
-})
-
 function getBookSafe() {
   try {
     return getBook()
-  } catch {
+  } catch (e) {
+    console.warn('[GroupView] getBook failed:', e)
     return []
   }
+}
+
+/**
+ * 可以分享的题：排除本组已经分享过的。
+ * 用 ref 而非 computed —— getBook() 读的是 localStorage，不是响应式依赖，
+ * 用 computed 会因为依赖收集不到而永远缓存旧值；改为每次打开弹窗时刷新，
+ * 保证「进入小组后才新加的题」也能立刻出现在下拉里。
+ */
+const shareableBook = ref([])
+
+function refreshShareable() {
+  const shared = new Set(shares.value.map((s) => s.rid))
+  shareableBook.value = getBookSafe().filter(
+    (x) => (x.question || '').trim() && !shared.has(String(x.id)))
+}
+
+function openShareDialog() {
+  shareForm.value = { rid: '', note: '' }
+  refreshShareable()
+  shareDialogVisible.value = true
 }
 
 async function doShare() {
@@ -310,6 +325,7 @@ async function doShare() {
     shareDialogVisible.value = false
     shareForm.value = { rid: '', note: '' }
     await loadShares()
+    refreshShareable()
   } catch (e) {
     ElMessage.error(e.message)
   } finally {
