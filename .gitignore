@@ -8,6 +8,7 @@ __pycache__/
 *.pyc
 venv/
 .venv/
+backend/zhiyi.db*
 
 # Node
 node_modules/

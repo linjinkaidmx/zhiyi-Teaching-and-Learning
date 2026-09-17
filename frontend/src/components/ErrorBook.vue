@@ -74,6 +74,7 @@
         <div class="q"><MathText :text="it.question" /></div>
         <div class="row-ops">
           <el-button link type="primary" @click.stop="emit('review', it)">查看解析</el-button>
+          <el-button link type="warning" @click.stop="emit('share', it)">分享</el-button>
           <el-button v-if="it.status !== '已掌握'" link type="success" @click.stop="mark(it.id, '已掌握')">
             标记已掌握
           </el-button>
@@ -100,7 +101,7 @@ import {
   hasErrorType,
 } from '../utils/storage'
 
-const emit = defineEmits(['review', 'quiz'])
+const emit = defineEmits(['review', 'quiz', 'share'])
 
 const list = ref(getBook())
 const filter = ref('全部')

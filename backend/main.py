@@ -16,6 +16,9 @@ from fastapi.staticfiles import StaticFiles
 
 from schemas import DiagnoseResult, ApiResp, JudgeRequest, JudgeResp
 from service import diagnose_image, judge_answer, ArkError
+from auth import router as account_router
+from forum import router as forum_router
+from group import router as group_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("zhiyi")
@@ -43,6 +46,12 @@ ALLOWED_TYPES = {"image/png", "image/jpeg", "image/jpg", "image/webp"}
 def health():
     """健康检查"""
     return {"status": "ok", "service": "zhiyi"}
+
+
+# 账号 / 错题同步 / 论坛 / 学习小组（数据库模块，不依赖 AI）
+app.include_router(account_router)
+app.include_router(forum_router)
+app.include_router(group_router)
 
 
 @app.post("/api/diagnose", response_model=ApiResp)

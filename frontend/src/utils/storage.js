@@ -1,5 +1,5 @@
 /**
- * 练习本本地存储（localStorage）
+ * 练习本存储（localStorage 双空间 + 服务端同步钩子）
  *
  * 说明：
  * 1. 图片体积大且 localStorage 有 5MB 限制，因此只存文字信息，不存图片。
@@ -7,25 +7,66 @@
  *      diagnose  拍错题后由错因诊断加入（带错因、错误步骤）
  *      solve     拍题后由题目解答加入（没错因，作为练习收藏）
  *      bank      同类题推荐里主动加入（没错因）
+ *      share     从小组共享区保存进来的（组内他人分享的错题）
  *    老版本数据没有 source 字段，读取时统一按 diagnose 兼容，保证旧记录不炸。
+ * 3. 双数据空间：
+ *      guest    游客数据（登录前的本地数据，保留在 zhiyi_error_book_guest）
+ *      account  账号数据（登录后的数据，缓存于 zhiyi_error_book_account，
+ *               同时全量同步到服务端 SQLite）
+ *    登录/退出时通过 setBookSpace() 切换，两个空间互不污染。
  */
-const KEY = 'zhiyi_error_book'
+const KEY_GUEST = 'zhiyi_error_book'
+const KEY_ACCOUNT = 'zhiyi_error_book_account'
 const DAY = 24 * 3600 * 1000
 
 /** 连续答对多少次自动判定为已掌握 */
 const MASTER_STREAK = 2
 
+/** 当前数据空间：guest | account */
+let space = 'guest'
+
+/** 写操作同步钩子（由 store/user.js 注册）：kind = upsert | delete */
+let syncHandler = null
+
+export function setBookSpace(next) {
+  space = next === 'account' ? 'account' : 'guest'
+}
+
+export function getBookSpace() {
+  return space
+}
+
+/** 注册同步处理器（登录态下每次写操作后回调） */
+export function setSyncHandler(fn) {
+  syncHandler = fn
+}
+
+function key() {
+  return space === 'account' ? KEY_ACCOUNT : KEY_GUEST
+}
+
+/** 写操作后通知同步（失败静默，本地已成功优先） */
+function notifySync(kind, payload) {
+  if (space !== 'account' || !syncHandler) return
+  try {
+    syncHandler(kind, payload)
+  } catch (e) {
+    console.warn('[storage] sync failed:', e)
+  }
+}
+
 function readAll() {
   try {
-    const raw = JSON.parse(localStorage.getItem(KEY) || '[]')
+    const raw = JSON.parse(localStorage.getItem(key()) || '[]')
     return Array.isArray(raw) ? raw : []
   } catch {
     return []
   }
 }
 
-function writeAll(list) {
-  localStorage.setItem(KEY, JSON.stringify(list))
+/** 仅登录拉取时重建缓存用：直接覆写当前空间的整包数据 */
+export function writeAll(list) {
+  localStorage.setItem(key(), JSON.stringify(list))
 }
 
 /**
@@ -100,6 +141,7 @@ export function addRecord(record, patch = {}) {
   if (dup >= 0) list[dup] = item
   else list.unshift(item)
   writeAll(list)
+  notifySync('upsert', item)
   return item
 }
 
@@ -110,6 +152,7 @@ export function updateRecord(id, patch) {
   if (i >= 0) {
     list[i] = { ...list[i], ...patch }
     writeAll(list)
+    notifySync('upsert', list[i])
   }
   return getBook()
 }
@@ -122,15 +165,22 @@ export function updateStatus(id, status) {
     list[i].reviewCount = (list[i].reviewCount || 0) + 1
     list[i].lastReviewAt = Date.now()
     writeAll(list)
+    notifySync('upsert', list[i])
   }
   return getBook()
 }
 
 export function removeRecord(id) {
   writeAll(readAll().filter((x) => x.id !== id))
+  notifySync('delete', { rid: id })
   return getBook()
 }
 
+/**
+ * 清空当前空间的本地缓存。
+ * 注意：不触发服务端同步——仅用于登录时重建账号空间缓存；
+ * 游客空间清空也只影响本地。
+ */
 export function clearBook() {
   writeAll([])
   return []
@@ -224,6 +274,7 @@ export function submitQuizResult(id, ok) {
   }
 
   writeAll(list)
+  notifySync('upsert', normalize(it))
   return normalize(it)
 }
 
