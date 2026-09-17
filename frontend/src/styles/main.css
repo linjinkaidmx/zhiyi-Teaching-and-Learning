@@ -1,0 +1,65 @@
+:root {
+  --brand: #534ab7;
+  --brand-light: #eeedfe;
+  --danger: #e24b4a;
+  --success: #639922;
+  --text: #2c2c2a;
+  --text-sub: #5f5e5a;
+  --border: #d3d1c7;
+  --bg: #f1efe8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+#app {
+  min-height: 100vh;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 40px;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+
+.logo {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--brand);
+  letter-spacing: 2px;
+}
+
+.slogan {
+  font-size: 13px;
+  color: var(--text-sub);
+}
+
+.app-main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+}

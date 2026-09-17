@@ -12,6 +12,15 @@ venv/
 # Node
 node_modules/
 dist/
+dist*/
+backend/static/
+backend/static*/
+*.timestamp-*.mjs
+*.local
+
+# 生成产物与临时文件
+bank_generated.json
+tmp_*.mjs
 
 # 编辑器与系统
 .vscode/

@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    image: zhiyi-backend:latest
+    container_name: zhiyi-backend
+    restart: unless-stopped
+    ports:
+      # 主机 3300 → 容器 8000，与 install.sh 的默认端口保持一致
+      - "3300:8000"
+    env_file:
+      - .env
