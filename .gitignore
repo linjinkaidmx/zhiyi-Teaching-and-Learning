@@ -1,523 +1,73 @@
 # 知一 2.0 · 忽略规则
-# 说明：本仓库此前没有版本控制，构建快照与缓存长期堆积（曾一度堆到 129 MB / 45 个 dist 目录）。
-# 这份规则的目的就是让「可重建的东西」永远不进版本库、也不再靠人工清理。
+#
+# 原则：可重建的东西一律不进版本库。
+# 曾出现过构建快照堆积（一度 129MB / 45 个 dist 目录），也出现过明文凭据被推上公开仓库，
+# 因此下面按「依赖 / 产物 / 凭据 / 数据 / 临时 / 工作区 / 素材」分组，便于维护。
 
 # ---------- 依赖 ----------
 node_modules/
 .pnpm-store/
 
 # ---------- 构建产物（全部可由源码重建）----------
-# 部署用的是服务器上的 static，本地这些只是构建快照
 dist/
 dist*/
 backend/static/
 backend/static_bak_prev/
-
-# ---------- Python ----------
-__pycache__/
-*.pyc
-*.pyo
-.venv/
-venv/
-env/
-
-# ---------- 凭据（绝不入库）----------
-# backend/.env 里是真实 API Key
-.env
-.env.local
-.env.*.local
-*.pem
-*.key
-
-# ---------- 本地数据库（含账号 / 错题 / 题库数据）----------
-backend/data/
-*.db
-*.db-shm
-*.db-wal
-*.sqlite
-*.sqlite3
-
-# ---------- 临时产物 ----------
-*.tar.gz
-*.log
-_cleanup_report.txt
-.learnbuddy/_p9_shots*/
-.learnbuddy/_p9_shots*/*
-.tmp/
-tmp/
-
-# ---------- 编辑器 ----------
-.idea/
-.vscode/
-*.swp
-.DS_Store
-Thumbs.db
-# 知一 2.0 · 忽略规则
-# 说明：本仓库此前没有版本控制，构建快照与缓存长期堆积（曾一度堆到 129 MB / 45 个 dist 目录）。
-# 这份规则的目的就是让「可重建的东西」永远不进版本库、也不再靠人工清理。
-
-# ---------- 依赖 ----------
-node_modules/
-.pnpm-store/
-
-# ---------- 构建产物（全部可由源码重建）----------
-# 部署用的是服务器上的 static，本地这些只是构建快照
-dist/
-dist*/
-backend/static/
-backend/static_bak_prev/
-
-# ---------- Python ----------
-__pycache__/
-*.pyc
-*.pyo
-.venv/
-venv/
-env/
-
-# ---------- 凭据（绝不入库）----------
-# backend/.env 里是真实 API Key
-.env
-.env.local
-.env.*.local
-*.pem
-*.key
-
-# ---------- 本地数据库（含账号 / 错题 / 题库数据）----------
-backend/data/
-*.db
-*.db-shm
-*.db-wal
-*.sqlite
-*.sqlite3
-
-# ---------- 临时产物 ----------
-*.tar.gz
-*.log
-_cleanup_report.txt
-.learnbuddy/_p9_shots*/
-.learnbuddy/_p9_shots*/*
-.tmp/
-tmp/
-
-# ---------- 编辑器 ----------
-.idea/
-.vscode/
-*.swp
-.DS_Store
-Thumbs.db
-
-# ---------- 测试账号与实验数据（含 token / 实验样本，不入库）----------
-frontend/_qa_accounts.json
-_qa_accounts.json
-backend/_ab/
-frontend/_ab/
-_legacy_removed/
-_handbook_d0.txt
-_handbook*.txt
-_snapshot_*/
-
-# ---------- 工作区内部数据（AI 协作记忆 / 截图 / 实验产物，不入库）----------
-.learnbuddy/
-*.timestamp-*.mjs
-*.tmp
-_handbook*
-# 知一 2.0 · 忽略规则
-# 说明：本仓库此前没有版本控制，构建快照与缓存长期堆积（曾一度堆到 129 MB / 45 个 dist 目录）。
-# 这份规则的目的就是让「可重建的东西」永远不进版本库、也不再靠人工清理。
-
-# ---------- 依赖 ----------
-node_modules/
-.pnpm-store/
-
-# ---------- 构建产物（全部可由源码重建）----------
-# 部署用的是服务器上的 static，本地这些只是构建快照
-dist/
-dist*/
-backend/static/
-backend/static_bak_prev/
-
-# ---------- Python ----------
-__pycache__/
-*.pyc
-*.pyo
-.venv/
-venv/
-env/
-
-# ---------- 凭据（绝不入库）----------
-# backend/.env 里是真实 API Key
-.env
-.env.local
-.env.*.local
-*.pem
-*.key
-
-# ---------- 本地数据库（含账号 / 错题 / 题库数据）----------
-backend/data/
-*.db
-*.db-shm
-*.db-wal
-*.sqlite
-*.sqlite3
-
-# ---------- 临时产物 ----------
-*.tar.gz
-*.log
-_cleanup_report.txt
-.learnbuddy/_p9_shots*/
-.learnbuddy/_p9_shots*/*
-.tmp/
-tmp/
-
-# ---------- 编辑器 ----------
-.idea/
-.vscode/
-*.swp
-.DS_Store
-Thumbs.db
-# 知一 2.0 · 忽略规则
-# 说明：本仓库此前没有版本控制，构建快照与缓存长期堆积（曾一度堆到 129 MB / 45 个 dist 目录）。
-# 这份规则的目的就是让「可重建的东西」永远不进版本库、也不再靠人工清理。
-
-# ---------- 依赖 ----------
-node_modules/
-.pnpm-store/
-
-# ---------- 构建产物（全部可由源码重建）----------
-# 部署用的是服务器上的 static，本地这些只是构建快照
-dist/
-dist*/
-backend/static/
-backend/static_bak_prev/
-
-# ---------- Python ----------
-__pycache__/
-*.pyc
-*.pyo
-.venv/
-venv/
-env/
-
-# ---------- 凭据（绝不入库）----------
-# backend/.env 里是真实 API Key
-.env
-.env.local
-.env.*.local
-*.pem
-*.key
-
-# ---------- 本地数据库（含账号 / 错题 / 题库数据）----------
-backend/data/
-*.db
-*.db-shm
-*.db-wal
-*.sqlite
-*.sqlite3
-
-# ---------- 临时产物 ----------
-*.tar.gz
-*.log
-_cleanup_report.txt
-.learnbuddy/_p9_shots*/
-.learnbuddy/_p9_shots*/*
-.tmp/
-tmp/
-
-# ---------- 编辑器 ----------
-.idea/
-.vscode/
-*.swp
-.DS_Store
-Thumbs.db
-
-# ---------- 测试账号与实验数据（含 token / 实验样本，不入库）----------
-frontend/_qa_accounts.json
-_qa_accounts.json
-backend/_ab/
-frontend/_ab/
-_legacy_removed/
-_handbook_d0.txt
-_handbook*.txt
-_snapshot_*/
-
-# ---------- 工作区内部数据（AI 协作记忆 / 截图 / 实验产物，不入库）----------
-.learnbuddy/
-*.timestamp-*.mjs
-*.tmp
-_handbook*
-
-# ---------- 参赛材料（体积大，单独提交到赛事平台，不入代码仓库）----------
-参赛素材/
-
-# ---------- 构建临时产物（历史遗留目录）----------
-backend/static_tmp*/
 backend/static_bak*/
-
-# ---------- 工作区内部数据（任意层级，含 QA 截图与数据导出）----------
-**/.learnbuddy/
-*_dump.json
-*bank_full*.json
-# 知一 2.0 · 忽略规则
-# 说明：本仓库此前没有版本控制，构建快照与缓存长期堆积（曾一度堆到 129 MB / 45 个 dist 目录）。
-# 这份规则的目的就是让「可重建的东西」永远不进版本库、也不再靠人工清理。
-
-# ---------- 依赖 ----------
-node_modules/
-.pnpm-store/
-
-# ---------- 构建产物（全部可由源码重建）----------
-# 部署用的是服务器上的 static，本地这些只是构建快照
-dist/
-dist*/
-backend/static/
-backend/static_bak_prev/
-
-# ---------- Python ----------
-__pycache__/
-*.pyc
-*.pyo
-.venv/
-venv/
-env/
-
-# ---------- 凭据（绝不入库）----------
-# backend/.env 里是真实 API Key
-.env
-.env.local
-.env.*.local
-*.pem
-*.key
-
-# ---------- 本地数据库（含账号 / 错题 / 题库数据）----------
-backend/data/
-*.db
-*.db-shm
-*.db-wal
-*.sqlite
-*.sqlite3
-
-# ---------- 临时产物 ----------
-*.tar.gz
-*.log
-_cleanup_report.txt
-.learnbuddy/_p9_shots*/
-.learnbuddy/_p9_shots*/*
-.tmp/
-tmp/
-
-# ---------- 编辑器 ----------
-.idea/
-.vscode/
-*.swp
-.DS_Store
-Thumbs.db
-# 知一 2.0 · 忽略规则
-# 说明：本仓库此前没有版本控制，构建快照与缓存长期堆积（曾一度堆到 129 MB / 45 个 dist 目录）。
-# 这份规则的目的就是让「可重建的东西」永远不进版本库、也不再靠人工清理。
-
-# ---------- 依赖 ----------
-node_modules/
-.pnpm-store/
-
-# ---------- 构建产物（全部可由源码重建）----------
-# 部署用的是服务器上的 static，本地这些只是构建快照
-dist/
-dist*/
-backend/static/
-backend/static_bak_prev/
-
-# ---------- Python ----------
-__pycache__/
-*.pyc
-*.pyo
-.venv/
-venv/
-env/
-
-# ---------- 凭据（绝不入库）----------
-# backend/.env 里是真实 API Key
-.env
-.env.local
-.env.*.local
-*.pem
-*.key
-
-# ---------- 本地数据库（含账号 / 错题 / 题库数据）----------
-backend/data/
-*.db
-*.db-shm
-*.db-wal
-*.sqlite
-*.sqlite3
-
-# ---------- 临时产物 ----------
-*.tar.gz
-*.log
-_cleanup_report.txt
-.learnbuddy/_p9_shots*/
-.learnbuddy/_p9_shots*/*
-.tmp/
-tmp/
-
-# ---------- 编辑器 ----------
-.idea/
-.vscode/
-*.swp
-.DS_Store
-Thumbs.db
-
-# ---------- 测试账号与实验数据（含 token / 实验样本，不入库）----------
-frontend/_qa_accounts.json
-_qa_accounts.json
-backend/_ab/
-frontend/_ab/
-_legacy_removed/
-_handbook_d0.txt
-_handbook*.txt
-_snapshot_*/
-
-# ---------- 工作区内部数据（AI 协作记忆 / 截图 / 实验产物，不入库）----------
-.learnbuddy/
-*.timestamp-*.mjs
-*.tmp
-_handbook*
-# 知一 2.0 · 忽略规则
-# 说明：本仓库此前没有版本控制，构建快照与缓存长期堆积（曾一度堆到 129 MB / 45 个 dist 目录）。
-# 这份规则的目的就是让「可重建的东西」永远不进版本库、也不再靠人工清理。
-
-# ---------- 依赖 ----------
-node_modules/
-.pnpm-store/
-
-# ---------- 构建产物（全部可由源码重建）----------
-# 部署用的是服务器上的 static，本地这些只是构建快照
-dist/
-dist*/
-backend/static/
-backend/static_bak_prev/
-
-# ---------- Python ----------
-__pycache__/
-*.pyc
-*.pyo
-.venv/
-venv/
-env/
-
-# ---------- 凭据（绝不入库）----------
-# backend/.env 里是真实 API Key
-.env
-.env.local
-.env.*.local
-*.pem
-*.key
-
-# ---------- 本地数据库（含账号 / 错题 / 题库数据）----------
-backend/data/
-*.db
-*.db-shm
-*.db-wal
-*.sqlite
-*.sqlite3
-
-# ---------- 临时产物 ----------
-*.tar.gz
-*.log
-_cleanup_report.txt
-.learnbuddy/_p9_shots*/
-.learnbuddy/_p9_shots*/*
-.tmp/
-tmp/
-
-# ---------- 编辑器 ----------
-.idea/
-.vscode/
-*.swp
-.DS_Store
-Thumbs.db
-# 知一 2.0 · 忽略规则
-# 说明：本仓库此前没有版本控制，构建快照与缓存长期堆积（曾一度堆到 129 MB / 45 个 dist 目录）。
-# 这份规则的目的就是让「可重建的东西」永远不进版本库、也不再靠人工清理。
-
-# ---------- 依赖 ----------
-node_modules/
-.pnpm-store/
-
-# ---------- 构建产物（全部可由源码重建）----------
-# 部署用的是服务器上的 static，本地这些只是构建快照
-dist/
-dist*/
-backend/static/
-backend/static_bak_prev/
-
-# ---------- Python ----------
-__pycache__/
-*.pyc
-*.pyo
-.venv/
-venv/
-env/
-
-# ---------- 凭据（绝不入库）----------
-# backend/.env 里是真实 API Key
-.env
-.env.local
-.env.*.local
-*.pem
-*.key
-
-# ---------- 本地数据库（含账号 / 错题 / 题库数据）----------
-backend/data/
-*.db
-*.db-shm
-*.db-wal
-*.sqlite
-*.sqlite3
-
-# ---------- 临时产物 ----------
-*.tar.gz
-*.log
-_cleanup_report.txt
-.learnbuddy/_p9_shots*/
-.learnbuddy/_p9_shots*/*
-.tmp/
-tmp/
-
-# ---------- 编辑器 ----------
-.idea/
-.vscode/
-*.swp
-.DS_Store
-Thumbs.db
-
-# ---------- 测试账号与实验数据（含 token / 实验样本，不入库）----------
-frontend/_qa_accounts.json
-_qa_accounts.json
-backend/_ab/
-frontend/_ab/
-_legacy_removed/
-_handbook_d0.txt
-_handbook*.txt
-_snapshot_*/
-
-# ---------- 工作区内部数据（AI 协作记忆 / 截图 / 实验产物，不入库）----------
-.learnbuddy/
-*.timestamp-*.mjs
-*.tmp
-_handbook*
-
-# ---------- 参赛材料（体积大，单独提交到赛事平台，不入代码仓库）----------
-参赛素材/
-
-# ---------- 构建临时产物（历史遗留目录）----------
 backend/static_tmp*/
-backend/static_bak*/
 
-# ---------- 工作区内部数据（任意层级，含 QA 截图与数据导出）----------
+# ---------- Python ----------
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+
+# ---------- 凭据（绝不入库）----------
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ---------- 本地数据库（含账号 / 错题 / 题库数据）----------
+backend/data/
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# ---------- 临时产物 ----------
+*.tar.gz
+*.log
+*.tmp
+*.timestamp-*.mjs
+_cleanup_report.txt
+_handbook*
+.tmp/
+tmp/
+
+# ---------- 编辑器 / 系统 ----------
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# ---------- 工作区内部数据（任意层级：QA 截图、记忆、实验产物）----------
+.learnbuddy/
 **/.learnbuddy/
+*_accounts.json
+*_ab/
+_legacy_removed/
+_snapshot_*/
+
+# ---------- 数据导出（走脚本重新生成，不入库）----------
 *_dump.json
 *bank_full*.json
 
-# ---------- 沉淀出的 skill 导出包（本地存档，不入代码仓库）----------
+# ---------- 本地存档（体积大 / 属交付材料，不进代码仓库）----------
+参赛素材/
 skills-export/
