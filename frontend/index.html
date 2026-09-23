@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>知一 · AI 拍题讲解 + 错题自测</title>
+    <link rel="stylesheet" href="/hljs_github.min.css" />
+    <link rel="stylesheet" href="/cm/cm0.min.css" />
+    <script>
+      /* 主题要在首帧之前定下来：否则开屏层会先按浅色画一遍再翻深色（闪一下） */
+      (function () {
+        try {
+          var p = new URLSearchParams(location.search).get('theme')
+          var t = p || localStorage.getItem('zy_theme') || 'light'
+          document.documentElement.dataset.theme = t === 'light' ? 'light' : 'dark'
+        } catch (e) {
+          document.documentElement.dataset.theme = 'light'
+        }
+      })()
+    </script>
+    <style>
+      /* ==========================================================================
+         开场动画层（zy-boot）
+         ---------------------------------------------------------------------------
+         必须内联：它要在「JS 还没下载完」时就可见，用来盖住首屏加载的空白期。
+         顶部三条规则与产品设计 token 对齐（浅色底 / 主色渐变 / 文字灰阶）。
+         ========================================================================== */
+      .zy-boot {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(160deg, #eef3fd 0%, #f4f0fd 52%, #fdf5ee 100%);
+        transition: opacity 0.25s ease, visibility 0.25s ease;
+      }
+      html[data-theme='dark'] .zy-boot {
+        background: linear-gradient(160deg, #0d1220 0%, #141326 52%, #1a1524 100%);
+      }
+      .zy-boot.is-out {
+        opacity: 0;
+        visibility: hidden;
+      }
+      .zy-boot__inner {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .zy-boot__mark {
+        width: 64px;
+        height: 64px;
+        border-radius: 20px;
+        flex: none;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(140deg, #7e68f7, #5b47d6);
+        box-shadow: 0 10px 26px -10px rgba(91, 71, 214, 0.65);
+        opacity: 0;
+        animation: zyBootMark 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+      .zy-boot__mark svg {
+        width: 32px;
+        height: 32px;
+        color: #fff;
+      }
+      .zy-boot__text {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 3px;
+      }
+      .zy-boot__name {
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        /* 负右距抵消末尾字距，让标语与名称的视觉右边缘对齐（落款关系） */
+        margin-right: -0.06em;
+        color: #141a26;
+        opacity: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        animation: zyBootName 0.3s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+      }
+      .zy-boot__slogan {
+        font-size: 12.5px;
+        letter-spacing: 0.08em;
+        margin-right: -0.08em;
+        color: #7c869b;
+        opacity: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        animation: zyBootSlogan 0.3s cubic-bezier(0.16, 1, 0.3, 1) 0.45s both;
+      }
+      html[data-theme='dark'] .zy-boot__name {
+        color: #e9ecf3;
+      }
+      html[data-theme='dark'] .zy-boot__slogan {
+        color: #8890a6;
+      }
+      /* 慢网络（Vue 迟迟不就绪）：Logo 轻微呼吸，诚实表达「正在加载」 */
+      .zy-boot.is-slow .zy-boot__mark {
+        animation: zyBootMark 0.4s cubic-bezier(0.16, 1, 0.3, 1) both,
+          zyBootBreathe 1.7s ease-in-out 1.1s infinite;
+      }
+      @keyframes zyBootMark {
+        from { opacity: 0; transform: translateY(12px) scale(0.92); }
+        to { opacity: 1; transform: none; }
+      }
+      @keyframes zyBootName {
+        from { opacity: 0; transform: translateX(-8px); }
+        to { opacity: 1; transform: none; }
+      }
+      @keyframes zyBootSlogan {
+        from { opacity: 0; transform: translateY(-4px); }
+        to { opacity: 1; transform: none; }
+      }
+      @keyframes zyBootBreathe {
+        0%, 100% { opacity: 0.58; }
+        50% { opacity: 1; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .zy-boot__mark, .zy-boot__name, .zy-boot__slogan { animation: none; opacity: 1; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <!-- 开场动画：Logo + 右下角标语；由下方内联脚本决定是否显示 -->
+    <div id="zyBoot" class="zy-boot" aria-hidden="true">
+      <div class="zy-boot__inner">
+        <div class="zy-boot__mark">
+          <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path
+              d="M2.4 11C4.3 7.2 6.4 5.4 8.7 5.4c1.7 0 3 1.1 3 2.6"
+              stroke="currentColor"
+              stroke-width="1.2"
+              stroke-linecap="round"
+            />
+            <circle cx="9.8" cy="3.6" r="1.5" fill="currentColor" />
+          </svg>
+        </div>
+        <div class="zy-boot__text">
+          <div class="zy-boot__name">知一</div>
+          <div class="zy-boot__slogan">知理于一，笃学前行</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* ==========================================================================
+         开场动画控制
+         ---------------------------------------------------------------------------
+         显示条件（三者都满足）：首页 + 系统未开「减少动效」+ 本会话未播过
+         标记在解析阶段就写入 sessionStorage，因此刷新/站内跳转不会重播。
+         交接条件：动画播完（0.95s）且 Vue 已就绪；慢网络时保持常亮（呼吸）。
+         兜底：最长 3 秒强制结束，避免脚本异常时永远挡屏。
+         ========================================================================== */
+      (function () {
+        var MIN_SHOW = 950 // 开屏层最短展示时间（与动画节奏一致）
+        // 兜底上限：只在「Vue 已就绪但交接卡住」这类异常时才需要；
+        // 若把上限设得过短（原来 3s），慢网络下会出现「开屏层先撤、页面还没好」的白窗，
+        // 反而把要盖的空白暴露出来 —— 线上实测首次加载需 3s+，故放宽到 10s。
+        var MAX_SHOW = 10000
+        var t0 = Date.now()
+        var el = document.getElementById('zyBoot')
+        var root = document.documentElement
+
+        function hide(skip) {
+          if (!el || el.dataset.done === '1') return
+          el.dataset.done = '1'
+          el.classList.add('is-out')
+          if (skip) root.classList.add('zy-boot-skip')
+          root.classList.add('zy-boot-done')
+          setTimeout(function () {
+            if (el && el.parentNode) el.parentNode.removeChild(el)
+          }, 300)
+        }
+
+        var shouldShow = false
+        try {
+          var p = location.pathname || '/'
+          var isHome = p === '/' || p === '/index.html'
+          var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          var played = sessionStorage.getItem('zy_boot_played') === '1'
+          shouldShow = isHome && !calm && !played
+          if (shouldShow) sessionStorage.setItem('zy_boot_played', '1')
+        } catch (e) {
+          shouldShow = false
+        }
+
+        if (!shouldShow) {
+          // 直接呈现：不播动画，也不给首页加级联
+          root.classList.add('zy-boot-skip', 'zy-boot-done')
+          if (el && el.parentNode) el.parentNode.removeChild(el)
+          return
+        }
+
+        // 慢网络提示：1.1s 后 Vue 还没就绪 → Logo 呼吸
+        var slowTimer = setTimeout(function () {
+          if (el && el.dataset.done !== '1') el.classList.add('is-slow')
+        }, 1100)
+
+        var maxTimer = setTimeout(function () { finish(true) }, MAX_SHOW)
+        var readyFlag = false
+
+        function finish(skip) {
+          clearTimeout(slowTimer)
+          clearTimeout(maxTimer)
+          hide(skip)
+        }
+
+        // 点击 / 任意按键 → 立即跳过
+        function onSkip() {
+          if (el && el.dataset.done === '1') return
+          finish(true)
+        }
+        el.addEventListener('click', onSkip, { once: true })
+        document.addEventListener('keydown', onSkip, { once: true })
+        el.addEventListener('touchstart', onSkip, { passive: true, once: true })
+
+        /** Vue 挂载完成时由 src/lib/boot.js 调用：满足最短展示时间后交接 */
+        window.__zyBoot = {
+          ready: function () {
+            if (readyFlag) return
+            readyFlag = true
+            var elapsed = Date.now() - t0
+            if (el && el.dataset.done === '1') return
+            if (el) el.classList.remove('is-slow')
+            var wait = Math.max(0, MIN_SHOW - elapsed)
+            setTimeout(function () { finish(false) }, wait)
+          },
+        }
+      })()
+    </script>
+
+    <!-- 代码高亮体积小且被高频文本组件使用，保留；chart / codemirror 约 396KB
+         改为用到时由 src/lib/lazyLibs.js 动态注入（首屏不再下载） -->
+    <script src="/highlight.min.js"></script>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

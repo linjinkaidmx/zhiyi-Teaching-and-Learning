@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>知一 2.0 · 全站界面原型（套用搜题匠模板 · 重设计）</title>
+<style>
+  :root{
+    --bg:#F5F7FA; --card:#FFFFFF; --line:#E5E8EE; --line-soft:#EEF0F4;
+    --t1:#141A26; --t2:#5A6274; --t3:#8C94A6; --t4:#B4BAC6;
+    --pri:#6F57F0; --pri-soft:rgba(111,87,240,.10); --pri-line:rgba(111,87,240,.28);
+    --r-sm:8px; --r-md:12px; --r-lg:16px;
+    --c-tipai:#3D6FA8; --c-cuoti:#6B5B95; --c-zice:#4A7A63; --c-chat:#B5722A;
+    --c-kaoshi:#4A5D8A; --c-sucha:#3D6A7A; --c-algo:#7A5F3D; --c-debug:#5A6B7A;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#EDEFF4;color:var(--t1);font:14px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;padding:32px 24px 80px}
+  a{color:var(--pri);text-decoration:none}
+
+  /* ---------- 文档外壳 ---------- */
+  .doc{max-width:1240px;margin:0 auto}
+  .doc > h1{font-size:24px;font-weight:600;margin-bottom:6px}
+  .doc > .sub{color:var(--t2);font-size:13px;margin-bottom:24px}
+  .nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px}
+  .nav a{background:#fff;border:1px solid var(--line);border-radius:99px;padding:6px 14px;font-size:12px;color:var(--t2)}
+  .nav a:hover{border-color:var(--pri-line);color:var(--pri)}
+  h2.sec{font-size:17px;font-weight:600;margin:34px 0 6px;padding-top:14px;border-top:1px solid var(--line)}
+  h2.sec small{font-weight:400;color:var(--t3);font-size:12px;margin-left:8px}
+
+  /* ---------- 设计规范区 ---------- */
+  .spec{background:#fff;border:1px solid var(--line);border-radius:var(--r-md);padding:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+  .spec h4{font-size:13px;font-weight:600;margin-bottom:8px}
+  .swatches{display:flex;gap:8px;flex-wrap:wrap}
+  .sw{width:52px;text-align:center;font-size:10px;color:var(--t3)}
+  .sw i{display:block;height:34px;border-radius:8px;border:1px solid rgba(20,30,60,.08);margin-bottom:3px}
+  .spec ul{list-style:none;font-size:12px;color:var(--t2)}
+  .spec li{padding:2px 0}
+  .spec b{color:var(--t1)}
+
+  /* ---------- 映射表 ---------- */
+  table.map{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;font-size:12.5px}
+  table.map th,table.map td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--line-soft);vertical-align:top}
+  table.map th{background:#F8F9FC;font-weight:600;font-size:12px;color:var(--t2);white-space:nowrap}
+  table.map tr:last-child td{border-bottom:0}
+  table.map code{background:#F2F4F9;border-radius:4px;padding:1px 6px;font-size:11.5px;color:#4A5180;font-family:ui-monospace,Menlo,Consolas,monospace}
+  .tag{display:inline-block;border-radius:99px;padding:1px 8px;font-size:11px;background:var(--pri-soft);color:var(--pri);margin-right:4px}
+  .tag.g{background:rgba(74,122,99,.12);color:var(--c-zice)}
+  .tag.o{background:rgba(181,114,42,.12);color:var(--c-chat)}
+
+  /* ---------- 样机网格 ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:22px;margin-top:16px}
+  .dev{background:transparent}
+  .dev__head{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
+  .dev__no{font-size:11px;font-weight:600;color:var(--pri);background:var(--pri-soft);border-radius:6px;padding:1px 7px}
+  .dev__name{font-size:14px;font-weight:600}
+  .dev__path{font-size:11px;color:var(--t3);font-family:ui-monospace,Menlo,Consolas,monospace}
+
+  .screen{width:300px;height:620px;background:var(--bg);border:1px solid #D6DCE6;border-radius:18px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 6px 20px rgba(30,40,70,.07)}
+  .sbar{height:22px;flex:0 0 22px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;font-size:9px;color:var(--t3)}
+  .app{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+
+  .dev__note{width:300px;margin-top:10px;background:#fff;border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;font-size:11.5px;color:var(--t2);line-height:1.75}
+  .dev__note b{color:var(--t1);font-weight:600}
+  .dev__note em{font-style:normal;color:var(--pri)}
+
+  /* ---------- 通用界面零件 ---------- */
+  .navbar{flex:0 0 auto;height:44px;display:flex;align-items:center;gap:8px;padding:0 12px;background:#fff;border-bottom:1px solid var(--line-soft)}
+  .navbar .back{font-size:15px;color:var(--t2)}
+  .navbar .title{font-size:14.5px;font-weight:600}
+  .navbar .right{margin-left:auto;font-size:11.5px;color:var(--pri)}
+  .body{flex:1;min-height:0;overflow:hidden;padding:12px;display:flex;flex-direction:column;gap:10px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--r-md);padding:12px}
+  .card h5{font-size:13.5px;font-weight:600;margin-bottom:6px}
+  .card p{font-size:11.5px;color:var(--t2)}
+  .tiny{font-size:10.5px;color:var(--t3)}
+  .row{display:flex;align-items:center;gap:8px}
+  .grow{flex:1;min-width:0}
+  .pill{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:99px;padding:3px 10px;font-size:10.5px;color:var(--t2);background:#fff}
+  .pill.on{border-color:var(--pri-line);color:var(--pri);background:var(--pri-soft)}
+  .btn{border-radius:9px;padding:7px 14px;font-size:12px;text-align:center;border:1px solid var(--line);background:#fff;color:var(--t2)}
+  .btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+  .bar{height:6px;border-radius:99px;background:#E8EBF2;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--pri);border-radius:99px}
+  .tabbar{flex:0 0 auto;height:48px;background:#fff;border-top:1px solid var(--line-soft);display:flex}
+  .tabbar div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:9.5px;color:var(--t4)}
+  .tabbar div.on{color:var(--pri)}
+  .tabbar i{width:16px;height:16px;border:1.5px solid currentColor;border-radius:5px;display:block}
+  .skel{background:#EDF0F5;border-radius:6px;height:10px}
+  .ph{color:var(--t4)}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;text-align:center}
+  .mini{border-radius:10px;padding:8px 6px;font-size:10px;text-align:center;line-height:1.35;color:var(--t1)}
+  .mini i{display:block;width:22px;height:22px;border-radius:6px;margin:0 auto 5px;background:rgba(20,30,60,.10)}
+  .mini.on{color:#fff}
+  .mini.on i{background:rgba(255,255,255,.28)}
+  .ico{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;color:var(--t2)}
+  .ico i{width:26px;height:26px;border:1.5px solid var(--t3);border-radius:8px;display:block}
+
+  /* ---------- 留白流动光效（样机演示；产品里铺在各页背景层） ---------- */
+  @keyframes zyGlowA{0%{transform:translate(0,0) scale(1)}100%{transform:translate(78px,-58px) scale(1.22)}}
+  @keyframes zyGlowB{0%{transform:translate(0,0) scale(1)}100%{transform:translate(-70px,48px) scale(1.16)}}
+  .app--glow{position:relative}
+  .app--glow > .glow{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+  .app--glow > :not(.glow){position:relative;z-index:1}
+  .glow i{position:absolute;display:block;border-radius:50%;filter:blur(40px)}
+  .glow i:nth-child(1){width:150px;height:150px;background:#6F57F0;opacity:.22;left:-30px;bottom:60px;animation:zyGlowA 26s ease-in-out infinite alternate}
+  .glow i:nth-child(2){width:170px;height:170px;background:#3D6FA8;opacity:.18;right:-40px;bottom:20px;animation:zyGlowB 30s ease-in-out infinite alternate}
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <h1>知一 2.0 · 全站界面原型</h1>
+  <p class="sub">
+    套用「大学搜题匠」首页模板后的完整重设计 · 共 <b>34 个界面/状态</b> ·
+    已于 2026-09-21 二次确认的前提：<b>底部导航移除</b>（导航形态后续再定）、大卡仅一页 4 个（自测练习并入错题学习）、学习工具独立成页、我的课程并入课程表、首页不加常驻输入框、留白保持
+  </p>
+
+  <div class="nav">
+    <a href="#spec">① 设计规范</a>
+    <a href="#map">② 跳转映射总表</a>
+    <a href="#gA">A · 一级页面（首页 / 主功能 / 学习工具）</a>
+    <a href="#gB">B · 首页跳转目标</a>
+    <a href="#gC">C · 二级界面与弹窗</a>
+  </div>
+
+  <!-- ============ ① 设计规范 ============ -->
+  <h2 class="sec" id="spec">① 设计规范 <small>所有样图均按这套规范绘制；产品实际支持浅色/深色，此处统一以浅色展示</small></h2>
+  <div class="spec">
+    <div>
+      <h4>基础色</h4>
+      <div class="swatches">
+        <div class="sw"><i style="background:#F5F7FA"></i>页面底</div>
+        <div class="sw"><i style="background:#FFFFFF"></i>卡片</div>
+        <div class="sw"><i style="background:#E5E8EE"></i>描边</div>
+        <div class="sw"><i style="background:#6F57F0"></i>主色</div>
+        <div class="sw"><i style="background:#141A26"></i>主文字</div>
+        <div class="sw"><i style="background:#5A6274"></i>次文字</div>
+      </div>
+    </div>
+    <div>
+      <h4>功能色板（大卡 + 工具图标）</h4>
+      <div class="swatches">
+        <div class="sw"><i style="background:#3D6FA8"></i>拍照搜题</div>
+        <div class="sw"><i style="background:#6B5B95"></i>错题学习</div>
+        <div class="sw"><i style="background:#4A7A63"></i>自测练习</div>
+        <div class="sw"><i style="background:#B5722A"></i>AI 对话</div>
+        <div class="sw"><i style="background:#4A5D8A"></i>模拟考试</div>
+        <div class="sw"><i style="background:#3D6A7A"></i>考前速查</div>
+        <div class="sw"><i style="background:#7A5F3D"></i>算法演示</div>
+        <div class="sw"><i style="background:#5A6B7A"></i>代码诊断</div>
+      </div>
+      <p class="tiny" style="margin-top:6px">取自项目已有的课程色板，卡片用「该色 18% 混白」做浅彩底 → 全站色彩语言统一。首页大卡「学习工具」复用主色紫；自测练习色用于错题学习页内的自测入口卡；其余四色用于学习工具页的工具图标。</p>
+    </div>
+    <div>
+      <h4>字号 / 间距 / 圆角</h4>
+      <ul>
+        <li>页面标题 <b>20</b> · 区块标题 <b>15</b> · 卡片标题 <b>13.5</b></li>
+        <li>正文 <b>12.5</b> · 辅助 <b>11.5</b> · 极弱 <b>10.5</b></li>
+        <li>间距：<b>4 / 8 / 12 / 16 / 20</b>（4 的倍数）</li>
+        <li>圆角：控件 <b>9</b> · 卡片 <b>12</b> · 大容器 <b>16</b></li>
+      </ul>
+    </div>
+    <div>
+      <h4>图标与卡片</h4>
+      <ul>
+        <li>全站统一一套线性图标（stroke 1.5px）</li>
+        <li>卡片：白底 + 0.5px 描边 + 圆角 12，不用投影</li>
+        <li>主功能卡：浅彩底 + 该功能色的深色图标与标题</li>
+        <li>无底部导航：一级页之间靠首页大卡 / 次入口 / 顶部 Tab 跳转</li>
+      </ul>
+    </div>
+    <div>
+      <h4>留白流动光效</h4>
+      <div style="position:relative;height:74px;border-radius:10px;background:#F5F7FA;border:1px solid var(--line);overflow:hidden;margin-bottom:8px">
+        <i style="position:absolute;width:72px;height:72px;border-radius:50%;background:#6F57F0;filter:blur(26px);opacity:.28;left:6px;top:18px;animation:zyGlowA 18s ease-in-out infinite alternate;display:block"></i>
+        <i style="position:absolute;width:82px;height:82px;border-radius:50%;background:#3D6FA8;filter:blur(28px);opacity:.22;right:6px;top:8px;animation:zyGlowB 22s ease-in-out infinite alternate;display:block"></i>
+      </div>
+      <p class="tiny">留白区铺 2 个光斑（主色紫 + 功能蓝）缓慢漂移：浅色透明度约 0.2、深色约 0.12；周期 24-30s；只动 transform / opacity（GPU 合成，不重排）；系统「减少动态效果」时静止。产品里由全站背景层统一承载，A1 / A1b 样机已示意。</p>
+    </div>
+  </div>
+
+  <!-- ============ ② 跳转映射总表 ============ -->
+  <h2 class="sec" id="map">② 首页「按键 → 界面」跳转映射总表 <small>改版后首页上每一个可点元素去向</small></h2>
+  <table class="map">
+    <thead><tr><th>位置</th><th>按键</th><th>点击后去哪</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td rowspan="3">顶部</td><td>Tab「学习」</td><td><code>/</code></td><td>当前页，默认选中</td></tr>
+      <tr><td>Tab「我的」</td><td><code>/me</code></td><td>把原来藏在「更多」里的我的提到一级</td></tr>
+      <tr><td>提醒铃铛 🔔</td><td><code>提醒中心（浮层）</code></td><td>待复习 9 道 / 考试倒计时 / 今日目标 / 连续天数，见 B1（原有小红点提示）</td></tr>
+
+      <tr><td rowspan="4">主功能大卡<br><span class="tiny">（仅一页）</span></td><td>拍照搜题</td><td><code>/capture</code></td><td>主流程入口</td></tr>
+      <tr><td>错题学习</td><td><code>/wrongbook</code></td><td>错题本 + 学情看板 + 自测练习入口</td></tr>
+      <tr><td>AI 对话</td><td><code>/chat</code></td><td>AI 问答与追问</td></tr>
+      <tr><td>学习工具</td><td><code>/tools</code></td><td>四个学习工具的汇总页（见下）</td></tr>
+
+      <tr><td>错题学习<br>页内</td><td>自测练习（横条入口卡）</td><td><code>/practice/original</code></td><td>进入即按 SRS 出题</td></tr>
+      <tr><td>课程表<br>页内</td><td>我的课程</td><td><code>/course</code></td><td>课程 / 教师 / 教室 / 颜色</td></tr>
+
+      <tr><td rowspan="4">学习工具<br>页内</td><td>模拟考试</td><td><code>/exam</code></td><td>组卷 → 作答 → AI 判分</td></tr>
+      <tr><td>考前速查</td><td><code>/tools?tool=ref</code></td><td>公式大全 / 算法模板，可打印</td></tr>
+      <tr><td>算法演示</td><td><code>/tools?tool=algo</code></td><td>21 个算法分步动画</td></tr>
+      <tr><td>代码诊断</td><td><code>/tools?tool=debug</code></td><td>贴代码 + 报错，定位问题</td></tr>
+
+      <tr><td rowspan="5">次入口<br>第 1 页</td><td>课程表</td><td><code>/timetable</code></td><td>周课表 + 节次，内含「我的课程」入口</td></tr>
+      <tr><td>知一社区</td><td><code>/community</code></td><td>问答与讨论</td></tr>
+      <tr><td>考试安排</td><td><code>/exams</code></td><td>考试日期与倒计时</td></tr>
+      <tr><td>班级</td><td><code>/class</code></td><td>老师建班布置作业、学生拍照提交、AI 批改（2026-09-21 晚调整：替代学习记录）</td></tr>
+      <tr><td>学习数据</td><td><code>/data</code></td><td>时长、题量、趋势、掌握度</td></tr>
+
+      <tr><td rowspan="4">次入口<br>第 2 页<br><span class="tiny">（横滑）</span></td><td>学习记录</td><td><code>/records</code></td><td>每次讲解与练习的记录（2026-09-21 晚调整：从第 1 页移入）</td></tr>
+      <tr><td>产品介绍</td><td><code>/about</code></td><td>知一是什么、怎么用</td></tr>
+      <tr><td>帮助与反馈</td><td><code>/help</code></td><td>常见问题 + 意见反馈</td></tr>
+      <tr><td>账号与同步</td><td><code>/me</code></td><td>登录、资料、云同步（同顶部「我的」）</td></tr>
+
+      <tr><td rowspan="4">信息位<br><span class="tiny">（按优先级取一条）</span></td><td>考试倒计时</td><td><code>/exams</code></td><td>有临近考试时优先展示</td></tr>
+      <tr><td>今日目标进度</td><td><code>/data</code></td><td>无考试时展示今日时长/题量</td></tr>
+      <tr><td>待复习提醒</td><td><code>/wrongbook</code></td><td>待复习 &gt; 0 且无考试时（自测入口在错题学习页内）</td></tr>
+      <tr><td>空态</td><td><code>/capture</code></td><td>什么都没有时引导拍题</td></tr>
+    </tbody>
+  </table>
+  <p class="tiny" style="margin-top:8px">
+    重复红线：<b>同一功能不在同一屏出现两次</b>。自测练习只从错题学习页进、我的课程只从课程表页进、四个工具只从学习工具页进——首页不再直接露出二级功能，层级更干净。
+  </p>
+
+  <!-- ============ A 组 ============ -->
+  <h2 class="sec" id="gA">A · 一级页面 <small>首页 + 拍题 + 错题学习 + AI 对话 + 学习工具</small></h2>
+  <div class="grid" id="gA-grid">
+
+    <!-- ========== A1 首页 ========== -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">A1</span><span class="dev__name">首页（改版后）</span><span class="dev__path">/</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app app--glow">
+          <div class="glow"><i></i><i></i></div>
+          <!-- ① 顶部双 Tab + 搜索 -->
+          <div style="display:flex;align-items:center;gap:18px;padding:10px 14px 14px">
+            <span style="font-size:17px;font-weight:600;position:relative">学习
+              <span style="position:absolute;left:0;right:0;bottom:-7px;height:2.5px;border-radius:2px;background:#6F57F0"></span>
+            </span>
+            <span style="font-size:17px;color:#B4BAC6">我的</span>
+            <span style="margin-left:auto;position:relative;font-size:15px;color:#5A6274">🔔
+              <span style="position:absolute;top:-1px;right:-2px;width:7px;height:7px;border-radius:50%;background:#E8443A"></span>
+            </span>
+          </div>
+
+          <!-- ② 主功能大卡（一页 4 个，无轮播） -->
+          <div style="padding:0 14px">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+              <div style="background:#DCE5EF;border-radius:12px;padding:13px 4px;text-align:center">
+                <div style="width:26px;height:26px;border-radius:8px;background:#3D6FA8;margin:0 auto 8px"></div>
+                <div style="font-size:10.5px;font-weight:500;color:#254B75">拍照搜题</div>
+              </div>
+              <div style="background:#E4E0F0;border-radius:12px;padding:13px 4px;text-align:center">
+                <div style="width:26px;height:26px;border-radius:8px;background:#6B5B95;margin:0 auto 8px"></div>
+                <div style="font-size:10.5px;font-weight:500;color:#463A6B">错题学习</div>
+              </div>
+              <div style="background:#F6E7D5;border-radius:12px;padding:13px 4px;text-align:center">
+                <div style="width:26px;height:26px;border-radius:8px;background:#B5722A;margin:0 auto 8px"></div>
+                <div style="font-size:10.5px;font-weight:500;color:#7A4C18">AI 对话</div>
+              </div>
+              <div style="background:#EAE5FD;border-radius:12px;padding:13px 4px;text-align:center">
+                <div style="width:26px;height:26px;border-radius:8px;background:#6F57F0;margin:0 auto 8px"></div>
+                <div style="font-size:10.5px;font-weight:500;color:#4B3BB0">学习工具</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ③ 次入口（第 1 页 5 个；第 2 页 4 个：学习记录 / 产品介绍 / 帮助与反馈 / 账号与同步） -->
+          <div style="padding:16px 14px 0;overflow:hidden">
+            <div style="display:flex;gap:12px">
+              <div class="ico" style="flex:1"><i></i>课程表</div>
+              <div class="ico" style="flex:1"><i></i>知一社区</div>
+              <div class="ico" style="flex:1"><i></i>考试安排</div>
+              <div class="ico" style="flex:1"><i></i>班级</div>
+              <div class="ico" style="flex:1;opacity:.45"><i></i>学习数据</div>
+            </div>
+            <div style="display:flex;gap:4px;justify-content:center;margin-top:10px">
+              <span style="width:14px;height:3px;border-radius:2px;background:#6F57F0"></span>
+              <span style="width:4px;height:3px;border-radius:2px;background:#D6DCE6"></span>
+            </div>
+          </div>
+
+          <!-- ④ 信息位 -->
+          <div style="padding:16px 14px 0">
+            <div class="card" style="display:flex;align-items:center;gap:10px">
+              <div style="flex:0 0 34px;height:34px;border-radius:9px;background:#FDEFD8;display:flex;align-items:center;justify-content:center;font-size:14px">📅</div>
+              <div class="grow">
+                <div style="font-size:12.5px;font-weight:600">距「高等数学」期末还有 12 天</div>
+                <div class="tiny">今日已学 45 / 60 分钟</div>
+              </div>
+              <span style="font-size:11.5px;color:#6F57F0;white-space:nowrap">去复习</span>
+            </div>
+          </div>
+
+          <!-- ⑤ 留白（按约定保持） -->
+          <div style="flex:1"></div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>顶部 Tab「学习」（默认选中）<br>
+        <b>可点去哪：</b><br>
+        · 主功能大卡（仅一页）→ <em>拍照搜题 /capture</em> · <em>错题学习 /wrongbook</em> · <em>AI 对话 /chat</em> · <em>学习工具 /tools</em><br>
+        · 次入口第 1 页 → 课程表 / 知一社区 / 考试安排 / 班级 / 学习数据；第 2 页（横滑）→ 学习记录 / 产品介绍 / 帮助与反馈 / 账号与同步（2026-09-21 晚调整：班级替代学习记录进第 1 页）<br>
+        · 信息位「去复习」→ 错题学习页（自测入口在其中）；右上 🔔 → 提醒中心（B1）<br>
+        <b>本次改动：</b>大卡由两页轮播改为一页 4 个——自测练习并入错题学习、四个工具收进「学习工具」页；次入口重排，「我的课程」并入课程表页；底部导航移除<br>
+        <b>右上角：</b>🔔 提醒铃铛（点开 = 提醒中心，见 B1）
+      </div>
+    </figure>
+
+    <!-- ========== A1b 首页 · 次入口第 2 页 ========== -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">A1b</span><span class="dev__name">首页 · 次入口第 2 页（横滑）</span><span class="dev__path">/</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app app--glow">
+          <div class="glow"><i></i><i></i></div>
+          <div style="display:flex;align-items:center;gap:18px;padding:10px 14px 14px">
+            <span style="font-size:17px;font-weight:600;position:relative">学习
+              <span style="position:absolute;left:0;right:0;bottom:-7px;height:2.5px;border-radius:2px;background:#6F57F0"></span>
+            </span>
+            <span style="font-size:17px;color:#B4BAC6">我的</span>
+            <span style="margin-left:auto;position:relative;font-size:15px;color:#5A6274">🔔
+              <span style="position:absolute;top:-1px;right:-2px;width:7px;height:7px;border-radius:50%;background:#E8443A"></span>
+            </span>
+          </div>
+          <div style="padding:0 14px">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+              <div style="background:#DCE5EF;border-radius:12px;padding:13px 4px;text-align:center">
+                <div style="width:26px;height:26px;border-radius:8px;background:#3D6FA8;margin:0 auto 8px"></div>
+                <div style="font-size:10.5px;font-weight:500;color:#254B75">拍照搜题</div>
+              </div>
+              <div style="background:#E4E0F0;border-radius:12px;padding:13px 4px;text-align:center">
+                <div style="width:26px;height:26px;border-radius:8px;background:#6B5B95;margin:0 auto 8px"></div>
+                <div style="font-size:10.5px;font-weight:500;color:#463A6B">错题学习</div>
+              </div>
+              <div style="background:#F6E7D5;border-radius:12px;padding:13px 4px;text-align:center">
+                <div style="width:26px;height:26px;border-radius:8px;background:#B5722A;margin:0 auto 8px"></div>
+                <div style="font-size:10.5px;font-weight:500;color:#7A4C18">AI 对话</div>
+              </div>
+              <div style="background:#EAE5FD;border-radius:12px;padding:13px 4px;text-align:center">
+                <div style="width:26px;height:26px;border-radius:8px;background:#6F57F0;margin:0 auto 8px"></div>
+                <div style="font-size:10.5px;font-weight:500;color:#4B3BB0">学习工具</div>
+              </div>
+            </div>
+          </div>
+          <div style="padding:16px 14px 0;overflow:hidden">
+            <div style="display:flex;gap:12px">
+              <div class="ico" style="flex:1"><i></i>学习记录</div>
+              <div class="ico" style="flex:1"><i></i>产品介绍</div>
+              <div class="ico" style="flex:1"><i></i>帮助与反馈</div>
+              <div class="ico" style="flex:1"><i></i>账号与同步</div>
+            </div>
+            <div style="display:flex;gap:4px;justify-content:center;margin-top:10px">
+              <span style="width:4px;height:3px;border-radius:2px;background:#D6DCE6"></span>
+              <span style="width:14px;height:3px;border-radius:2px;background:#6F57F0"></span>
+            </div>
+          </div>
+          <div style="padding:16px 14px 0">
+            <div class="card" style="display:flex;align-items:center;gap:10px">
+              <div style="flex:0 0 34px;height:34px;border-radius:9px;background:#FDEFD8;display:flex;align-items:center;justify-content:center;font-size:14px">📅</div>
+              <div class="grow">
+                <div style="font-size:12.5px;font-weight:600">距「高等数学」期末还有 12 天</div>
+                <div class="tiny">今日已学 45 / 60 分钟</div>
+              </div>
+              <span style="font-size:11.5px;color:#6F57F0;white-space:nowrap">去复习</span>
+            </div>
+          </div>
+          <div style="flex:1"></div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>首页次入口横滑到第 2 页（下方圆点第 2 个高亮）<br>
+        <b>本页 4 个入口：</b>学习记录 <em>/records</em> · 产品介绍 <em>/about</em> · 帮助与反馈 <em>/help</em> · 账号与同步 <em>/me</em><br>
+        <b>2026-09-21 晚调整：</b>「学习记录」由第 1 页移入本页；第 1 页第 4 位改为「班级」<em>/class</em>（见 A1）
+      </div>
+    </figure>
+
+    <!-- ========== A2 拍题页 ========== -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">A2</span><span class="dev__name">拍题页</span><span class="dev__path">/capture</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div class="navbar"><span class="back">←</span><span class="title">拍题</span><span class="right">历史</span></div>
+          <div class="body">
+            <p class="tiny">拍下题目，AI 讲清思路；也可以直接打字或贴图</p>
+            <div style="flex:1;border:1.5px dashed #C9D2E0;border-radius:14px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">
+              <div style="width:52px;height:52px;border-radius:14px;background:#DCE5EF;display:flex;align-items:center;justify-content:center;font-size:20px">📷</div>
+              <div style="font-size:12.5px;font-weight:600">点这里拍照</div>
+              <div class="tiny">支持相册 / 拖拽 / 粘贴</div>
+            </div>
+            <div class="row">
+              <div class="pill grow" style="justify-content:center">相册选图</div>
+              <div class="pill grow" style="justify-content:center">文字输入</div>
+            </div>
+            <div class="card" style="padding:10px 12px">
+              <div class="tiny" style="margin-bottom:4px">最近拍过的题</div>
+              <div class="row"><span class="grow" style="font-size:11.5px">求极限 lim(e^x-1-x)/x²</span><span class="tiny">2 分钟前</span></div>
+              <div class="row" style="margin-top:6px"><span class="grow" style="font-size:11.5px">设 f(x) 在 x=0 处连续，求 a,b</span><span class="tiny">昨天</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>首页大卡「拍照搜题」；首页信息位空态<br>
+        <b>可点去哪：</b>拍照/相册/拖拽 → 识别后进 <em>讲解页（C1）</em>；「文字输入」→ 展开输入框；「历史」→ 学习记录<br>
+        <b>设计：</b>沿用现有四通道（拍照/相册/拖拽/粘贴），视觉上收成"一个大拍题区 + 两个次级按钮"，比原来的四宫格更聚焦主路径
+      </div>
+    </figure>
+
+    <!-- ========== A3 错题学习 ========== -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">A3</span><span class="dev__name">错题学习</span><span class="dev__path">/wrongbook</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div class="navbar"><span class="back">←</span><span class="title">错题学习</span><span class="right">导出 / 打印</span></div>
+          <div class="body">
+            <div class="card">
+              <div class="row" style="margin-bottom:8px"><h5 style="margin:0">学情概览</h5><span class="tiny" style="margin-left:auto">近 7 天</span></div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);text-align:center">
+                <div><div style="font-size:18px;font-weight:600">28</div><div class="tiny">错题</div></div>
+                <div><div style="font-size:18px;font-weight:600;color:#B5722A">9</div><div class="tiny">待复习</div></div>
+                <div><div style="font-size:18px;font-weight:600;color:#4A7A63">12</div><div class="tiny">已掌握</div></div>
+              </div>
+              <div class="bar" style="margin-top:10px"><i style="width:43%"></i></div>
+              <div class="tiny" style="margin-top:4px">掌握度 43%</div>
+            </div>
+            <div class="card" style="display:flex;align-items:center;gap:10px;border-color:rgba(74,122,99,.35);background:#F0F5F1">
+              <div style="flex:0 0 32px;height:32px;border-radius:9px;background:#4A7A63;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px">✎</div>
+              <div class="grow">
+                <div style="font-size:12.5px;font-weight:600;color:#2E5A45">自测练习</div>
+                <div class="tiny">今日待复习 9 道 · 按遗忘曲线出题</div>
+              </div>
+              <span style="font-size:11.5px;color:#2E5A45;white-space:nowrap">开始 →</span>
+            </div>
+            <div class="row" style="flex-wrap:wrap;gap:6px">
+              <span class="pill on">全部 28</span>
+              <span class="pill">待复习 9</span>
+              <span class="pill">未掌握 16</span>
+              <span class="pill">已掌握 12</span>
+            </div>
+            <div class="card" style="padding:10px 12px">
+              <div style="font-size:11.5px;line-height:1.5">求极限 lim<sub>x→0</sub>(e<sup>x</sup>−1−x)/x²</div>
+              <div class="row" style="margin-top:6px">
+                <span class="pill" style="font-size:10px">洛必达法则</span>
+                <span class="pill" style="font-size:10px">未定式</span>
+                <span class="tiny" style="margin-left:auto;color:#B5722A">待复习</span>
+              </div>
+            </div>
+            <div class="card" style="padding:10px 12px">
+              <div style="font-size:11.5px;line-height:1.5">设 y = x<sup>x</sup>，求 y′</div>
+              <div class="row" style="margin-top:6px">
+                <span class="pill" style="font-size:10px">幂指函数</span>
+                <span class="tiny" style="margin-left:auto;color:#4A7A63">已掌握</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>首页大卡「错题学习」；首页信息位「去复习」<br>
+        <b>可点去哪：</b>「自测练习」横条入口 → <em>自测练习（B2，SRS 复习）</em>；点错题条目 → <em>错题详情抽屉（C3）</em>；筛选 chips 切换；「导出 / 打印」→ 打印预览<br>
+        <b>设计：</b>自测练习并入本模块（原首页大卡位取消），用一条绿色入口卡承载——先看到掌握情况，再一键进入按遗忘曲线排好的复习；筛选 chips 从多个下拉改为一行 pill
+      </div>
+    </figure>
+
+    <!-- ========== A4 AI 对话 ========== -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">A4</span><span class="dev__name">AI 对话</span><span class="dev__path">/chat</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div class="navbar"><span class="back">←</span><span class="title">AI 对话</span><span class="right">＋ 新对话</span></div>
+          <div class="body" style="gap:12px">
+            <div style="align-self:flex-end;max-width:78%;background:#6F57F0;color:#fff;border-radius:12px 12px 3px 12px;padding:9px 12px;font-size:12px">
+              洛必达法则什么时候不能用？
+            </div>
+            <div style="align-self:flex-start;max-width:86%;background:#fff;border:1px solid #E5E8EE;border-radius:12px 12px 12px 3px;padding:10px 12px;font-size:12px;line-height:1.65">
+              三种典型情况要避开：<br>
+              ① 分子分母不同时趋于 0 或 ∞；<br>
+              ② 求导后极限不存在（震荡）；<br>
+              ③ 求导后比原来更复杂。<br>
+              <span class="tiny" style="display:block;margin-top:6px">要不要用你错题本里那道极限题验一遍？</span>
+            </div>
+            <div class="row" style="flex-wrap:wrap;gap:6px;margin-top:auto">
+              <span class="pill">讲这道题</span>
+              <span class="pill">我错在哪</span>
+              <span class="pill">生成一张卷子</span>
+              <span class="pill">解释这个公式</span>
+            </div>
+            <div class="row" style="background:#fff;border:1px solid #E5E8EE;border-radius:99px;padding:8px 12px">
+              <span class="grow ph" style="font-size:11.5px">问知识点 / 贴题目 / 让我出题</span>
+              <span style="font-size:13px;color:#8C94A6">🎙</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>首页大卡「AI 对话」<br>
+        <b>可点去哪：</b>发送 → 流式回答（图文 + LaTeX）；chip 点击填入问题；「＋ 新对话」新建会话<br>
+        <b>设计：</b>chip 行从"页面顶部"移到"输入框上方"——离手指更近，且会随上下文变化（有错题时出现"讲这道题"）
+      </div>
+    </figure>
+
+    <!-- ========== A5 学习工具 ========== -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">A5</span><span class="dev__name">学习工具</span><span class="dev__path">/tools</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div class="navbar"><span class="back">←</span><span class="title">学习工具</span></div>
+          <div class="body" style="gap:12px">
+            <p class="tiny">考前冲刺与进阶工具，点开即用</p>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+              <div class="card" style="padding:12px">
+                <div style="width:24px;height:24px;border-radius:7px;background:#4A5D8A;margin-bottom:7px"></div>
+                <div style="font-size:12.5px;font-weight:600">模拟考试</div>
+                <div class="tiny">组卷 · 作答 · AI 判分</div>
+              </div>
+              <div class="card" style="padding:12px">
+                <div style="width:24px;height:24px;border-radius:7px;background:#7A5F3D;margin-bottom:7px"></div>
+                <div style="font-size:12.5px;font-weight:600">算法演示</div>
+                <div class="tiny">21 个算法分步动画</div>
+              </div>
+              <div class="card" style="padding:12px">
+                <div style="width:24px;height:24px;border-radius:7px;background:#5A6B7A;margin-bottom:7px"></div>
+                <div style="font-size:12.5px;font-weight:600">代码诊断</div>
+                <div class="tiny">贴代码 + 报错定位问题</div>
+              </div>
+              <div class="card" style="padding:12px">
+                <div style="width:24px;height:24px;border-radius:7px;background:#3D6A7A;margin-bottom:7px"></div>
+                <div style="font-size:12.5px;font-weight:600">考前速查</div>
+                <div class="tiny">公式 97 条 · 模板 21 个</div>
+              </div>
+            </div>
+            <div class="tiny">每个工具点开即进入对应功能页，返回即回到本页</div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>首页大卡「学习工具」<br>
+        <b>可点去哪：</b>模拟考试 → <em>/exam（B3）</em>；算法演示 → <em>B7</em>；代码诊断 → <em>B8</em>；考前速查 → <em>B6</em><br>
+        <b>定位：</b>由原「更多」页改造而来——底部导航移除后，学习工具独立成页；原更多页里的课程数据类入口归首页次入口，设置类归「我的」
+      </div>
+    </figure>
+
+  </div>
+
+  <!-- ============ B 组 ============ -->
+  <h2 class="sec" id="gB">B · 首页跳转的目标界面 <small>点首页各按键后到达的页面</small></h2>
+  <div class="grid" id="gB-grid">
+
+    <!-- ========== B1 提醒中心 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">B1</span><span class="dev__name">提醒中心（新增）</span><span class="dev__path">浮层</span></div>
+      <div class="screen" style="background:rgba(20,26,38,.35)">
+        <div class="sbar" style="color:#fff"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app" style="background:transparent">
+          <div style="display:flex;align-items:center;padding:10px 14px">
+            <span style="font-size:14px;font-weight:600;color:#fff">提醒中心</span>
+            <span style="margin-left:auto;font-size:12.5px;color:#fff">关闭</span>
+          </div>
+          <div style="flex:1;background:#F5F7FA;border-radius:14px 14px 0 0;padding:14px;display:flex;flex-direction:column;gap:9px;overflow:hidden">
+            <div class="card" style="display:flex;align-items:center;gap:10px">
+              <div style="flex:0 0 32px;height:32px;border-radius:9px;background:#DEE9E1;display:flex;align-items:center;justify-content:center;font-size:13px">↻</div>
+              <div class="grow">
+                <div style="font-size:12px;font-weight:600">9 道错题该复习了</div>
+                <div class="tiny">按遗忘曲线，今天到期</div>
+              </div>
+              <span style="font-size:11.5px;color:#6F57F0;white-space:nowrap">去复习</span>
+            </div>
+            <div class="card" style="display:flex;align-items:center;gap:10px">
+              <div style="flex:0 0 32px;height:32px;border-radius:9px;background:#FDEFD8;display:flex;align-items:center;justify-content:center;font-size:13px">📅</div>
+              <div class="grow">
+                <div style="font-size:12px;font-weight:600">距「高等数学」期末 12 天</div>
+                <div class="tiny">2026-10-03 09:00 · 教三 401</div>
+              </div>
+              <span style="font-size:11.5px;color:#6F57F0;white-space:nowrap">看安排</span>
+            </div>
+            <div class="card" style="display:flex;align-items:center;gap:10px">
+              <div style="flex:0 0 32px;height:32px;border-radius:9px;background:#E4E0F0;display:flex;align-items:center;justify-content:center;font-size:13px">◎</div>
+              <div class="grow">
+                <div style="font-size:12px;font-weight:600">今日已学 45 / 60 分钟</div>
+                <div class="tiny">再做 15 分钟就达标</div>
+              </div>
+              <span style="font-size:11.5px;color:#6F57F0;white-space:nowrap">继续</span>
+            </div>
+            <div class="card" style="display:flex;align-items:center;gap:10px">
+              <div style="flex:0 0 32px;height:32px;border-radius:9px;background:#DCE5EF;display:flex;align-items:center;justify-content:center;font-size:13px">🔥</div>
+              <div class="grow">
+                <div style="font-size:12px;font-weight:600">已连续学习 6 天</div>
+                <div class="tiny">明天再来就满 7 天</div>
+              </div>
+            </div>
+            <div class="tiny" style="text-align:center;margin-top:2px">没有更多提醒了</div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>首页右上角 🔔（有未读时带小红点）<br>
+        <b>为什么换掉搜索：</b>知一没有真正的搜索场景（错题有筛选、公式有分类、课程只有几门、算法只有 21 个）；原设计只是为"AI 提问"凑一个位置<br>
+        <b>可点去哪：</b>待复习 → <em>/wrongbook（自测入口在错题学习页内）</em>；考试 → <em>/exams</em>；今日目标 → <em>/data</em>；连续天数 → <em>/me</em><br>
+        <b>与首页信息位的关系：</b>信息位只显示<b>最优先的一条</b>，提醒中心展示<b>全部</b>——「一条 vs 全部」，互补不重复
+      </div>
+    </figure>
+
+    <!-- ========== B2 自测练习 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">B2</span><span class="dev__name">自测练习（SRS 复习）</span><span class="dev__path">/practice/original</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div class="navbar"><span class="back">←</span><span class="title">复习 · 第 3 / 10 题</span><span class="right">设置</span></div>
+          <div class="body">
+            <div class="bar"><i style="width:30%"></i></div>
+            <div class="card" style="flex:0 0 auto">
+              <div class="tiny" style="margin-bottom:6px">洛必达法则 · 待复习第 2 次</div>
+              <div style="font-size:12.5px;line-height:1.7">求极限　lim<sub>x→0</sub> (e<sup>x</sup> − 1 − x) / x²</div>
+            </div>
+            <div style="flex:1;border:1px solid #E5E8EE;border-radius:12px;background:#fff;padding:11px 12px">
+              <div class="tiny ph">在这里作答，或拍照上传手写</div>
+            </div>
+            <div class="row">
+              <span class="pill">📷 拍照作答</span>
+              <span class="pill">看提示</span>
+              <span class="pill" style="margin-left:auto">跳过</span>
+            </div>
+            <div class="row" style="gap:8px">
+              <div class="btn grow">不会，直接看答案</div>
+              <div class="btn pri grow">提交批改</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>错题学习页「自测练习」横条入口；首页信息位「去复习」<br>
+        <b>可点去哪：</b>提交 → AI 批改后展示判定与解析；「拍照作答」→ 手写转录；跳过 → 下一题；结束 → 本轮小结<br>
+        <b>设计：</b>保留现有 SRS 机制与拍照作答；新增顶部进度条（原来只有"第 x / y 题"文字），让"还有多少"一眼可见
+      </div>
+    </figure>
+
+    <!-- ========== B3 模拟考试主页 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">B3</span><span class="dev__name">模拟考试主页</span><span class="dev__path">/exam</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div class="navbar"><span class="back">←</span><span class="title">模拟考试</span></div>
+          <div class="body">
+            <p class="tiny">按题型生成 100 分制试卷，在线作答，交卷后自动判分</p>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+              <div class="card" style="padding:11px">
+                <div style="font-size:13px;font-weight:600">完整卷</div>
+                <div class="tiny" style="margin-top:3px">选择 6 + 填空 4 + 解答 2</div>
+                <div class="tiny" style="color:#6F57F0;margin-top:2px">12 题 · 100 分</div>
+              </div>
+              <div class="card" style="padding:11px">
+                <div style="font-size:13px;font-weight:600">仅选择题</div>
+                <div class="tiny" style="margin-top:3px">20 道选择题</div>
+                <div class="tiny" style="color:#6F57F0;margin-top:2px">20 题 · 100 分</div>
+              </div>
+              <div class="card" style="padding:11px">
+                <div style="font-size:13px;font-weight:600">仅填空题</div>
+                <div class="tiny" style="margin-top:3px">10 道填空题</div>
+                <div class="tiny" style="color:#6F57F0;margin-top:2px">10 题 · 100 分</div>
+              </div>
+              <div class="card" style="padding:11px;border-color:#D9D0FA">
+                <div style="font-size:13px;font-weight:600">自定义题量</div>
+                <div class="tiny" style="margin-top:3px">各题型出几道、每题几分</div>
+                <div class="tiny" style="color:#6F57F0;margin-top:2px">自由组合 · 100 分</div>
+              </div>
+            </div>
+            <div class="tiny" style="margin-top:6px">历史成绩</div>
+            <div class="card" style="padding:10px 12px">
+              <div class="row" style="padding:5px 0;border-bottom:1px solid #EEF0F4">
+                <span class="grow" style="font-size:11.5px">高等数学模拟卷（极限与积分）</span>
+                <span style="font-size:13px;font-weight:600;color:#6F57F0">60<i style="font-size:9px;color:#8C94A6;font-style:normal">/100</i></span>
+              </div>
+              <div class="row" style="padding:5px 0">
+                <span class="grow" style="font-size:11.5px">概率论专项（仅选择）</span>
+                <span style="font-size:13px;font-weight:600;color:#6F57F0">75<i style="font-size:9px;color:#8C94A6;font-style:normal">/100</i></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>学习工具页（A5）「模拟考试」<br>
+        <b>可点去哪：</b>任一模式 → <em>B4 答题页</em>；历史条目 → <em>B5 成绩页</em>（复盘）<br>
+        <b>设计：</b>模式卡从 3 张改 2×2 网格（含"自定义题量"），历史成绩保留含分数
+      </div>
+    </figure>
+
+    <!-- ========== B4 模拟考试 · 答题 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">B4</span><span class="dev__name">模拟考试 · 答题中</span><span class="dev__path">/exam/run（作答态）</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#fff;border-bottom:1px solid #EEF0F4">
+            <span class="tiny">第 3 / 20 题</span>
+            <span class="tiny">选择题 · 5 分</span>
+            <span class="tiny" style="margin-left:auto">剩余 68 分 40 秒</span>
+          </div>
+          <div class="body" style="gap:12px">
+            <div style="display:flex;flex-wrap:wrap;gap:5px">
+              <span style="width:20px;height:20px;border-radius:5px;background:#6F57F0;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center">1</span>
+              <span style="width:20px;height:20px;border-radius:5px;background:#6F57F0;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center">2</span>
+              <span style="width:20px;height:20px;border-radius:5px;border:1px solid #6F57F0;color:#6F57F0;font-size:10px;display:flex;align-items:center;justify-content:center">3</span>
+              <span style="width:20px;height:20px;border-radius:5px;border:1px solid #E5E8EE;color:#B4BAC6;font-size:10px;display:flex;align-items:center;justify-content:center">4</span>
+              <span style="width:20px;height:20px;border-radius:5px;border:1px solid #E5E8EE;color:#B4BAC6;font-size:10px;display:flex;align-items:center;justify-content:center">5</span>
+              <span class="tiny" style="align-self:center">…</span>
+            </div>
+            <div class="card">
+              <div style="font-size:12.5px;line-height:1.7">下列极限中，可以直接使用洛必达法则的是（　）</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <div style="border:1px solid #E5E8EE;border-radius:9px;padding:9px 11px;font-size:12px;background:#fff">A. lim(x→∞) x·sin(1/x)</div>
+              <div style="border:1px solid #6F57F0;border-radius:9px;padding:9px 11px;font-size:12px;background:#F6F3FE;color:#4B3BB0">B. lim(x→0) (eˣ−1−x)/x²</div>
+              <div style="border:1px solid #E5E8EE;border-radius:9px;padding:9px 11px;font-size:12px;background:#fff">C. lim(x→0) x²·sin(1/x)</div>
+              <div style="border:1px solid #E5E8EE;border-radius:9px;padding:9px 11px;font-size:12px;background:#fff">D. lim(x→0) |x|/x</div>
+            </div>
+            <div class="row" style="margin-top:auto">
+              <div class="btn" style="flex:0 0 72px">上一题</div>
+              <div class="btn" style="flex:0 0 72px">下一题</div>
+              <div class="btn pri grow">交卷（还有 17 题未答）</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>B3 选模式 → 组卷完成后<br>
+        <b>可点去哪：</b>选项 → 选中；题号 → 跳题；交卷 → <em>B5 成绩页</em>；限时到点自动交卷<br>
+        <b>设计：</b>顶部信息条（题号 / 类型分值 / 倒计时）压成一行；题号导航放题干上方（原来在下方，拇指够不到）
+      </div>
+    </figure>
+
+    <!-- ========== B5 模拟考试 · 成绩 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">B5</span><span class="dev__name">模拟考试 · 成绩与复盘</span><span class="dev__path">/exam/run（结果态）</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div class="navbar"><span class="back">←</span><span class="title">考试成绩</span></div>
+          <div class="body">
+            <div class="card" style="text-align:center;padding:14px">
+              <div style="font-size:34px;font-weight:600;color:#6F57F0;line-height:1.1">60<span style="font-size:14px;color:#8C94A6">/100</span></div>
+              <div class="tiny" style="margin-top:4px">得分率 60% · 用时 1 分 20 秒 · 对 12 题 / 错 8 题</div>
+              <div class="row" style="justify-content:center;gap:6px;margin-top:8px">
+                <span class="pill">选择题 60 / 100</span>
+              </div>
+              <div class="tiny" style="margin-top:7px">选择题按标准答案判；主观题由 AI 按采分点估算</div>
+            </div>
+            <div class="card" style="padding:11px 12px">
+              <div class="tiny" style="margin-bottom:6px">错题（已默认勾选，可取消）</div>
+              <div class="row" style="padding:4px 0"><span style="font-size:11px;color:#6F57F0">☑</span><span class="grow" style="font-size:11px">下列极限中可直接使用洛必达法则的是…</span><span class="tiny">0/5</span></div>
+              <div class="row" style="padding:4px 0"><span style="font-size:11px;color:#6F57F0">☑</span><span class="grow" style="font-size:11px">设 f(x) 在 x=0 连续，求 a 与 b…</span><span class="tiny">0/5</span></div>
+              <div class="btn pri" style="margin-top:8px">加入错题本（8）</div>
+            </div>
+            <div class="row"><h5 style="font-size:13.5px;font-weight:600">逐题复盘</h5><span class="tiny" style="margin-left:auto">展开看解析</span></div>
+            <div class="card" style="padding:10px 12px">
+              <div class="row"><span class="tiny">1</span><span class="tiny">选择题 · 5/5 分</span><span class="tiny" style="margin-left:auto;color:#4A7A63">正确</span></div>
+              <div class="card" style="padding:10px 12px">
+                <div class="row"><span class="tiny">3</span><span class="tiny">选择题 · 0/5 分</span><span class="tiny" style="margin-left:auto;color:#C0392B">错误</span></div>
+                <div class="tiny" style="margin-top:5px">你的作答：C　参考答案：B</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>B4 交卷后<br>
+        <b>可点去哪：</b>勾选/取消错题 → 「加入错题本」写入错题本并进入复习队列；「逐题复盘」展开看解析；底部「重做本卷 / 再出一张」<br>
+        <b>设计：</b>成绩卡与错题区上移，复盘列表下沉；错题默认全勾（少点一次），但可逐条取消
+      </div>
+    </figure>
+
+    <!-- ========== B6 考前速查 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">B6</span><span class="dev__name">考前速查</span><span class="dev__path">/tools?tool=ref</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div class="navbar"><span class="back">←</span><span class="title">考前速查</span><span class="right">打印</span></div>
+          <div class="body">
+            <div class="row" style="background:#fff;border:1px solid #E5E8EE;border-radius:99px;padding:7px 12px">
+              <span style="font-size:12px;color:#8C94A6">⌕</span><span class="grow tiny">搜公式、算法名</span>
+            </div>
+            <div class="row" style="gap:6px;flex-wrap:wrap">
+              <span class="pill on">公式 97</span>
+              <span class="pill">算法模板 21</span>
+              <span class="pill">复杂度</span>
+            </div>
+            <div class="card" style="padding:0 12px">
+              <div class="row" style="padding:10px 0;border-bottom:1px solid #EEF0F4"><span class="grow" style="font-size:12px">洛必达法则</span><span class="tiny">高数 · 极限</span></div>
+              <div class="row" style="padding:10px 0;border-bottom:1px solid #EEF0F4"><span class="grow" style="font-size:12px">泰勒展开（常用 5 项）</span><span class="tiny">高数 · 极限</span></div>
+              <div class="row" style="padding:10px 0;border-bottom:1px solid #EEF0F4"><span class="grow" style="font-size:12px">分部积分公式</span><span class="tiny">高数 · 积分</span></div>
+              <div class="row" style="padding:10px 0"><span class="grow" style="font-size:12px">全概率公式与贝叶斯</span><span class="tiny">概率</span></div>
+            </div>
+            <div class="tiny">点开可看公式详情与使用场景，支持整章打印</div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>学习工具页（A5）「考前速查」<br>
+        <b>可点去哪：</b>条目 → 公式详情；「打印」→ 复用现有打印预览<br>
+        <b>设计：</b>顶部加搜索（97 条公式翻页找太慢）；分类 chips 保留
+      </div>
+    </figure>
+
+    <!-- ========== B7 算法演示 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">B7</span><span class="dev__name">算法演示</span><span class="dev__path">/tools?tool=algo</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div class="navbar"><span class="back">←</span><span class="title">快速排序</span><span class="right">换算法</span></div>
+          <div class="body" style="gap:10px">
+            <div style="flex:0 0 150px;background:#fff;border:1px solid #E5E8EE;border-radius:12px;display:flex;align-items:flex-end;justify-content:center;gap:6px;padding:14px">
+              <div style="width:20px;height:44px;background:#DCE5EF;border-radius:4px"></div>
+              <div style="width:20px;height:76px;background:#3D6FA8;border-radius:4px"></div>
+              <div style="width:20px;height:58px;background:#DCE5EF;border-radius:4px"></div>
+              <div style="width:20px;height:94px;background:#3D6FA8;border-radius:4px"></div>
+              <div style="width:20px;height:36px;background:#DCE5EF;border-radius:4px"></div>
+              <div style="width:20px;height:66px;background:#DCE5EF;border-radius:4px"></div>
+            </div>
+            <div class="tiny">第 4 / 12 步 · 基准 58，左指针停在 76</div>
+            <div class="row" style="gap:6px">
+              <div class="btn" style="flex:0 0 46px">⏮</div>
+              <div class="btn" style="flex:0 0 46px">◀</div>
+              <div class="btn pri grow">▶ 播放</div>
+              <div class="btn" style="flex:0 0 46px">▶</div>
+            </div>
+            <div class="card" style="padding:10px 12px">
+              <div class="row"><span class="tiny">代码</span><span class="tiny" style="margin-left:auto">C · C++ · Java · Python</span></div>
+              <div style="font-family:ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1.7;margin-top:6px;color:#5A6274">
+                <span style="background:#F6F3FE;display:block">while (a[i] &lt; pivot) i++;</span>
+                while (a[j] &gt; pivot) j--;<br>
+                if (i &lt; j) swap(a[i], a[j]);
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>学习工具页（A5）「算法演示」<br>
+        <b>可点去哪：</b>播放/步进/回退控制动画；「换算法」→ 21 个算法列表；语言切换（C/C++/Java/Python）<br>
+        <b>设计：</b>动画舞台、控制条、代码区三层竖排，移动端也能单手操作；代码行与动画步骤联动高亮（现有能力）
+      </div>
+    </figure>
+
+    <!-- ========== B8 代码诊断 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">B8</span><span class="dev__name">代码诊断</span><span class="dev__path">/tools?tool=debug</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div class="navbar"><span class="back">←</span><span class="title">代码诊断</span></div>
+          <div class="body">
+            <div>
+              <div class="tiny" style="margin-bottom:5px">你的代码</div>
+              <div style="background:#fff;border:1px solid #E5E8EE;border-radius:10px;padding:10px;font-family:ui-monospace,Menlo,monospace;font-size:10.5px;line-height:1.7;color:#5A6274">
+                int main() {<br>
+                &nbsp;&nbsp;int a[10];<br>
+                &nbsp;&nbsp;for (int i=0; i&lt;=10; i++) a[i]=i;<br>
+                &nbsp;&nbsp;return 0;<br>
+                }
+              </div>
+            </div>
+            <div>
+              <div class="tiny" style="margin-bottom:5px">报错信息（可选）</div>
+              <div style="background:#fff;border:1px solid #E5E8EE;border-radius:10px;padding:9px 10px;font-size:10.5px;color:#C0392B">stack smashing detected</div>
+            </div>
+            <div class="card" style="border-color:#D9D0FA">
+              <div class="row" style="margin-bottom:6px"><span style="font-size:12.5px;font-weight:600;color:#4B3BB0">问题定位</span></div>
+              <div style="font-size:11.5px;line-height:1.7">
+                第 3 行 <code style="background:#F2F4F9;border-radius:4px;padding:0 4px">i&lt;=10</code> 越界：数组 `a` 只有 0~9 共 10 个元素，循环写到 <code style="background:#F2F4F9;border-radius:4px;padding:0 4px">a[10]</code> 覆盖了栈上相邻数据。
+              </div>
+              <div class="tiny" style="margin-top:7px">改法：条件改为 <b>i &lt; 10</b></div>
+            </div>
+            <div class="btn pri">重新诊断</div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>学习工具页（A5）「代码诊断」<br>
+        <b>可点去哪：</b>「重新诊断」重跑；诊断结果里可继续追问（跳 AI 对话）<br>
+        <b>设计：</b>代码区与报错区分开（现在是一个大框）；诊断结果用高亮卡突出「问题定位 + 改法」两段
+      </div>
+    </figure>
+
+    <!-- ========== B9 课程表 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">B9</span><span class="dev__name">课程表（查看模式）</span><span class="dev__path">/timetable</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div class="navbar"><span class="back">←</span><span class="title">课程表</span><span class="right">编辑 / 考试安排 / 设置学期</span></div>
+          <div class="body" style="padding:10px">
+            <div class="row" style="background:#fff;border:1px solid #E5E8EE;border-radius:10px;padding:9px 11px">
+              <span class="grow" style="font-size:12px;font-weight:600">我的课程</span>
+              <span class="tiny">4 门课 · 管理教师 / 教室 / 颜色</span>
+              <span style="font-size:11.5px;color:#6F57F0;margin-left:6px;white-space:nowrap">进入 →</span>
+            </div>
+            <div class="tiny">本周第 4 周 · 共 20 周</div>
+            <div style="background:#fff;border:1px solid #E5E8EE;border-radius:10px;overflow:hidden">
+              <div style="display:grid;grid-template-columns:26px repeat(5,1fr);font-size:9px;text-align:center;color:#8C94A6">
+                <div></div><div style="padding:6px 0;border-bottom:1px solid #EEF0F4">一</div><div style="padding:6px 0;border-bottom:1px solid #EEF0F4">二</div><div style="padding:6px 0;border-bottom:1px solid #EEF0F4">三</div><div style="padding:6px 0;border-bottom:1px solid #EEF0F4">四</div><div style="padding:6px 0;border-bottom:1px solid #EEF0F4">五</div>
+                <div style="padding:6px 0;color:#B4BAC6">1</div>
+                <div style="border-left:1px solid #F1F3F7;height:26px"></div>
+                <div style="border-left:1px solid #F1F3F7;height:26px"></div>
+                <div style="border-left:1px solid #F1F3F7;height:26px;background:#DCE5EF"></div>
+                <div style="border-left:1px solid #F1F3F7;height:26px"></div>
+                <div style="border-left:1px solid #F1F3F7;height:26px"></div>
+                <div style="padding:6px 0;color:#B4BAC6">2</div>
+                <div style="border-left:1px solid #F1F3F7;height:26px"></div>
+                <div style="border-left:1px solid #F1F3F7;height:26px"></div>
+                <div style="border-left:1px solid #F1F3F7;height:26px;background:#DCE5EF"></div>
+                <div style="border-left:1px solid #F1F3F7;height:26px"></div>
+                <div style="border-left:1px solid #F1F3F7;height:26px;background:#F6E7D5"></div>
+                <div style="padding:6px 0;color:#B4BAC6">3</div>
+                <div style="border-left:1px solid #F1F3F7;height:26px;background:#DEE9E1"></div>
+                <div style="border-left:1px solid #F1F3F7;height:26px"></div>
+                <div style="border-left:1px solid #F1F3F7;height:26px;background:#DCE5EF"></div>
+                <div style="border-left:1px solid #F1F3F7;height:26px"></div>
+                <div style="border-left:1px solid #F1F3F7;height:26px;background:#F6E7D5"></div>
+                <div style="padding:6px 0;color:#B4BAC6">4</div>
+                <div style="border-left:1px solid #F1F3F7;height:26px;background:#DEE9E1"></div>
+                <div style="border-left:1px solid #F1F3F7;height:26px"></div>
+                <div style="border-left:1px solid #F1F3F7;height:26px;background:#DCE5EF"></div>
+                <div style="border-left:1px solid #F1F3F7;height:26px"></div>
+                <div style="border-left:1px solid #F1F3F7;height:26px;background:#F6E7D5"></div>
+              </div>
+            </div>
+            <div class="row" style="gap:6px;flex-wrap:wrap">
+              <span class="pill"><i style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#3D6FA8;margin-right:4px"></i>数据结构</span>
+              <span class="pill"><i style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#4A7A63;margin-right:4px"></i>高数</span>
+              <span class="pill"><i style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#B5722A;margin-right:4px"></i>线代</span>
+            </div>
+            <div class="tiny">点课块可看课程详情；点「编辑」后才可增删排课</div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>首页次入口「课程表」<br>
+        <b>可点去哪：</b>顶部「我的课程」横条 → <em>我的课程（B11）</em>；右上「编辑」→ 编辑模式（空格子出现 ＋，点空格排课）；右上「考试安排」→ <em>/exams</em>；右上「设置学期」→ 学期设置弹窗；点课块 → 课程详情弹窗<br>
+        <b>设计：</b>沿用现有「查看 / 编辑」双模式与课程色块（连堂课跨行合并），仅把课程色换成与首页一致的功能色系；右上三个次级操作（编辑 / 考试安排 / 设置学期）与产品一致
+      </div>
+    </figure>
+
+    <!-- ========== B10 考试安排 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">B10</span><span class="dev__name">考试安排</span><span class="dev__path">/exams</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div class="navbar"><span class="back">←</span><span class="title">考试安排</span><span class="right">＋ 新增</span></div>
+          <div class="body">
+            <div class="card" style="border-color:#F5D9B8;background:#FDF7EE">
+              <div class="row"><span style="font-size:12.5px;font-weight:600">高等数学 · 期末考试</span><span class="tiny" style="margin-left:auto;color:#B5722A">12 天后</span></div>
+              <div class="tiny" style="margin-top:4px">2026-10-03 09:00 · 教三 401</div>
+            </div>
+            <div class="card">
+              <div class="row"><span style="font-size:12.5px;font-weight:600">数据结构 · 期中</span><span class="tiny" style="margin-left:auto">21 天后</span></div>
+              <div class="tiny" style="margin-top:4px">2026-10-12 14:00 · 教五 210</div>
+            </div>
+            <div class="tiny">考试日期会同步到首页信息位与课程表提醒</div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>首页次入口「考试安排」；首页信息位（考试倒计时）点击<br>
+        <b>可点去哪：</b>「＋ 新增」→ <em>考试编辑弹窗（C8）</em>；条目 → 编辑/删除<br>
+        <b>设计：</b>按剩余天数排序，最近一场高亮（浅橙底）；同时把"这个日期会提醒你"讲清楚，让用户理解填它的价值
+      </div>
+    </figure>
+
+    <!-- ========== B11 我的课程 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">B11</span><span class="dev__name">我的课程</span><span class="dev__path">/course</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div class="navbar"><span class="back">←</span><span class="title">我的课程</span><span class="right">＋ 新增</span></div>
+          <div class="body">
+            <div class="row" style="gap:6px;flex-wrap:wrap">
+              <span class="pill">课程 4</span><span class="pill">已排课 18 节</span><span class="pill">考试 2 场</span>
+            </div>
+            <div class="card" style="padding:11px 12px">
+              <div class="row">
+                <span style="width:9px;height:9px;border-radius:50%;background:#3D6FA8"></span>
+                <span class="grow" style="font-size:12.5px;font-weight:600;margin-left:7px">数据结构</span>
+                <span class="pill on" style="font-size:10px">编辑</span>
+                <span class="tiny" style="margin-left:6px">×</span>
+              </div>
+              <div class="tiny" style="margin-top:4px">王老师 · 教三 302 · 每周一 3-5 节</div>
+            </div>
+            <div class="card" style="padding:11px 12px">
+              <div class="row">
+                <span style="width:9px;height:9px;border-radius:50%;background:#4A7A63"></span>
+                <span class="grow" style="font-size:12.5px;font-weight:600;margin-left:7px">高等数学</span>
+                <span class="pill on" style="font-size:10px">编辑</span>
+                <span class="tiny" style="margin-left:6px">×</span>
+              </div>
+              <div class="tiny" style="margin-top:4px">李老师 · 教五 101 · 第 2/5/6 周周五 6-8 节</div>
+            </div>
+            <div class="card" style="padding:11px 12px">
+              <div class="row">
+                <span style="width:9px;height:9px;border-radius:50%;background:#B5722A"></span>
+                <span class="grow" style="font-size:12.5px;font-weight:600;margin-left:7px">线性代数</span>
+                <span class="pill on" style="font-size:10px">编辑</span>
+                <span class="tiny" style="margin-left:6px">×</span>
+              </div>
+              <div class="tiny" style="margin-top:4px">未填教师/教室</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>课程表页顶部「我的课程」横条<br>
+        <b>可点去哪：</b>「编辑」→ <em>课程编辑弹窗（C7）</em>（改名称/教师/教室/颜色/上课时段）；「×」删除课程<br>
+        <b>设计：</b>卡片直接展示"教师 · 教室 · 上课时段"摘要（原来只有名称+教师，时段要点开才知道）
+      </div>
+    </figure>
+
+    <!-- ========== B12 学习数据 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">B12</span><span class="dev__name">学习数据</span><span class="dev__path">/data</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div class="navbar"><span class="back">←</span><span class="title">学习数据</span><span class="right">本周 ▾</span></div>
+          <div class="body">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+              <div class="card" style="padding:10px;text-align:center"><div style="font-size:17px;font-weight:600">268</div><div class="tiny">分钟</div></div>
+              <div class="card" style="padding:10px;text-align:center"><div style="font-size:17px;font-weight:600">34</div><div class="tiny">道题</div></div>
+              <div class="card" style="padding:10px;text-align:center"><div style="font-size:17px;font-weight:600">6</div><div class="tiny">连续天数</div></div>
+            </div>
+            <div class="card">
+              <h5>每日学习时长</h5>
+              <div style="display:flex;align-items:flex-end;gap:8px;height:76px;margin-top:8px">
+                <div style="flex:1;height:38px;background:#E8EBF2;border-radius:4px"></div>
+                <div style="flex:1;height:56px;background:#E8EBF2;border-radius:4px"></div>
+                <div style="flex:1;height:30px;background:#E8EBF2;border-radius:4px"></div>
+                <div style="flex:1;height:70px;background:#6F57F0;border-radius:4px"></div>
+                <div style="flex:1;height:44px;background:#E8EBF2;border-radius:4px"></div>
+                <div style="flex:1;height:22px;background:#E8EBF2;border-radius:4px"></div>
+                <div style="flex:1;height:18px;background:#E8EBF2;border-radius:4px"></div>
+              </div>
+              <div class="tiny" style="text-align:center;margin-top:4px">一 二 三 四 五 六 日</div>
+            </div>
+            <div class="card">
+              <h5>知识点掌握度</h5>
+              <div style="margin-top:8px">
+                <div class="row"><span class="tiny grow">洛必达法则</span><span class="tiny">82%</span></div>
+                <div class="bar" style="margin:4px 0 8px"><i style="width:82%"></i></div>
+                <div class="row"><span class="tiny grow">分部积分</span><span class="tiny">45%</span></div>
+                <div class="bar" style="margin-top:4px"><i style="width:45%"></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>首页次入口「学习数据」；首页信息位（今日目标）点击<br>
+        <b>可点去哪：</b>切换周期（本周/本月/全部）；知识点行可点 → 该知识点的错题<br>
+        <b>设计：</b>顶部三数（时长/题量/连续天数）→ 柱状图 → 掌握度条；周期切换从下拉改为右上角文字按钮
+      </div>
+    </figure>
+
+    <!-- ========== B13 学习记录 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">B13</span><span class="dev__name">学习记录</span><span class="dev__path">/records</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div class="navbar"><span class="back">←</span><span class="title">学习记录</span><span class="right">筛选</span></div>
+          <div class="body">
+            <div class="row" style="gap:6px;flex-wrap:wrap">
+              <span class="pill on">全部</span><span class="pill">讲解</span><span class="pill">自测</span><span class="pill">考试</span>
+            </div>
+            <div class="card" style="padding:10px 12px">
+              <div class="row"><span class="tiny">今天 14:32</span><span class="tiny" style="margin-left:auto">讲解</span></div>
+              <div style="font-size:11.5px;margin-top:5px">求极限 lim(e<sup>x</sup>−1−x)/x²</div>
+              <div class="tiny" style="margin-top:3px">洛必达法则 · 追问 2 次</div>
+            </div>
+            <div class="card" style="padding:10px 12px">
+              <div class="row"><span class="tiny">今天 13:10</span><span class="tiny" style="margin-left:auto">自测</span></div>
+              <div style="font-size:11.5px;margin-top:5px">SRS 复习 10 题 · 对 7 错 3</div>
+            </div>
+            <div class="card" style="padding:10px 12px">
+              <div class="row"><span class="tiny">昨天 20:05</span><span class="tiny" style="margin-left:auto">考试</span></div>
+              <div style="font-size:11.5px;margin-top:5px">模拟考试（仅选择题 20 题）· 60 分</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>首页次入口「学习记录」<br>
+        <b>可点去哪：</b>点记录 → 回到当时的讲解 / 试卷复盘<br>
+        <b>补充定位：</b>原首页「继续学习」区块移除后，<b>这里就是"接着上次学"的入口</b>——列表第一条即最近一次学习
+      </div>
+    </figure>
+
+    <!-- ========== B14 知一社区 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">B14</span><span class="dev__name">知一社区</span><span class="dev__path">/community</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div class="navbar"><span class="back">←</span><span class="title">知一社区</span><span class="right">＋ 发帖</span></div>
+          <div class="body">
+            <div class="row" style="gap:6px"><span class="pill on">最新</span><span class="pill">热门</span></div>
+            <div class="card" style="padding:11px 12px">
+              <div class="row"><span class="tiny">@小张</span><span class="tiny" style="margin-left:auto">2 小时前</span></div>
+              <div style="font-size:12px;font-weight:600;margin-top:4px">洛必达法则这道题为什么不能直接求导？</div>
+              <div class="tiny" style="margin-top:4px">求极限 lim(x→∞) x·sin(1/x)，直接洛必达会陷入循环…</div>
+              <div class="row" style="margin-top:6px"><span class="tiny">👍 12</span><span class="tiny">💬 4</span></div>
+            </div>
+            <div class="card" style="padding:11px 12px">
+              <div class="row"><span class="tiny">@阿明</span><span class="tiny" style="margin-left:auto">昨天</span></div>
+              <div style="font-size:12px;font-weight:600;margin-top:4px">分享一个记泰勒展开的小技巧</div>
+              <div class="row" style="margin-top:6px"><span class="tiny">👍 28</span><span class="tiny">💬 9</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>首页次入口第 1 页「知一社区」<br>
+        <b>可点去哪：</b>帖子 → 详情与评论；「＋ 发帖」→ 发帖（需登录）<br>
+        <b>设计：</b>沿用现有社区，仅在首页给它一个稳定的入口位（原来藏在更多页）
+      </div>
+    </figure>
+
+    <!-- ========== B15 产品介绍 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">B15</span><span class="dev__name">产品介绍</span><span class="dev__path">/about</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div class="navbar"><span class="back">←</span><span class="title">关于知一</span></div>
+          <div class="body">
+            <div class="card">
+              <h5>知一是什么</h5>
+              <p>面向大学理工科的 AI 拍题讲解 + 错题自测工具。拍下题目就能看懂思路，做错的题会被收进错题本，按遗忘曲线安排复习。</p>
+            </div>
+            <div class="card">
+              <h5>适合谁</h5>
+              <p>高等数学、概率统计、线性代数、数据结构与算法、程序设计等理工科课程的学习者。</p>
+            </div>
+            <div class="card">
+              <h5>怎么用（三步）</h5>
+              <p>① 拍题 → 看讲解与追问　② 做错的题自动进错题本　③ 自测 / 模拟考试检验掌握度</p>
+            </div>
+            <div class="tiny">版本 v2.0 · 反馈与建议</div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>首页次入口第 2 页「产品介绍」<br>
+        <b>可点去哪：</b>「反馈与建议」→ <em>反馈弹窗（C9）</em><br>
+        <b>设计：</b>三块卡片讲清"是什么 / 适合谁 / 怎么用"，比现在的长文更好扫读
+      </div>
+    </figure>
+
+    <!-- ========== B16 帮助与反馈 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">B16</span><span class="dev__name">帮助与反馈</span><span class="dev__path">/help</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div class="navbar"><span class="back">←</span><span class="title">帮助与反馈</span></div>
+          <div class="body">
+            <div class="card" style="padding:0 12px">
+              <div class="row" style="padding:11px 0;border-bottom:1px solid #EEF0F4"><span class="grow" style="font-size:12px">识别不准 / 拍不清怎么办？</span><span class="tiny">▾</span></div>
+              <div class="row" style="padding:11px 0;border-bottom:1px solid #EEF0F4"><span class="grow" style="font-size:12px">错题本的数据存在哪？会丢吗？</span><span class="tiny">▾</span></div>
+              <div class="row" style="padding:11px 0;border-bottom:1px solid #EEF0F4"><span class="grow" style="font-size:12px">模拟考试的分数是怎么判的？</span><span class="tiny">▾</span></div>
+              <div class="row" style="padding:11px 0"><span class="grow" style="font-size:12px">换手机了，数据怎么同步？</span><span class="tiny">▾</span></div>
+            </div>
+            <div class="card" style="text-align:center;padding:14px">
+              <div style="font-size:12.5px;font-weight:600">没找到答案？</div>
+              <div class="tiny" style="margin:5px 0 9px">把你的问题或建议发给我们</div>
+              <div class="btn pri">提交反馈</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>首页次入口第 2 页「帮助与反馈」<br>
+        <b>可点去哪：</b>FAQ 展开；「提交反馈」→ <em>反馈弹窗（C9）</em><br>
+        <b>设计：</b>FAQ 用折叠列表（现在是长文平铺），问题按"高频 + 疑虑消除"排序
+      </div>
+    </figure>
+
+    <!-- ========== B17 我的 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">B17</span><span class="dev__name">我的</span><span class="dev__path">/me</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div style="display:flex;align-items:center;gap:18px;padding:10px 14px 12px">
+            <span style="font-size:17px;color:#B4BAC6">学习</span>
+            <span style="font-size:17px;font-weight:600;position:relative">我的
+              <span style="position:absolute;left:0;right:0;bottom:-7px;height:2.5px;border-radius:2px;background:#6F57F0"></span>
+            </span>
+          </div>
+          <div class="body">
+            <div class="card">
+              <div class="row">
+                <div style="width:38px;height:38px;border-radius:50%;background:#E4E0F0;display:flex;align-items:center;justify-content:center;font-size:14px">🙂</div>
+                <div class="grow" style="margin-left:10px">
+                  <div style="font-size:13.5px;font-weight:600">小知 · 已登录</div>
+                  <div class="tiny">计算机科学与技术 · 大二 · 已连续 6 天</div>
+                </div>
+                <span class="tiny">→</span>
+              </div>
+            </div>
+            <div class="card" style="padding:2px 12px">
+              <div class="row" style="padding:10px 0;border-bottom:1px solid #EEF0F4"><span class="grow" style="font-size:12px">每日目标</span><span class="tiny">60 分钟 · 10 题</span></div>
+              <div class="row" style="padding:10px 0;border-bottom:1px solid #EEF0F4"><span class="grow" style="font-size:12px">偏好设置</span><span class="tiny">公式渲染 · 字号</span></div>
+              <div class="row" style="padding:10px 0"><span class="grow" style="font-size:12px">云同步</span><span class="tiny">刚刚同步</span></div>
+            </div>
+            <div class="card" style="padding:2px 12px">
+              <div class="row" style="padding:10px 0;border-bottom:1px solid #EEF0F4"><span class="grow" style="font-size:12px">账号与安全</span><span class="tiny">→</span></div>
+              <div class="row" style="padding:10px 0"><span class="grow" style="font-size:12px">数据管理</span><span class="tiny">导入 / 导出 / 清空</span></div>
+            </div>
+            <div class="btn" style="margin-top:2px">退出登录</div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>首页顶部 Tab「我的」；首页次入口第 2 页「账号与同步」<br>
+        <b>可点去哪：</b>个人卡 → 改昵称/资料；每日目标、偏好、云同步、数据管理各自子页；退出登录<br>
+        <b>设计变化：</b>从「更多页里的一个条目」升级为<b>与首页平级的顶部 Tab</b>；顶部补一张个人卡（昵称/专业/连续天数），进来第一眼看到"我是谁、我坚持了多久"
+      </div>
+    </figure>
+
+  </div>
+
+  <!-- ============ C 组 ============ -->
+  <h2 class="sec" id="gC">C · 二级界面与弹窗 <small>从首页入口往下再走一步会看到的界面 / 操作浮层</small></h2>
+  <div class="grid" id="gC-grid">
+
+    <!-- ========== C1 讲解页 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">C1</span><span class="dev__name">讲解页（图文讲解）</span><span class="dev__path">/q/:id</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div class="navbar"><span class="back">←</span><span class="title">讲解</span><span class="right">存错题本</span></div>
+          <div class="body">
+            <div class="card" style="padding:10px 12px">
+              <div class="tiny" style="margin-bottom:5px">题目</div>
+              <div style="font-size:12px;line-height:1.7">求极限　lim<sub>x→0</sub> (e<sup>x</sup> − 1 − x) / x²</div>
+            </div>
+            <div class="card">
+              <div class="tiny" style="margin-bottom:5px">答案</div>
+              <div style="font-size:14px;font-weight:600;color:#4B3BB0">1 / 2</div>
+              <div class="tiny" style="margin-top:7px;margin-bottom:5px">关键一步</div>
+              <div style="font-size:11.5px;line-height:1.7">分子用泰勒展开到二次项：e<sup>x</sup> − 1 − x = x²/2 + o(x²)，除以 x² 得 1/2。</div>
+            </div>
+            <div class="card">
+              <div class="tiny" style="margin-bottom:6px">解题步骤</div>
+              <div style="font-size:11.5px;line-height:1.8">
+                <b>①</b> 判断未定式类型：0/0<br>
+                <b>②</b> 用泰勒展开分子（比洛必达更省事）<br>
+                <b>③</b> 约去 x²，取极限
+              </div>
+            </div>
+            <div class="row" style="margin-top:auto;flex-wrap:wrap;gap:6px">
+              <span class="pill">这一步为什么？</span>
+              <span class="pill">换个讲法</span>
+              <span class="pill">出同类题</span>
+            </div>
+            <div class="row" style="background:#fff;border:1px solid #E5E8EE;border-radius:99px;padding:8px 12px">
+              <span class="grow ph" style="font-size:11.5px">追问这道题…</span><span style="font-size:13px;color:#8C94A6">🎙</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>A2 拍题页 / 文字搜题 识别成功后<br>
+        <b>可点去哪：</b>「存错题本」→ 写入错题本；追问 chip / 输入框 → 流式追问；「换个讲法」→ 另一角度重讲；「出同类题」→ 变式题<br>
+        <b>设计：</b>把「答案」与「关键一步」合并成一张卡（原来答案很孤立）；步骤用编号而不是长段落，扫读更快
+      </div>
+    </figure>
+
+    <!-- ========== C2 流式加载中 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">C2</span><span class="dev__name">讲解页 · 生成中（流式）</span><span class="dev__path">/q/:id（加载态）</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div class="navbar"><span class="back">←</span><span class="title">讲解</span></div>
+          <div class="body">
+            <div class="card" style="padding:10px 12px">
+              <div class="tiny" style="margin-bottom:5px">题目</div>
+              <div style="font-size:12px;line-height:1.7">求极限　lim<sub>x→0</sub> (e<sup>x</sup> − 1 − x) / x²</div>
+            </div>
+            <div class="card">
+              <div class="row" style="gap:6px;margin-bottom:9px">
+                <span style="width:6px;height:6px;border-radius:50%;background:#6F57F0;display:inline-block"></span>
+                <span class="tiny" style="color:#4B3BB0">AI 正在思考…</span>
+              </div>
+              <div class="bar" style="margin-bottom:10px"><i style="width:38%"></i></div>
+              <div style="font-size:11.5px;line-height:1.8">这道题是 0/0 型未定式。常用的两种做法是洛必达法则和泰勒展开，这里用泰勒展开更省事：</div>
+              <div class="skel" style="width:82%;margin-top:9px"></div>
+              <div class="skel" style="width:64%;margin-top:6px"></div>
+              <div class="skel" style="width:74%;margin-top:6px"></div>
+            </div>
+            <div class="tiny">已出文字实时显示，公式在生成结束后统一渲染</div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>拍题后立刻进入<br>
+        <b>设计：</b>顶部「AI 正在思考…」+ 不确定进度条（不假装知道还剩多久）；已生成文字直接可读，未生成部分用骨架条；公式等生成完再统一渲染（避免每来一个字就重排）
+      </div>
+    </figure>
+
+    <!-- ========== C3 错题详情抽屉 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">C3</span><span class="dev__name">错题详情（抽屉）</span><span class="dev__path">/wrongbook/:id</span></div>
+      <div class="screen" style="background:rgba(20,26,38,.28)">
+        <div class="sbar" style="color:#fff"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app" style="justify-content:flex-end">
+          <div style="background:#F5F7FA;border-radius:16px 16px 0 0;height:510px;padding:14px;display:flex;flex-direction:column;gap:10px">
+            <div class="row"><span style="font-size:13.5px;font-weight:600">错题详情</span><span class="tiny" style="margin-left:auto">✕</span></div>
+            <div class="card" style="padding:11px 12px">
+              <div style="font-size:12px;line-height:1.7">求极限 lim<sub>x→0</sub> (e<sup>x</sup> − 1 − x) / x²</div>
+              <div class="row" style="gap:6px;margin-top:7px"><span class="pill" style="font-size:10px">洛必达法则</span><span class="pill" style="font-size:10px">未定式</span></div>
+            </div>
+            <div class="card" style="padding:11px 12px">
+              <div class="row" style="margin-bottom:6px"><span class="tiny">掌握情况</span><span class="tiny" style="margin-left:auto;color:#B5722A">待复习</span></div>
+              <div class="tiny">已复习 2 次 · 连续答对 1 次（连续 2 次即算掌握）</div>
+              <div class="bar" style="margin-top:8px"><i style="width:50%"></i></div>
+            </div>
+            <div class="card" style="padding:11px 12px">
+              <div class="tiny" style="margin-bottom:5px">我的作答记录</div>
+              <div style="font-size:11.5px">第 1 次：不会，直接看答案</div>
+              <div style="font-size:11.5px;margin-top:3px">第 2 次：用洛必达算了，结果 1/2（正确）</div>
+            </div>
+            <div class="row" style="margin-top:auto;gap:8px">
+              <div class="btn grow">重做一遍</div>
+              <div class="btn pri grow">看讲解</div>
+            </div>
+            <div class="row"><span class="tiny">编辑题干</span><span class="tiny" style="margin-left:auto;color:#C0392B">移出错题本</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>A3 错题列表点条目<br>
+        <b>可点去哪：</b>「重做一遍」→ 就地作答判分；「看讲解」→ C1 讲解页；「编辑题干」/「移出错题本」<br>
+        <b>设计：</b>抽屉高度约 80%；把"已复习几次、还差几次掌握"讲明白 —— 让用户理解这不是"存了就完事"，而是有进度的
+      </div>
+    </figure>
+
+    <!-- ========== C4 自测判定 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">C4</span><span class="dev__name">自测 · 判定结果</span><span class="dev__path">/practice/original（判定态）</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div class="navbar"><span class="back">←</span><span class="title">复习 · 第 3 / 10 题</span></div>
+          <div class="body">
+            <div class="bar"><i style="width:30%"></i></div>
+            <div class="card" style="border-color:#C6E0CE;background:#F1F8F3">
+              <div class="row"><span style="font-size:12.5px;font-weight:600;color:#2E5A45">✓ 答对了</span><span class="tiny" style="margin-left:auto">连续 2 次</span></div>
+              <div class="tiny" style="margin-top:5px;color:#2E5A45">这道题已标记为「已掌握」，不再进入复习队列</div>
+            </div>
+            <div class="card">
+              <div class="tiny" style="margin-bottom:5px">你的作答</div>
+              <div style="font-size:11.5px;line-height:1.7">用泰勒展开：e<sup>x</sup>−1−x = x²/2 + o(x²)，所以极限 = 1/2</div>
+              <div class="tiny" style="margin-top:8px;margin-bottom:5px">参考答案</div>
+              <div style="font-size:11.5px">1 / 2</div>
+            </div>
+            <div class="card">
+              <div class="tiny" style="margin-bottom:5px">AI 评语</div>
+              <div style="font-size:11.5px;line-height:1.7">思路正确、表达完整。如果考试时间紧，也可以直接用洛必达两次求导。</div>
+            </div>
+            <div class="btn pri" style="margin-top:auto">下一题</div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>B2 提交批改后<br>
+        <b>可点去哪：</b>「下一题」继续；如果答错，会出现「看讲解 / 加入复习」<br>
+        <b>设计：</b>判定卡放在最上面（先告诉对错），再依次是"你的作答 / 参考答案 / 评语"；达成掌握时有明确的正反馈文案
+      </div>
+    </figure>
+
+    <!-- ========== C5 登录弹窗 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">C5</span><span class="dev__name">登录 / 注册弹窗</span><span class="dev__path">浮层</span></div>
+      <div class="screen" style="background:rgba(20,26,38,.35)">
+        <div class="sbar" style="color:#fff"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app" style="align-items:center;justify-content:center">
+          <div style="width:250px;background:#fff;border-radius:16px;padding:18px">
+            <div style="font-size:15px;font-weight:600;text-align:center">登录知一</div>
+            <div class="tiny" style="text-align:center;margin:5px 0 14px">登录后错题本与成绩会同步到云端</div>
+            <div class="tiny" style="margin-bottom:4px">昵称</div>
+            <div style="border:1px solid #E5E8EE;border-radius:9px;padding:8px 10px;font-size:12px;margin-bottom:10px">小知</div>
+            <div class="tiny" style="margin-bottom:4px">密码</div>
+            <div style="border:1px solid #E5E8EE;border-radius:9px;padding:8px 10px;font-size:12px;color:#B4BAC6">••••••••</div>
+            <div class="btn pri" style="margin-top:14px">登录</div>
+            <div class="tiny" style="text-align:center;margin-top:10px">还没有账号？<span style="color:#6F57F0">去注册</span>　·　<span style="color:#6F57F0">忘记密码</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>「我的」页退出登录后；点云同步、发帖等需登录的操作<br>
+        <b>设计：</b>一句话说清"登录能带来什么"（云同步），比单纯一个登录框更有说服力；注册与找回密码走文字链接，不占用主按钮
+      </div>
+    </figure>
+
+    <!-- ========== C6 排课弹窗 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">C6</span><span class="dev__name">排课弹窗</span><span class="dev__path">课表页浮层</span></div>
+      <div class="screen" style="background:rgba(20,26,38,.35)">
+        <div class="sbar" style="color:#fff"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app" style="align-items:center;justify-content:center">
+          <div style="width:258px;background:#fff;border-radius:16px;padding:16px">
+            <div style="font-size:14px;font-weight:600;margin-bottom:12px">排课 · 周三</div>
+            <div class="tiny" style="margin-bottom:4px">课程名</div>
+            <div style="border:1px solid #E5E8EE;border-radius:9px;padding:7px 10px;font-size:12px;margin-bottom:9px">数据结构</div>
+            <div class="row" style="gap:8px;margin-bottom:9px">
+              <div class="grow"><div class="tiny" style="margin-bottom:4px">老师</div><div style="border:1px solid #E5E8EE;border-radius:9px;padding:7px 10px;font-size:11.5px">王老师</div></div>
+              <div class="grow"><div class="tiny" style="margin-bottom:4px">教室</div><div style="border:1px solid #E5E8EE;border-radius:9px;padding:7px 10px;font-size:11.5px">教三302</div></div>
+            </div>
+            <div class="tiny" style="margin-bottom:4px">节次（选起止，一次排连续多节）</div>
+            <div class="row" style="gap:6px;margin-bottom:9px">
+              <div class="grow" style="border:1px solid #E5E8EE;border-radius:9px;padding:7px 10px;font-size:11.5px">第 3 节</div>
+              <span class="tiny">～</span>
+              <div class="grow" style="border:1px solid #E5E8EE;border-radius:9px;padding:7px 10px;font-size:11.5px">第 5 节</div>
+              <span class="tiny" style="color:#6F57F0">共 3 节</span>
+            </div>
+            <div class="tiny" style="margin-bottom:4px">上课周数</div>
+            <div class="row" style="gap:6px">
+              <div style="border:1px solid #E5E8EE;border-radius:9px;padding:7px 10px;font-size:11.5px">自定义周次</div>
+              <div class="grow" style="border:1px solid #E5E8EE;border-radius:9px;padding:7px 10px;font-size:11.5px">2,5,6</div>
+            </div>
+            <div class="tiny" style="margin-top:7px">已选：第 2、5、6 周</div>
+            <div class="row" style="gap:8px;margin-top:14px">
+              <div class="btn grow">取消</div>
+              <div class="btn pri grow">添加</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>课表「编辑」模式下点空格子<br>
+        <b>已实现能力（沿用）：</b>节次选起止一次排连续多节；周次支持每周/单周/双周/自定义（如 2,5,6）；冲突会阻止并提示哪几节已被占<br>
+        <b>设计：</b>保持现有字段结构，仅微调标签文案（"节次"补一句用法说明）
+      </div>
+    </figure>
+
+    <!-- ========== C7 课程编辑弹窗 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">C7</span><span class="dev__name">课程编辑弹窗</span><span class="dev__path">课程页浮层</span></div>
+      <div class="screen" style="background:rgba(20,26,38,.35)">
+        <div class="sbar" style="color:#fff"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app" style="align-items:center;justify-content:center">
+          <div style="width:262px;background:#fff;border-radius:16px;padding:16px;max-height:560px;overflow:hidden">
+            <div style="font-size:14px;font-weight:600;margin-bottom:12px">编辑课程</div>
+            <div class="tiny" style="margin-bottom:4px">课程名</div>
+            <div style="border:1px solid #E5E8EE;border-radius:9px;padding:7px 10px;font-size:12px;margin-bottom:9px">数据结构</div>
+            <div class="row" style="gap:8px;margin-bottom:9px">
+              <div class="grow"><div class="tiny" style="margin-bottom:4px">教师</div><div style="border:1px solid #E5E8EE;border-radius:9px;padding:7px 10px;font-size:11.5px">王老师</div></div>
+              <div class="grow"><div class="tiny" style="margin-bottom:4px">教室</div><div style="border:1px solid #E5E8EE;border-radius:9px;padding:7px 10px;font-size:11.5px">教三302</div></div>
+            </div>
+            <div class="tiny" style="margin-bottom:5px">课程颜色（课表里用它区分课程）</div>
+            <div class="row" style="gap:7px;margin-bottom:11px">
+              <span style="width:22px;height:22px;border-radius:50%;background:#3D6FA8;border:2px solid #141A26"></span>
+              <span style="width:22px;height:22px;border-radius:50%;background:#4A7A63"></span>
+              <span style="width:22px;height:22px;border-radius:50%;background:#7A5F3D"></span>
+              <span style="width:22px;height:22px;border-radius:50%;background:#6B5B95"></span>
+              <span style="width:22px;height:22px;border-radius:50%;background:#3D6A7A"></span>
+              <span style="width:22px;height:22px;border-radius:50%;border:1.5px dashed #B4BAC6"></span>
+            </div>
+            <div style="border-top:1px solid #EEF0F4;padding-top:10px">
+              <div class="tiny" style="margin-bottom:7px">上课时段</div>
+              <div style="background:#F5F7FA;border-radius:10px;padding:9px;margin-bottom:7px">
+                <div class="row" style="gap:5px;margin-bottom:5px">
+                  <div style="border:1px solid #E5E8EE;border-radius:7px;padding:5px 8px;font-size:11px">周三</div>
+                  <div style="border:1px solid #E5E8EE;border-radius:7px;padding:5px 8px;font-size:11px">第3节～第5节</div>
+                </div>
+                <div class="row" style="gap:5px">
+                  <div style="border:1px solid #E5E8EE;border-radius:7px;padding:5px 8px;font-size:11px">自定义</div>
+                  <div style="border:1px solid #E5E8EE;border-radius:7px;padding:5px 8px;font-size:11px">2,5,6</div>
+                </div>
+                <div class="tiny" style="margin-top:6px">周次：第 2、5、6 周</div>
+              </div>
+              <div class="tiny" style="color:#6F57F0">＋ 添加时段</div>
+              <div class="tiny" style="margin-top:8px">保存后按此重建该课程在课程表的排课</div>
+            </div>
+            <div class="row" style="gap:8px;margin-top:12px">
+              <div class="btn grow">取消</div>
+              <div class="btn pri grow">保存</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>B11 我的课程「编辑」<br>
+        <b>已实现能力（沿用）：</b>名称/教师/教室/颜色（6 预设 + 取色器）；上课时段可增删多条（星期 + 节次范围 + 周次），保存时重建排课<br>
+        <b>设计：</b>把"颜色"和"上课时段"用分隔线分成两段，视觉上区分"基本信息"与"排课设置"
+      </div>
+    </figure>
+
+    <!-- ========== C8 考试编辑弹窗 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">C8</span><span class="dev__name">考试编辑弹窗</span><span class="dev__path">考试安排页浮层</span></div>
+      <div class="screen" style="background:rgba(20,26,38,.35)">
+        <div class="sbar" style="color:#fff"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app" style="align-items:center;justify-content:center">
+          <div style="width:250px;background:#fff;border-radius:16px;padding:16px">
+            <div style="font-size:14px;font-weight:600;margin-bottom:12px">新增考试</div>
+            <div class="tiny" style="margin-bottom:4px">考试名称</div>
+            <div style="border:1px solid #E5E8EE;border-radius:9px;padding:7px 10px;font-size:12px;margin-bottom:9px">高等数学 · 期末考试</div>
+            <div class="row" style="gap:8px;margin-bottom:9px">
+              <div class="grow"><div class="tiny" style="margin-bottom:4px">日期</div><div style="border:1px solid #E5E8EE;border-radius:9px;padding:7px 10px;font-size:11.5px">2026-10-03</div></div>
+              <div class="grow"><div class="tiny" style="margin-bottom:4px">时间</div><div style="border:1px solid #E5E8EE;border-radius:9px;padding:7px 10px;font-size:11.5px">09:00</div></div>
+            </div>
+            <div class="tiny" style="margin-bottom:4px">地点（选填）</div>
+            <div style="border:1px solid #E5E8EE;border-radius:9px;padding:7px 10px;font-size:11.5px;margin-bottom:9px">教三 401</div>
+            <div class="tiny" style="margin-bottom:4px">关联课程（选填）</div>
+            <div style="border:1px solid #E5E8EE;border-radius:9px;padding:7px 10px;font-size:11.5px">高等数学</div>
+            <div class="row" style="gap:8px;margin-top:14px">
+              <div class="btn grow">取消</div>
+              <div class="btn pri grow">保存</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>B10 考试安排「＋ 新增」<br>
+        <b>可点去哪：</b>保存后写入考试列表，并出现在首页信息位与课程表提醒<br>
+        <b>设计：</b>沿用现有字段；把"关联课程"标注为选填并解释作用（便于考试与课程关联）
+      </div>
+    </figure>
+
+    <!-- ========== C9 反馈弹窗 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">C9</span><span class="dev__name">意见反馈弹窗</span><span class="dev__path">浮层</span></div>
+      <div class="screen" style="background:rgba(20,26,38,.35)">
+        <div class="sbar" style="color:#fff"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app" style="align-items:center;justify-content:center">
+          <div style="width:250px;background:#fff;border-radius:16px;padding:16px">
+            <div style="font-size:14px;font-weight:600;margin-bottom:4px">意见反馈</div>
+            <div class="tiny" style="margin-bottom:10px">遇到问题或有好想法，都可以告诉我们</div>
+            <div style="border:1px solid #E5E8EE;border-radius:9px;padding:9px 10px;font-size:11.5px;color:#8C94A6;height:76px">
+              描述你遇到的问题或建议…
+            </div>
+            <div class="tiny" style="margin:9px 0 4px">联系方式（选填）</div>
+            <div style="border:1px solid #E5E8EE;border-radius:9px;padding:7px 10px;font-size:11.5px;color:#B4BAC6">邮箱 / 微信</div>
+            <div class="row" style="gap:8px;margin-top:14px">
+              <div class="btn grow">取消</div>
+              <div class="btn pri grow">提交</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>B16 帮助页「提交反馈」；B15 产品介绍页「反馈与建议」<br>
+        <b>设计：</b>沿用现有反馈接口；文案加了"也可以说好想法"，降低提交心理门槛
+      </div>
+    </figure>
+
+    <!-- ========== C10 打印预览 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">C10</span><span class="dev__name">打印预览（错题本导出）</span><span class="dev__path">浮层</span></div>
+      <div class="screen" style="background:#5A6274">
+        <div class="sbar" style="color:#fff"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#141A26">
+            <span style="font-size:12px;color:#fff">错题本导出</span>
+            <span style="margin-left:auto;font-size:11.5px;color:#BCB2FF">打印</span>
+            <span style="font-size:11.5px;color:#C8CFE0">关闭</span>
+          </div>
+          <div style="flex:1;overflow:hidden;padding:12px">
+            <div style="background:#fff;border-radius:6px;padding:16px;height:100%">
+              <div style="font-size:13px;font-weight:600;text-align:center">错题本 · 共 8 题</div>
+              <div class="tiny" style="text-align:center;margin-top:3px">2026-09-21 导出 · 知一</div>
+              <div style="border-top:1px solid #E5E8EE;margin:12px 0 10px"></div>
+              <div style="font-size:11.5px;font-weight:600">1. 求极限 lim(e<sup>x</sup>−1−x)/x²</div>
+              <div class="tiny" style="margin-top:4px">知识点：洛必达法则 / 未定式极限</div>
+              <div class="tiny" style="margin-top:3px">我的作答：用泰勒展开得 1/2 ✓</div>
+              <div style="border-top:1px dashed #E5E8EE;margin:11px 0 9px"></div>
+              <div style="font-size:11.5px;font-weight:600">2. 设 y = x<sup>x</sup>，求 y′</div>
+              <div class="tiny" style="margin-top:4px">知识点：幂指函数求导</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>A3 错题学习「导出 / 打印」<br>
+        <b>设计：</b>沿用现有「打印预览可复用容器」（顶栏 + 纸张 + 打印样式），此处仅确认视觉与其他页面统一
+      </div>
+    </figure>
+
+    <!-- ========== C11 数据管理 ============ -->
+    <figure class="dev">
+      <div class="dev__head"><span class="dev__no">C11</span><span class="dev__name">数据管理</span><span class="dev__path">/me 子页</span></div>
+      <div class="screen">
+        <div class="sbar"><span>9:41</span><span>5G ▮▮▮</span></div>
+        <div class="app">
+          <div class="navbar"><span class="back">←</span><span class="title">数据管理</span></div>
+          <div class="body">
+            <div class="card">
+              <h5>云端同步</h5>
+              <p>错题本、打卡统计、课程与课表、模拟考试试卷都会同步；换设备登录同一账号即可恢复。</p>
+              <div class="row" style="margin-top:9px"><span class="tiny">上次同步：刚刚</span><span class="btn" style="margin-left:auto;padding:5px 12px">立即同步</span></div>
+            </div>
+            <div class="card">
+              <h5>导出备份</h5>
+              <p>把所有数据导出为一个文件，可保存或换设备导入。</p>
+              <div class="btn" style="margin-top:9px">导出全部数据</div>
+            </div>
+            <div class="card">
+              <h5>导入备份</h5>
+              <p>选择之前导出的文件恢复数据（会与现有数据合并）。</p>
+              <div class="btn" style="margin-top:9px">选择文件导入</div>
+            </div>
+            <div class="card" style="border-color:#F0C8C8">
+              <h5 style="color:#C0392B">清空本地数据</h5>
+              <p>仅清空这台设备上的记录，云端不受影响。</p>
+              <div class="btn" style="margin-top:9px;color:#C0392B;border-color:#F0C8C8">清空本地数据</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dev__note">
+        <b>从哪来：</b>B17 我的 →「数据管理」<br>
+        <b>设计：</b>四块卡片按"同步 / 导出 / 导入 / 清空"排列，危险操作（清空）单独用红色描边区分，并明确写出"云端不受影响"消除顾虑
+      </div>
+    </figure>
+
+  </div>
+
+  <p class="tiny" style="margin-top:26px;color:#8C94A6">
+    以上 34 个界面/状态均按同一套设计规范绘制 · 生成人：L · 2026-09-21<br>
+    说明：这是设计样图（HTML 手绘），用于确认布局与信息层级；确认后再进入开发，开发时会沿用项目现有的设计 token 与组件库。
+  </p>
+
+</div>
+</body>
+</html>

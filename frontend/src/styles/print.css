@@ -1,0 +1,92 @@
+/* ==========================================================================
+   知一 V1 · Print（打印）
+   ---------------------------------------------------------------------------
+   约定（沿用现有能力，P2 迁移时统一）：
+   1. 打印时隐藏应用本体，只保留 .zy-print-root 内的内容
+   2. body 上加 .zy-printing 类即进入打印模式（旧版为 body.zy-printing，保持兼容）
+   3. 所有打印预览容器使用 .zy-print-paper，自动继承本文件的断页规则
+   4. 深浅色主题都必须打印为白底黑字（不跟随屏幕主题）
+   ========================================================================== */
+
+@page {
+  size: A4;
+  margin: 16mm 14mm;
+}
+
+.zy-print-root {
+  display: none;
+}
+
+/* 屏幕上的打印预览容器（复用同一套规则） */
+.zy-print-paper {
+  background: #ffffff;
+  color: #1f2733;
+  font-size: 12.5pt;
+  line-height: 1.7;
+}
+
+.zy-print-paper h1,
+.zy-print-paper h2,
+.zy-print-paper h3 {
+  break-after: avoid;
+}
+
+.zy-print-item {
+  break-inside: avoid;
+}
+
+.zy-print-q,
+.zy-print-answer,
+.zy-print-step,
+.zy-print-note {
+  break-inside: avoid;
+}
+
+@media print {
+  html,
+  body {
+    background: #ffffff !important;
+    color: #1f2733 !important;
+  }
+
+  /* 打印时隐藏应用本体 */
+  body.zy-printing #app,
+  body.zy-printing .bottomnav,
+  body.zy-printing .topnav,
+  body.zy-printing .toast,
+  body.zy-printing .zy-no-print,
+  body.zy-printing .zy-ai-status-bar {
+    display: none !important;
+  }
+
+  body.zy-printing .zy-print-root {
+    display: block !important;
+  }
+
+  /* 强制白底黑字，忽略主题变量 */
+  .zy-print-root,
+  .zy-print-root * {
+    background: #ffffff !important;
+    color: #1f2733 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    border-color: #d7dbe3 !important;
+  }
+
+  /* 代码块与公式在纸上保持可读 */
+  .zy-print-root pre,
+  .zy-print-root code {
+    background: #f6f8fa !important;
+    border: 0.5pt solid #e2e6ec !important;
+    white-space: pre-wrap !important;
+    word-break: break-word;
+  }
+
+  .zy-print-root a {
+    text-decoration: none;
+  }
+
+  a[href]::after {
+    content: '';
+  }
+}

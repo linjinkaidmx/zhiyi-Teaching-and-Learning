@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>知一 · 成就奖章样图</title>
+<style>
+  :root{
+    --bg:#f2f4f9; --surface:#fff; --line:rgba(20,30,60,.1);
+    --t1:#141a26; --t2:#3a445a; --t3:#5d6880; --t4:#7c869b; --t5:#a3abbd;
+    --primary:#6f57f0; --soft:rgba(124,92,255,.09);
+    --font:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+    --mono:'SF Mono',ui-monospace,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#e8ebf2;font-family:var(--font);color:var(--t1);padding:30px 0 70px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+  h1{font-size:25px;letter-spacing:-.4px;margin-bottom:8px}
+  .lead{font-size:13.5px;color:var(--t3);line-height:1.75;margin-bottom:6px}
+  .lead b{color:var(--t1)}
+  .sec{margin-top:34px}
+  .sec-h{display:flex;align-items:baseline;gap:10px;margin-bottom:14px}
+  .sec-h h2{font-size:16px;letter-spacing:-.2px}
+  .sec-h span{font-size:12.5px;color:var(--t4)}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 1px 2px rgba(20,30,60,.04),0 12px 30px -16px rgba(20,30,60,.18)}
+  .panel.dark{background:#101624;border-color:rgba(160,180,230,.14);color:#e9ecf3}
+  .panel.dark .cap b{color:#e9ecf3}
+  .panel.dark .cap i{color:#8890a6}
+
+  /* 奖章底座尺寸档 */
+  .badge{display:block}
+  .brown{width:96px;height:96px}
+  .bmd{width:64px;height:64px}
+  .bsm{width:44px;height:44px}
+  .bxs{width:28px;height:28px}
+  .badge.locked{filter:grayscale(1);opacity:.42}
+  .badge .totem{transition:transform .3s cubic-bezier(.16,1,.3,1)}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:9px;padding:14px 8px;border-radius:14px;transition:background .2s,transform .2s}
+  .cell:hover{background:var(--soft);transform:translateY(-2px)}
+  .cell:hover .badge .totem{transform:scale(1.06)}
+  .cap{text-align:center;line-height:1.45}
+  .cap b{display:block;font-size:13px;font-weight:600}
+  .cap i{display:block;font-size:11.5px;color:var(--t4);font-style:normal;margin-top:2px}
+  .row{display:flex;flex-wrap:wrap;gap:6px}
+  .grid8{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+  .grid6{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .grid12{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+  .rk{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--t3);background:#f4f6fb;border-radius:999px;padding:3px 10px}
+  .rk i{width:8px;height:8px;border-radius:50%;display:inline-block}
+  .rk.c i{background:linear-gradient(140deg,#e0b184,#b8763c)}
+  .rk.r i{background:linear-gradient(140deg,#e6ebf5,#98a3b8)}
+  .rk.e i{background:linear-gradient(140deg,#f7d374,#cd8f22)}
+  .rk.l i{background:linear-gradient(140deg,#c3b0ff,#6f57f0)}
+  .panel.dark .rk{background:rgba(255,255,255,.06);color:#c8cfe0}
+  .note{font-size:12.5px;color:var(--t4);line-height:1.8;margin-top:12px}
+  .ladder{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .ladder .panel{padding:18px 12px}
+  .arrow{text-align:center;font-size:12px;color:var(--t5);margin-top:8px}
+</style>
+</head>
+<body>
+
+<!-- 渐变与滤镜定义（全页共用） -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="g-common" x1=".2" y1="0" x2=".8" y2="1">
+    <stop offset="0" stop-color="#ecc59a"/><stop offset=".48" stop-color="#d29a64"/><stop offset="1" stop-color="#a96730"/>
+  </linearGradient>
+  <linearGradient id="g-rare" x1=".2" y1="0" x2=".8" y2="1">
+    <stop offset="0" stop-color="#f4f7fc"/><stop offset=".45" stop-color="#ccd5e4"/><stop offset="1" stop-color="#8b98b0"/>
+  </linearGradient>
+  <linearGradient id="g-epic" x1=".2" y1="0" x2=".8" y2="1">
+    <stop offset="0" stop-color="#ffe9a8"/><stop offset=".45" stop-color="#f2bf4e"/><stop offset="1" stop-color="#be8218"/>
+  </linearGradient>
+  <linearGradient id="g-legend" x1=".15" y1="0" x2=".85" y2="1">
+    <stop offset="0" stop-color="#d9ccff"/><stop offset=".45" stop-color="#9b83fb"/><stop offset="1" stop-color="#5b47d6"/>
+  </linearGradient>
+  <linearGradient id="g-ring" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#ffffff" stop-opacity=".9"/><stop offset=".5" stop-color="#ffffff" stop-opacity=".15"/>
+    <stop offset="1" stop-color="#ffffff" stop-opacity=".65"/>
+  </linearGradient>
+  <radialGradient id="g-halo" cx=".5" cy=".5" r=".5">
+    <stop offset=".62" stop-color="#9b83fb" stop-opacity="0"/><stop offset=".82" stop-color="#9b83fb" stop-opacity=".38"/>
+    <stop offset="1" stop-color="#6f57f0" stop-opacity="0"/>
+  </radialGradient>
+  <filter id="f-soft" x="-40%" y="-40%" width="180%" height="180%">
+    <feDropShadow dx="0" dy="1.5" stdDeviation="2.2" flood-color="#1b2340" flood-opacity=".28"/>
+  </filter>
+</defs></svg>
+
+<div class="wrap">
+  <h1>知一 · 成就奖章样图</h1>
+  <p class="lead">组合式徽章系统：<b>底座表达稀有度</b>（铜 / 银 / 金 / 紫），<b>图腾表达功能域</b>（搜题 / 错题 / 讲解 / 编程 / 班级 / 考试 / 数据 / 探索）。同一套 SVG 内联绘制，任意尺寸清晰，深浅色自适应。</p>
+  <p class="lead" style="color:var(--t4)">共 4 档底座 × 8 种图腾，覆盖 43 枚成就；锁定态自动灰度。</p>
+
+  <!-- ① 稀有度阶梯 -->
+  <div class="sec">
+    <div class="sec-h"><h2>一、稀有度阶梯</h2><span>同一图腾（书页 / 错题域）放在四档底座上，越往上装饰越繁复</span></div>
+    <div class="ladder" id="ladder"></div>
+    <p class="note">普通=六边铜 · 稀有=盾形银 · 史诗=齿边金 · 传说=光环紫（含外环 + 星芒）。传说级在真实页面里光环会缓慢旋转，移动端自动静止。</p>
+  </div>
+
+  <!-- ② 功能图腾 -->
+  <div class="sec">
+    <div class="sec-h"><h2>二、功能域图腾</h2><span>8 个功能域各有一枚专属图形，与站点图标同一套线条语言</span></div>
+    <div class="panel"><div class="grid8" id="totems"></div></div>
+  </div>
+
+  <!-- ③ 奖章墙（真实成就示例） -->
+  <div class="sec">
+    <div class="sec-h"><h2>三、奖章墙（部分成就实拍）</h2><span>挑 18 枚覆盖各稀有度，展示解锁态的实际观感</span></div>
+    <div class="panel"><div class="grid6" id="wall"></div></div>
+  </div>
+
+  <!-- ④ 锁定态 -->
+  <div class="sec">
+    <div class="sec-h"><h2>四、未解锁态</h2><span>灰度 + 降透明，仍能看出稀有度轮廓与图腾，给人「想拿到」的钩子</span></div>
+    <div class="panel"><div class="grid4" id="locked" style="max-width:640px"></div></div>
+  </div>
+
+  <!-- ⑤ 尺寸阶梯 -->
+  <div class="sec">
+    <div class="sec-h"><h2>五、尺寸阶梯</h2><span>成就页大卡 / 列表项 / 面板入口 / 角标</span></div>
+    <div class="panel" style="display:flex;align-items:flex-end;gap:34px;flex-wrap:wrap">
+      <div style="text-align:center"><div id="sz1"></div><div class="cap" style="margin-top:8px"><i>96px 详情</i></div></div>
+      <div style="text-align:center"><div id="sz2"></div><div class="cap" style="margin-top:8px"><i>64px 卡片</i></div></div>
+      <div style="text-align:center"><div id="sz3"></div><div class="cap" style="margin-top:8px"><i>44px 列表</i></div></div>
+      <div style="text-align:center"><div id="sz4"></div><div class="cap" style="margin-top:8px"><i>28px 角标</i></div></div>
+    </div>
+  </div>
+
+  <!-- ⑥ 深色模式 -->
+  <div class="sec">
+    <div class="sec-h"><h2>六、深色模式</h2><span>底座渐变不变，描边与投影加强以保证在深底上有体积感</span></div>
+    <div class="panel dark"><div class="grid8" id="dark"></div></div>
+  </div>
+</div>
+
+<script>
+/* ---------------- 底座几何（96×96 画布） ---------------- */
+const A = (n, r, cx = 48, cy = 48, rot = 0, r2 = null) => {
+  // 生成 n 边（或 n 齿）极坐标点
+  const pts = []
+  for (let i = 0; i < n; i++) {
+    const a = (Math.PI * 2 * i) / n - Math.PI / 2 + rot
+    const rr = r2 === null ? r : (i % 2 === 0 ? r : r2)
+    pts.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr])
+  }
+  return pts.map((p) => `${p[0].toFixed(2)} ${p[1].toFixed(2)}`).join('L')
+}
+
+const BASE = {
+  common: `<path d="M${A(6, 40)}Z" fill="url(#g-common)" stroke="#8a5a2b" stroke-width="1.4" stroke-linejoin="round"/>`,
+  rare: `<path d="M48 8C63 8 77 13 84 17V49C84 71 66 85 48 91C30 85 12 71 12 49V17C19 13 33 8 48 8Z" fill="url(#g-rare)" stroke="#6b7689" stroke-width="1.4" stroke-linejoin="round"/>`,
+  epic: `<path d="M${A(24, 40, 48, 48, 0, 35.5)}Z" fill="url(#g-epic)" stroke="#9a6a12" stroke-width="1.4" stroke-linejoin="round"/>`,
+  legend: `<circle cx="48" cy="48" r="40" fill="url(#g-legend)" stroke="#4b39b8" stroke-width="1.4"/>
+    <circle cx="48" cy="48" r="45.5" fill="none" stroke="#9b83fb" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 9" opacity=".85"/>
+    <circle cx="48" cy="48" r="47" fill="url(#g-halo)"/>`,
+}
+const RING = {
+  common: `<path d="M${A(6, 35.5)}Z" fill="none" stroke="url(#g-ring)" stroke-width="1.2" stroke-linejoin="round" opacity=".55"/>`,
+  rare: `<path d="M48 15C60 15 71 19 77 22.5V48C77 66 62.5 78 48 83.5C33.5 78 19 66 19 48V22.5C25 19 36 15 48 15Z" fill="none" stroke="url(#g-ring)" stroke-width="1.2" opacity=".55"/>`,
+  epic: `<path d="M${A(24, 33, 48, 48, 0, 29)}Z" fill="none" stroke="url(#g-ring)" stroke-width="1.2" stroke-linejoin="round" opacity=".5"/>`,
+  legend: `<circle cx="48" cy="48" r="33" fill="none" stroke="url(#g-ring)" stroke-width="1.2" opacity=".5"/>`,
+}
+/* 传说级星芒 */
+const SPARK = (() => {
+  let s = ''
+  for (let i = 0; i < 8; i++) {
+    const a = (Math.PI * 2 * i) / 8 - Math.PI / 2
+    const x1 = 48 + Math.cos(a) * 41, y1 = 48 + Math.sin(a) * 41
+    const x2 = 48 + Math.cos(a) * 47.5, y2 = 48 + Math.sin(a) * 47.5
+    s += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#c3b0ff" stroke-width="1.8" stroke-linecap="round" opacity=".9"/>`
+  }
+  return s
+})()
+
+/* ---------------- 功能图腾（24×24 线条，白色描边）
+   每个功能域 3 个变体，让同一域内的多枚奖章也能一眼区分 ---------------- */
+const TOTEM = {
+  // 拍照搜题
+  search: '<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="11" cy="11" r="3.4"/><path d="M14.6 14.6 18 18"/>',
+  camera: '<rect x="2.8" y="6.6" width="18.4" height="13.6" rx="3"/><circle cx="12" cy="13.4" r="3.6"/><path d="M8.6 6.6 10 4.4h4l1.4 2.2"/>',
+  bolt: '<path d="M13.8 3.2 6.4 13.4h4.9l-1.5 7.4 7.6-10.2h-4.9z"/>',
+  // 错题自测
+  book: '<path d="M11.6 6.6S9.6 5 6.6 5H3.6v12h3c3 0 5 1.6 5 1.6"/><path d="M12.4 6.6S14.4 5 17.4 5h3v12h-3c-3 0-5 1.6-5 1.6"/>',
+  bookmark: '<path d="M6.6 3.6h10.8v16.8l-5.4-4.2-5.4 4.2z"/>',
+  target: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/>',
+  // 讲解追问
+  chat: '<path d="M20 11.2c0 3.6-3.6 6.5-8 6.5-.9 0-1.8-.1-2.6-.35L5 19.5l1.2-3.2A6.2 6.2 0 0 1 4 11.2C4 7.6 7.6 4.7 12 4.7s8 2.9 8 6.5Z"/>',
+  question: '<path d="M20 11.2c0 3.6-3.6 6.5-8 6.5-.9 0-1.8-.1-2.6-.35L5 19.5l1.2-3.2A6.2 6.2 0 0 1 4 11.2C4 7.6 7.6 4.7 12 4.7s8 2.9 8 6.5Z"/><path d="M10.3 9.5a1.9 1.9 0 1 1 2.5 1.8c-.5.2-.8.5-.8 1v.2"/><path d="M12 15.5h.01"/>',
+  layers: '<path d="M12 3.6 3.6 8.2 12 12.8l8.4-4.6z"/><path d="M3.6 12.4 12 17l8.4-4.6"/><path d="M3.6 16.2 12 20.8l8.4-4.6"/>',
+  // 编程工具
+  code: '<path d="M9 7 4.6 12 9 17"/><path d="M15 7 19.4 12 15 17"/>',
+  terminal: '<rect x="3.4" y="4.6" width="17.2" height="14.8" rx="2.4"/><path d="M7.6 10l2.2 2.2-2.2 2.2"/><path d="M12.6 14.6h4"/>',
+  bug: '<circle cx="12" cy="12.8" r="4.4"/><path d="M12 8.4v8.8M7.9 9.9 5.2 8.3M16.1 9.9 18.8 8.3M7.6 12.8H4.2M16.4 12.8h3.4M8.1 15.7 5.6 17.4M15.9 15.7l2.5 1.7"/><path d="M9.5 7.6a2.5 2.5 0 0 1 5 0"/>',
+  // 班级课堂
+  class: '<rect x="3" y="4.6" width="18" height="11.4" rx="2"/><path d="M7.5 20h9"/><path d="M12 16v4"/>',
+  homework: '<path d="M6.6 3.6h7.8l3.6 3.6v13.2H6.6z"/><path d="M9.8 10.4h6M9.8 13.6h6M9.8 16.8h3.4"/>',
+  podium: '<path d="M4 19.6h4.4v-5.4H4zM9.8 19.6h4.4V9.4H9.8zM15.6 19.6H20V5.8h-4.4z"/>',
+  // 考试模拟
+  exam: '<path d="M7.5 4.5h9v3.6a4.5 4.5 0 0 1-9 0z"/><path d="M12 12.6v2.4"/><path d="M8.8 19.5h6.4l-1-4.5H9.8z"/><path d="M7.5 6H5v1.6a2.4 2.4 0 0 0 2.4 2.4M16.5 6H19v1.6a2.4 2.4 0 0 1-2.4 2.4"/>',
+  clock: '<circle cx="12" cy="12" r="8.2"/><path d="M12 7.2V12l3.2 2"/>',
+  medal: '<circle cx="12" cy="14.4" r="5"/><path d="M8.6 9.2 6.4 3.6h11.2l-2.2 5.6"/><path d="M12 12.6v3.6"/>',
+  // 学习数据
+  data: '<path d="M4 19 9 12.5l3.6 2.6L20 5"/><path d="M4.5 19.5h15"/>',
+  pie: '<circle cx="12" cy="12" r="8.2"/><path d="M12 3.8V12h8.2"/>',
+  calendar: '<rect x="3.4" y="5.4" width="17.2" height="15" rx="2.6"/><path d="M3.4 10h17.2M8 3.4v3.6M16 3.4v3.6"/>',
+  // 探索发现
+  spark: '<path d="M12 3.6 13.9 9l5.4 1.9-5.4 1.9L12 18.2l-1.9-5.4L4.7 10.9 10.1 9z"/>',
+  compass: '<circle cx="12" cy="12" r="8.2"/><path d="M15.6 8.4 13.7 13.7 8.4 15.6 10.3 10.3z"/>',
+  rocket: '<path d="M12 3.2s4.6 2.4 4.6 8.4c0 3.4-1.6 6.4-1.6 6.4h-6s-1.6-3-1.6-6.4C7.4 5.6 12 3.2 12 3.2Z"/><circle cx="12" cy="9.6" r="1.7"/><path d="M9.4 18.4h5.2M10.2 20.8h3.6"/>',
+}
+const TOTEM_NAME = {
+
+  search: '拍照搜题', book: '错题自测', chat: '讲解追问', code: '编程工具',
+  class: '班级课堂', exam: '考试模拟', data: '学习数据', spark: '探索发现',
+}
+
+/* ---------------- 奖章渲染 ---------------- */
+function badge(rarity, totem, cls = '') {
+  return `<svg class="badge ${cls}" viewBox="0 0 96 96" role="img">
+    <g filter="url(#f-soft)">
+      ${BASE[rarity]}
+      ${rarity === 'legend' ? SPARK : ''}
+      ${RING[rarity]}
+    </g>
+    <g class="totem" transform="translate(48 48) scale(2.08) translate(-12 -12)"
+       fill="none" stroke="#fff" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"
+       style="filter:drop-shadow(0 1px 1.6px rgba(20,30,60,.4))">${TOTEM[totem]}</g>
+  </svg>`
+}
+
+/* ① 稀有度阶梯 */
+const LADDER = [
+  ['common', '普通', '六边铜底 · 无外环', '初次识题 / 首战告捷'],
+  ['rare', '稀有', '盾形银底 · 亮边', '拍照达人 / 复习守时'],
+  ['epic', '史诗', '齿边金底 · 双层齿', '精研百题 / 满分作业'],
+  ['legend', '传说', '光环紫底 · 星芒 8 道', '刨根问底 / 模拟满分'],
+]
+document.getElementById('ladder').innerHTML = LADDER.map(([r, name, desc, eg]) => `
+  <div class="panel"><div class="cell">
+    ${badge(r, 'book', 'brown')}
+    <div class="cap"><b>${name}</b><i>${desc}</i><i style="color:var(--t5)">${eg}</i></div>
+  </div></div>`).join('')
+
+/* ② 功能图腾（每域一枚，配其代表成就的稀有度） */
+const TOTEMS = [
+  ['search', 'rare'], ['book', 'common'], ['chat', 'epic'], ['code', 'rare'],
+  ['class', 'epic'], ['exam', 'legend'], ['data', 'common'], ['spark', 'rare'],
+]
+document.getElementById('totems').innerHTML = TOTEMS.map(([t, r]) => `
+  <div class="cell">${badge(r, t, 'bmd')}<div class="cap"><b>${TOTEM_NAME[t]}</b><i>${r === 'common' ? '铜' : r === 'rare' ? '银' : r === 'epic' ? '金' : '紫'}</i></div></div>`).join('')
+
+/* ③ 奖章墙：真实成就示例（同域用不同图腾变体，保证一眼可辨） */
+const WALL = [
+  ['common', 'search', '初次识题', '第一次识别题目'],
+  ['common', 'book', '首战告捷', '完成第一次自测'],
+  ['common', 'terminal', '首次运行', '在线运行代码 1 次'],
+  ['common', 'calendar', '课程管家', '课程表添加 5 门课'],
+  ['rare', 'camera', '拍照达人', '累计识别 50 次'],
+  ['rare', 'bolt', '秒答猎手', '题库秒答命中 20 次'],
+  ['rare', 'question', '好问不倦', '向 AI 追问 20 次'],
+  ['rare', 'clock', '复习守时', '到期当日清完 10 题'],
+  ['rare', 'target', '全对一次', '单次自测全部答对'],
+  ['rare', 'bug', '调试高手', '代码诊断 50 次'],
+  ['rare', 'homework', '作业不落', '累计提交 10 次作业'],
+  ['rare', 'medal', '考试达人', '完成 10 次模拟考试'],
+  ['epic', 'chat', '精研百题', '累计讲解 100 次'],
+  ['epic', 'podium', '满分作业', '作业获得 100 分'],
+  ['epic', 'class', '考霸', '班级测试进入前 3'],
+  ['epic', 'code', '可视化控', '算法演示 50 次'],
+  ['legend', 'layers', '刨根问底', '累计追问 100 次'],
+  ['legend', 'exam', '模拟满分', '模拟考试满分'],
+]
+document.getElementById('wall').innerHTML = WALL.map(([r, t, name, cond]) => `
+  <div class="cell">${badge(r, t, 'bmd')}
+    <div class="cap"><b>${name}</b><i>${cond}</i>
+      <div class="rk ${r[0]}" style="margin-top:6px"><i></i>${r === 'common' ? '普通' : r === 'rare' ? '稀有' : r === 'epic' ? '史诗' : '传说'}</div>
+    </div>
+  </div>`).join('')
+
+/* ④ 未解锁态 */
+const LOCKED = [
+  ['epic', 'chat', '精研百题', '讲解 42 / 100'],
+  ['legend', 'exam', '模拟满分', '尚未解锁'],
+  ['legend', 'target', '融会贯通', '掌握 137 / 200'],
+  ['rare', 'bolt', '秒答猎手', '命中 14 / 20'],
+]
+document.getElementById('locked').innerHTML = LOCKED.map(([r, t, name, prog]) => `
+  <div class="cell">${badge(r, t, 'bmd locked')}
+    <div class="cap"><b style="color:var(--t4)">${name}</b><i>${prog}</i></div>
+  </div>`).join('')
+
+/* ⑤ 尺寸阶梯 */
+const SIZES = [['sz1', 'brown'], ['sz2', 'bmd'], ['sz3', 'bsm'], ['sz4', 'bxs']]
+SIZES.forEach(([id, cls], i) => {
+  const r = ['legend', 'epic', 'rare', 'common'][i]
+  document.getElementById(id).innerHTML = badge(r, ['exam', 'chat', 'search', 'book'][i], cls)
+})
+
+/* ⑥ 深色模式 */
+const DARK = [['legend', 'exam'], ['epic', 'podium'], ['rare', 'bug'], ['common', 'calendar'],
+  ['rare', 'target'], ['epic', 'layers'], ['common', 'bolt'], ['legend', 'rocket']]
+document.getElementById('dark').innerHTML = DARK.map(([r, t]) => `
+  <div class="cell">${badge(r, t, 'bmd')}<div class="cap"><b>${TOTEM_NAME[t]}</b><i>${r === 'common' ? '铜' : r === 'rare' ? '银' : r === 'epic' ? '金' : '紫'}</i></div></div>`).join('')
+</script>
+</body>
+</html>

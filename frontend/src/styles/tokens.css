@@ -1,0 +1,186 @@
+/* ==========================================================================
+   知一 V1 · Design Tokens
+   来源：已确认的「知一 V1 首页视觉基准」
+   规则：任何页面/组件都不得自行定义颜色、圆角、阴影、间距，一律引用本文件。
+   ---------------------------------------------------------------------------
+   表面层级（深色默认，靠「明度 + 蓝相」共同建立，而非仅靠边框）
+     background   4.3%  B−R=7    页面底
+     surface-1   14.9%  B−R=25   普通模块
+     surface-2   17.8%  B−R=30   重点模块（任务卡）
+     surface-3   20.0%  B−R=34   主模块
+     hero-surface 同 surface-3 + 蓝紫环境光
+     surface-unit 22.9% B−R=38   模块内小单元（课表课程、标签底）
+   ========================================================================== */
+
+:root {
+  /* ---------------- Colors · 表面 ---------------- */
+  --background: #080a0f;
+  --background-elevated: #0c0f16;
+
+  --surface-1: #1b2334;
+  --surface-1-top: #1d2639;
+  --surface-2: #202a3e;
+  --surface-2-top: #232e44;
+  --surface-3: #242f46;
+  --surface-3-top: #28334c;
+  --surface-unit: #2a3550;
+  --surface-recess: rgba(255, 255, 255, 0.03);
+  --surface-hover: rgba(255, 255, 255, 0.04);
+
+  --grad-surface: linear-gradient(180deg, var(--surface-1-top) 0%, var(--surface-1) 100%);
+  --grad-elevated: linear-gradient(180deg, var(--surface-2-top) 0%, var(--surface-2) 100%);
+  --grad-hero: linear-gradient(180deg, var(--surface-3-top) 0%, var(--surface-3) 100%);
+  /* 主模块：左上角极弱蓝紫环境光 + 表面渐变 */
+  --hero-surface: radial-gradient(120% 105% at 0% 0%, var(--accent-glow) 0%, transparent 58%),
+    var(--grad-hero);
+
+  /* ---------------- Colors · 边框（冷色、极细） ---------------- */
+  --border-subtle: 0.5px solid rgba(140, 165, 220, 0.08);
+  --border-default: 0.5px solid rgba(145, 170, 225, 0.1);
+  --border-strong: 0.5px solid rgba(150, 175, 230, 0.13);
+  --border-top-subtle: 0.5px solid rgba(165, 190, 240, 0.15);
+  --border-top-default: 0.5px solid rgba(170, 195, 245, 0.18);
+  --border-top-strong: 0.5px solid rgba(175, 198, 250, 0.22);
+  --border-dashed: 0.5px dashed rgba(170, 195, 245, 0.2);
+  --border-divider: 0.5px solid rgba(255, 255, 255, 0.07);
+  --border-divider-soft: 0.5px solid rgba(255, 255, 255, 0.05);
+
+  /* ---------------- Colors · 文本 ---------------- */
+  --text-primary: #e9ecf3;
+  --text-secondary: #c8cfe0;
+  --text-tertiary: #97a0b8;
+  --text-quaternary: #8890a6;
+  --text-muted: #757d93;
+  --text-disabled: #5a6274;
+  --text-on-primary: #ffffff;
+
+  /* ---------------- Colors · 品牌与 AI 氛围 ---------------- */
+  --primary: #6f57f0;
+  --primary-hover: #7e68f7;
+  --primary-active: #5e48dc;
+  --primary-cta: #5b47d6; /* 模块内主 CTA，比全局主按钮低一档 */
+  --primary-cta-hover: #6a55e4;
+  --primary-soft-1: rgba(124, 92, 255, 0.24);
+  --primary-soft-2: rgba(124, 92, 255, 0.15);
+  --primary-soft-3: rgba(124, 92, 255, 0.11);
+  --primary-text: #bcb2ff;
+  --primary-text-soft: #c8c0ff;
+  --primary-text-strong: #ddd9ff;
+  --primary-line: rgba(124, 92, 255, 0.5);
+  --primary-bar: rgba(124, 92, 255, 0.75);
+  --accent-glow: rgba(124, 92, 255, 0.15);
+  --accent-glow-soft: rgba(124, 92, 255, 0.08);
+  --accent-glow-shadow: rgba(80, 60, 200, 0.32);
+
+  /* ---------------- Colors · 语义 ---------------- */
+  --success: #46b26f;
+  --success-soft: rgba(70, 178, 111, 0.16);
+  --warning: #e0a33c;
+  --warning-soft: rgba(224, 163, 60, 0.16);
+  --error: #e0605c;
+  --error-soft: rgba(224, 96, 92, 0.16);
+  --info: #4aa3ff;
+  --info-soft: rgba(74, 163, 255, 0.16);
+
+  /* ---------------- Typography ---------------- */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+  --font-mono: 'SF Mono', ui-monospace, 'JetBrains Mono', Consolas, Menlo, 'Courier New', monospace;
+
+  --fs-display: 28px;
+  --fs-h1: 22px;
+  --fs-h2: 17px;
+  --fs-h3: 15px;
+  --fs-body: 13.5px;
+  --fs-body-2: 12.5px;
+  --fs-caption: 12px;
+  --fs-label: 11.5px;
+  --fs-button: 13.5px;
+  --fs-code: 12.5px;
+  --fs-metric: 25px;
+
+  --lh-tight: 1.3;
+  --lh-title: 1.45;
+  --lh-body: 1.85;
+  --lh-relaxed: 1.6;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-bold: 600;
+
+  /* ---------------- Spacing（4 基数） ---------------- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+
+  --container: 1440px;
+  --container-pad: 40px;
+  --content-max: 1200px;
+  --tap-min: 44px;
+
+  /* 内容列三档（桌面自适应统一用；移动端全宽不受影响）
+     narrow=表单/详情  main=列表/工作台  wide=宽工作台（数据/讲解/首页两栏） */
+  --col-narrow: 640px;
+  --col-main: 880px;
+  --col-wide: 1080px;
+
+  /* ---------------- Radius ---------------- */
+  --radius-sm: 9px; /* 按钮 / 小控件 */
+  --radius-md: 14px; /* 内嵌区块 / 拖拽区 */
+  --radius-lg: 18px; /* 主卡片 */
+  --radius-xl: 22px; /* 大面板 */
+  --radius-pill: 999px; /* 标签 */
+
+  /* ---------------- Shadow / Elevation ---------------- */
+  --shadow-none: none;
+  --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.18), 0 8px 22px -8px rgba(0, 0, 0, 0.38);
+  --shadow-elevated: 0 2px 5px rgba(0, 0, 0, 0.2), 0 14px 34px -12px rgba(0, 0, 0, 0.46);
+  --shadow-hero: 0 2px 6px rgba(0, 0, 0, 0.24), 0 20px 48px -16px rgba(0, 0, 0, 0.52),
+    0 24px 56px -22px var(--accent-glow-shadow);
+  --shadow-primary: 0 6px 18px -6px rgba(111, 87, 240, 0.5);
+  --shadow-cta: 0 6px 16px -8px rgba(91, 71, 214, 0.6);
+  --shadow-modal: 0 24px 64px -16px rgba(0, 0, 0, 0.62);
+
+  /* 表面顶部微高光：配合明度形成立体感 */
+  --highlight-1: inset 0 1px 0 rgba(205, 220, 255, 0.06);
+  --highlight-2: inset 0 1px 0 rgba(205, 220, 255, 0.07);
+  --highlight-3: inset 0 1px 0 rgba(205, 220, 255, 0.08);
+  --highlight-recess: inset 0 1px 8px rgba(0, 0, 0, 0.26);
+
+  /* ---------------- Motion ---------------- */
+  --dur-fast: 120ms;
+  --dur: 200ms;
+  --dur-slow: 320ms;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ---------------- AI 状态（idle / working / streaming / completed） ---------------- */
+  --ai-idle-glow: rgba(124, 92, 255, 0.12);
+  --ai-working-glow: rgba(124, 92, 255, 0.42);
+  --ai-streaming-glow: rgba(124, 92, 255, 0.3);
+  --ai-completed-glow: rgba(70, 178, 111, 0.34);
+  --ai-idle-ring: rgba(150, 175, 230, 0.16);
+  --ai-working-ring: rgba(124, 92, 255, 0.5);
+  --ai-streaming-ring: rgba(124, 92, 255, 0.38);
+  --ai-completed-ring: rgba(70, 178, 111, 0.4);
+  --ai-dur: 1.6s;
+
+  /* ---------------- Z-index ----------------
+     顺序：base < sticky < nav < dropdown < modal < toast < confirm
+     注意：toast 必须高于 modal —— 弹窗遮罩是「62% 黑 + blur(2px)」，
+     若 toast 在遮罩之下，弹窗内的校验提示会被糊掉（实测过的问题）。 */
+  --z-base: 1;
+  --z-sticky: 20;
+  --z-nav: 30;
+  --z-dropdown: 40;
+  --z-modal: 70;
+  --z-toast: 90;
+  --z-confirm: 95;
+}

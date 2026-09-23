@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>知一 · 开场动画样图</title>
+<style>
+  :root{
+    --bg:#f2f4f9; --surface:#fff; --line:rgba(20,30,60,.1);
+    --t1:#141a26; --t2:#3a445a; --t3:#5d6880; --t4:#7c869b; --t5:#a3abbd;
+    --primary:#6f57f0; --soft:rgba(124,92,255,.1);
+    --font:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+    --mono:'SF Mono',ui-monospace,Consolas,monospace;
+    /* 时间轴（与真实实现同源，改这里就是改动画节奏） */
+    --t-mark:.40s; --t-name:.60s; --t-slogan:.75s; --t-out:.95s; --t-scene:1.55s; --t-cards:1.80s;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#e8ebf2;font-family:var(--font);color:var(--t1);padding:30px 0 70px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+  h1{font-size:25px;letter-spacing:-.4px;margin-bottom:8px}
+  .lead{font-size:13.5px;color:var(--t3);line-height:1.75}
+  .lead b{color:var(--t1)}
+  .sec{margin-top:32px}
+  .sec-h{display:flex;align-items:baseline;gap:10px;margin-bottom:14px}
+  .sec-h h2{font-size:16px;letter-spacing:-.2px}
+  .sec-h span{font-size:12.5px;color:var(--t4)}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 1px 2px rgba(20,30,60,.04),0 12px 30px -16px rgba(20,30,60,.18)}
+  .panel.dark{background:#0e1421;border-color:rgba(160,180,230,.14);color:#e9ecf3}
+  .row{display:flex;gap:20px;flex-wrap:wrap}
+  .note{font-size:12.5px;color:var(--t4);line-height:1.8;margin-top:12px}
+  .tag{display:inline-block;font-size:11.5px;color:var(--t4);background:rgba(20,30,60,.05);border-radius:999px;padding:2px 9px;margin-right:6px}
+  .panel.dark .tag{background:rgba(255,255,255,.08);color:#8890a6}
+
+  /* ============ 开屏锁定版式（放大静态展示） ============ */
+  .lockup{display:flex;align-items:center;gap:16px;justify-content:center;padding:18px 0 8px}
+  .lockup__mark{
+    width:64px;height:64px;border-radius:20px;flex:none;
+    background:linear-gradient(140deg,#7e68f7,#5b47d6);
+    display:grid;place-items:center;
+    box-shadow:0 10px 26px -10px rgba(91,71,214,.65);
+  }
+  .lockup__mark svg{width:32px;height:32px;color:#fff}
+  .lockup__text{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+  .lockup__name{font-size:28px;font-weight:600;letter-spacing:.06em;margin-right:-.06em;color:var(--t1)}
+  .lockup__slogan{
+    font-size:12.5px;letter-spacing:.08em;margin-right:-.08em;color:var(--t4);
+  }
+  .panel.dark .lockup__name{color:#e9ecf3}
+  .panel.dark .lockup__slogan{color:#8890a6}
+  .ruler{display:flex;gap:14px;justify-content:center;font-size:11.5px;color:var(--t5);font-family:var(--mono)}
+
+  /* ============ 时间轴 ============ */
+  .tl{position:relative;height:96px;margin:8px 4px 0}
+  .tl__line{position:absolute;left:0;right:0;top:44px;height:2px;background:rgba(20,30,60,.1);border-radius:2px;overflow:hidden}
+  .tl__fill{position:absolute;left:0;top:0;bottom:0;width:100%;background:linear-gradient(90deg,#7e68f7,#5b47d6);opacity:.85}
+  .tl__stop{position:absolute;top:0;transform:translateX(-50%);text-align:center;width:120px}
+  .tl__dot{width:11px;height:11px;border-radius:50%;background:#fff;border:2.5px solid var(--primary);margin:39px auto 0}
+  .tl__t{font-size:11px;color:var(--primary);font-family:var(--mono);margin-bottom:2px}
+  .tl__l{font-size:11.5px;color:var(--t3);line-height:1.5}
+
+  /* ============ 播放器 / 关键帧 ============ */
+  .frames{display:flex;gap:18px;flex-wrap:wrap;justify-content:flex-start}
+  .phone{
+    width:260px;height:520px;border-radius:26px;overflow:hidden;position:relative;
+    background:#f2f4f9;border:1px solid rgba(20,30,60,.1);
+    box-shadow:0 14px 34px -18px rgba(20,30,60,.35);
+    flex:none;
+  }
+  .phone__label{font-size:11.5px;color:var(--t4);font-family:var(--mono);text-align:center;margin-top:8px}
+  .phone__cap{font-size:11.5px;color:var(--t3);text-align:center;margin-top:3px}
+
+  /* --- 场景（背景）：云 / 水 / 船 --- */
+  .scene{position:absolute;inset:0;overflow:hidden;background:linear-gradient(180deg,#e9f0fb 0%,#f1eefb 46%,#fbf3ea 100%)}
+  .scene__cloud{position:absolute;border-radius:999px;background:rgba(255,255,255,.92);filter:blur(.5px)}
+  .scene__cloud--1{width:86px;height:26px;left:22px;top:64px;box-shadow:26px -10px 0 -3px rgba(255,255,255,.92),50px 2px 0 -6px rgba(255,255,255,.92)}
+  .scene__cloud--2{width:62px;height:20px;right:34px;top:112px;box-shadow:20px -8px 0 -2px rgba(255,255,255,.9)}
+  .scene__cloud--3{width:70px;height:22px;left:120px;top:30px;opacity:.8}
+  .scene__water{position:absolute;left:0;right:0;bottom:0;height:38%;background:linear-gradient(180deg,rgba(207,228,246,.35),rgba(190,218,242,.75))}
+  .scene__line{position:absolute;height:1.5px;border-radius:2px;background:rgba(159,198,230,.9)}
+  .scene__boat{position:absolute;left:34px;bottom:26%;width:44px;height:24px}
+  .scene__sun{position:absolute;right:44px;top:38px;width:34px;height:34px;border-radius:50%;background:rgba(251,230,184,.9)}
+
+  /* --- 首页骨架 --- */
+  .home{position:absolute;inset:0;padding:52px 14px 0}
+  .home__cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .home__card{
+    height:74px;border-radius:14px;background:rgba(255,255,255,.72);
+    border:1px solid rgba(20,30,60,.08);backdrop-filter:blur(6px);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+  }
+  .home__card i{width:26px;height:26px;border-radius:9px;background:var(--soft);display:block}
+  .home__card span{font-size:11.5px;color:var(--t2)}
+  .home__quick{
+    margin-top:12px;height:64px;border-radius:14px;background:rgba(255,255,255,.72);
+    border:1px solid rgba(20,30,60,.08);display:flex;align-items:center;justify-content:space-around;
+  }
+  .home__ico{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:10px;color:var(--t3)}
+  .home__ico i{width:20px;height:20px;border-radius:7px;background:var(--soft);display:block}
+  .home__info{
+    margin-top:12px;height:52px;border-radius:14px;background:rgba(255,255,255,.72);
+    border:1px solid rgba(20,30,60,.08);display:flex;align-items:center;gap:10px;padding:0 12px;
+  }
+  .home__info i{width:26px;height:26px;border-radius:9px;background:rgba(61,111,168,.14);flex:none}
+  .home__info b{font-size:11.5px;font-weight:600;color:var(--t2);display:block}
+  .home__info em{font-size:10px;color:var(--t4);font-style:normal}
+  .home__top{position:absolute;left:0;right:0;top:0;height:44px;display:flex;align-items:center;gap:10px;padding:0 16px;font-size:13px;color:var(--t3)}
+  .home__top b{color:var(--t1);font-size:14px}
+
+  /* --- 开屏层 --- */
+  .boot{
+    position:absolute;inset:0;z-index:5;display:grid;place-items:center;
+    background:linear-gradient(160deg,#eef3fd 0%,#f4f0fd 52%,#fdf5ee 100%);
+  }
+  .boot__mark{
+    width:64px;height:64px;border-radius:20px;
+    background:linear-gradient(140deg,#7e68f7,#5b47d6);
+    display:grid;place-items:center;box-shadow:0 10px 26px -10px rgba(91,71,214,.65);
+    opacity:0;
+  }
+  .boot__mark svg{width:32px;height:32px;color:#fff}
+  .boot__inner{display:flex;align-items:center;gap:16px}
+  .boot__text{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+  .boot__name{font-size:28px;font-weight:600;letter-spacing:.06em;margin-right:-.06em;color:var(--t1);opacity:0}
+  .boot__slogan{font-size:12.5px;letter-spacing:.08em;color:var(--t4);opacity:0}
+
+  /* --- 动画关键帧（真实实现同构） --- */
+  @keyframes bootMark{0%{opacity:0;transform:translateY(12px) scale(.92)}100%{opacity:1;transform:none}}
+  @keyframes bootName{0%{opacity:0;transform:translateX(-8px)}100%{opacity:1;transform:none}}
+  @keyframes bootSlogan{0%{opacity:0;transform:translateY(-4px)}100%{opacity:1;transform:none}}
+  @keyframes bootOut{0%{opacity:1}100%{opacity:0;visibility:hidden}}
+  @keyframes sceneIn{0%{opacity:.35;transform:scale(1.04)}100%{opacity:1;transform:none}}
+  @keyframes cloudIn{0%{opacity:0;transform:translateX(26px)}100%{opacity:1;transform:none}}
+  @keyframes waterIn{0%{opacity:0;transform:translateY(22px)}100%{opacity:1;transform:none}}
+  @keyframes boatIn{0%{opacity:0;transform:translateX(-46px)}100%{opacity:1;transform:none}}
+  @keyframes cardIn{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:none}}
+
+  /* 播放态：一次性跑完（.is-playing 加上后动画开始） */
+  .stage.is-playing .boot{animation:bootOut .25s var(--ease,ease) var(--t-out) forwards}
+  .stage.is-playing .boot__mark{animation:bootMark var(--t-mark) cubic-bezier(.16,1,.3,1) both}
+  .stage.is-playing .boot__name{animation:bootName .3s cubic-bezier(.16,1,.3,1) .30s both}
+  .stage.is-playing .boot__slogan{animation:bootSlogan .3s cubic-bezier(.16,1,.3,1) .45s both}
+  .stage.is-playing .scene{animation:sceneIn .6s ease .80s both}
+  .stage.is-playing .scene__cloud--1{animation:cloudIn .7s cubic-bezier(.16,1,.3,1) .85s both}
+  .stage.is-playing .scene__cloud--2{animation:cloudIn .7s cubic-bezier(.16,1,.3,1) .95s both}
+  .stage.is-playing .scene__cloud--3{animation:cloudIn .7s cubic-bezier(.16,1,.3,1) 1.05s both}
+  .stage.is-playing .scene__water{animation:waterIn .7s cubic-bezier(.16,1,.3,1) .90s both}
+  .stage.is-playing .scene__line{animation:waterIn .6s ease 1.0s both}
+  .stage.is-playing .scene__boat{animation:boatIn .9s cubic-bezier(.16,1,.3,1) 1.0s both}
+  .stage.is-playing .home__card{animation:cardIn .5s cubic-bezier(.16,1,.3,1) both}
+  .stage.is-playing .home__card:nth-child(1){animation-delay:1.05s}
+  .stage.is-playing .home__card:nth-child(2){animation-delay:1.11s}
+  .stage.is-playing .home__card:nth-child(3){animation-delay:1.17s}
+  .stage.is-playing .home__card:nth-child(4){animation-delay:1.23s}
+  .stage.is-playing .home__quick{animation:cardIn .5s cubic-bezier(.16,1,.3,1) 1.33s both}
+  .stage.is-playing .home__info{animation:cardIn .5s cubic-bezier(.16,1,.3,1) 1.43s both}
+  .stage.is-playing .home__top{animation:cardIn .4s ease 1.5s both}
+
+  /* 定格态：负延迟 + 暂停（用于关键帧分解） */
+  .stage.is-frozen *, .stage.is-frozen{animation-play-state:paused !important}
+  .stage.is-frozen .boot{animation-delay:calc(var(--t-out) - var(--f)) !important}
+  .stage.is-frozen .boot__mark{animation-delay:calc(0s - var(--f)) !important}
+  .stage.is-frozen .boot__name{animation-delay:calc(.30s - var(--f)) !important}
+  .stage.is-frozen .boot__slogan{animation-delay:calc(.45s - var(--f)) !important}
+  .stage.is-frozen .scene{animation-delay:calc(.80s - var(--f)) !important}
+  .stage.is-frozen .scene__cloud--1{animation-delay:calc(.85s - var(--f)) !important}
+  .stage.is-frozen .scene__cloud--2{animation-delay:calc(.95s - var(--f)) !important}
+  .stage.is-frozen .scene__cloud--3{animation-delay:calc(1.05s - var(--f)) !important}
+  .stage.is-frozen .scene__water{animation-delay:calc(.90s - var(--f)) !important}
+  .stage.is-frozen .scene__line{animation-delay:calc(1.0s - var(--f)) !important}
+  .stage.is-frozen .scene__boat{animation-delay:calc(1.0s - var(--f)) !important}
+  .stage.is-frozen .home__card:nth-child(1){animation-delay:calc(1.05s - var(--f)) !important}
+  .stage.is-frozen .home__card:nth-child(2){animation-delay:calc(1.11s - var(--f)) !important}
+  .stage.is-frozen .home__card:nth-child(3){animation-delay:calc(1.17s - var(--f)) !important}
+  .stage.is-frozen .home__card:nth-child(4){animation-delay:calc(1.23s - var(--f)) !important}
+  .stage.is-frozen .home__quick{animation-delay:calc(1.33s - var(--f)) !important}
+  .stage.is-frozen .home__info{animation-delay:calc(1.43s - var(--f)) !important}
+  .stage.is-frozen .home__top{animation-delay:calc(1.5s - var(--f)) !important}
+
+  /* 控制条 */
+  .ctl{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  button.play{
+    font:inherit;font-size:13px;font-weight:600;color:#fff;background:var(--primary);
+    border:0;border-radius:999px;padding:9px 18px;cursor:pointer;
+  }
+  button.play:hover{background:#7e68f7}
+  .ctl span{font-size:12.5px;color:var(--t4)}
+  .rules{font-size:12.5px;color:var(--t3);line-height:2}
+  .rules b{color:var(--t1)}
+  .rules code{font-family:var(--mono);font-size:11.5px;background:rgba(20,30,60,.05);padding:1px 6px;border-radius:5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>知一 · 开场动画样图</h1>
+  <p class="lead">点开网站时的入场动画：<b>Logo 开屏 0.95s</b>（图标 → 名称 → 右下角标语依次落位）→ <b>场景展开 0.85s</b>（云、水面、小船依次驶入）→ <b>首页内容级联</b>，总时长 <b>约 1.8 秒</b>。动画同时盖住首屏加载的空白期。</p>
+  <p class="lead" style="color:var(--t4);margin-top:6px">播放规则：仅「点开网站」时播（同一标签内刷新与站内跳转不播）；点击或按键立即跳过；系统开启「减少动效」时不播。</p>
+
+  <!-- ① Logo 锁定版式 -->
+  <div class="sec">
+    <div class="sec-h"><h2>一、Logo 锁定版式</h2><span>标语挂在 Logo 单元右下角，与「知一」右边缘对齐</span></div>
+    <div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div class="panel">
+        <span class="tag">浅色</span>
+        <div class="lockup">
+          <div class="lockup__mark">
+            <svg viewBox="0 0 14 14" fill="none"><path d="M2.4 11C4.3 7.2 6.4 5.4 8.7 5.4c1.7 0 3 1.1 3 2.6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="9.8" cy="3.6" r="1.5" fill="currentColor"/></svg>
+          </div>
+          <div class="lockup__text">
+            <div class="lockup__name">知一</div>
+            <div class="lockup__slogan">知理于一，笃学前行</div>
+          </div>
+        </div>
+        <div class="ruler"><span>icon 64</span><span>name 28</span><span>slogan 12.5 / 字距 .08em</span></div>
+      </div>
+      <div class="panel dark">
+        <span class="tag">深色</span>
+        <div class="lockup">
+          <div class="lockup__mark">
+            <svg viewBox="0 0 14 14" fill="none"><path d="M2.4 11C4.3 7.2 6.4 5.4 8.7 5.4c1.7 0 3 1.1 3 2.6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="9.8" cy="3.6" r="1.5" fill="currentColor"/></svg>
+          </div>
+          <div class="lockup__text">
+            <div class="lockup__name">知一</div>
+            <div class="lockup__slogan">知理于一，笃学前行</div>
+          </div>
+        </div>
+        <div class="ruler"><span>深色下标语换用 #8890a6，避免与底色糊在一起</span></div>
+      </div>
+    </div>
+    <p class="note">标语右对齐到「知一」的右边缘，形成"落款"关系；三元素依次落位（图标 0s → 名称 0.30s → 标语 0.45s），标语最后出现，强调收束感。</p>
+  </div>
+
+  <!-- ② 时间轴 -->
+  <div class="sec">
+    <div class="sec-h"><h2>二、时序</h2><span>总 1.8s；开屏淡出与「Vue 就绪」两个条件都满足才交接</span></div>
+    <div class="panel">
+      <div class="tl">
+        <div class="tl__line"><div class="tl__fill" style="width:100%"></div></div>
+        <div class="tl__stop" style="left:6%"><div class="tl__t">0.00s</div><div class="tl__dot"></div><div class="tl__l">Logo 图标淡入上浮</div></div>
+        <div class="tl__stop" style="left:28%"><div class="tl__t">0.30–0.75s</div><div class="tl__dot"></div><div class="tl__l">名称 → 右下角标语<br>依次落位</div></div>
+        <div class="tl__stop" style="left:56%"><div class="tl__t">0.95s</div><div class="tl__dot"></div><div class="tl__l">开屏层淡出<br>场景开始展开</div></div>
+        <div class="tl__stop" style="left:80%"><div class="tl__t">1.05–1.5s</div><div class="tl__dot"></div><div class="tl__l">四卡 → 次入口<br>→ 信息位级联</div></div>
+        <div class="tl__stop" style="left:97%"><div class="tl__t">1.80s</div><div class="tl__dot"></div><div class="tl__l">全部就位</div></div>
+      </div>
+      <p class="note">慢网络时：开屏层保持常亮（Logo 轻微呼吸表示加载中），Vue 一就绪立刻交接 —— 用户看不到空白页。最长 3 秒兜底移除，防止脚本异常时永远挡屏。</p>
+    </div>
+  </div>
+
+  <!-- ③ 播放器 -->
+  <div class="sec">
+    <div class="sec-h"><h2>三、完整播放</h2><span>点按钮在手机框里真实跑一遍 1.8s（可重复播放）</span></div>
+    <div class="panel">
+      <div class="ctl">
+        <button class="play" id="playBtn">▶ 播放开场动画</button>
+        <span id="playTip">含云、水面、小船的场景展开与首页内容级联</span>
+      </div>
+      <div class="frames" id="player"></div>
+    </div>
+  </div>
+
+  <!-- ④ 关键帧分解 -->
+  <div class="sec">
+    <div class="sec-h"><h2>四、关键帧分解</h2><span>定格在 0.15s / 0.45s / 0.80s / 1.10s / 1.45s / 1.80s</span></div>
+    <div class="panel">
+      <div class="frames" id="keyframes"></div>
+      <p class="note">定格帧用「负延迟 + 暂停」实现，与真实实现共用同一套关键帧，所见即所得。</p>
+    </div>
+  </div>
+
+  <!-- ⑤ 规则 -->
+  <div class="sec">
+    <div class="sec-h"><h2>五、播放与边界规则</h2></div>
+    <div class="panel">
+      <div class="rules">
+        <b>会播：</b>新标签页 / 新会话打开首页（<code>sessionStorage</code> 无标记）<br>
+        <b>不播：</b>同一标签内刷新、站内跳转与返回、分享深链（如 <code>/q/xxx</code>）、系统开启「减少动效」<br>
+        <b>跳过：</b>动画期间点击屏幕或敲任意键 → 开屏层 0.15s 淡出，首页元素直接到位<br>
+        <b>兜底：</b>无论脚本是否正常，开屏层最长 3 秒自动移除<br>
+        <b>不做：</b>音效（浏览器自动播放策略限制、很多环境静音）；假进度百分比（改用 Logo 呼吸表达加载中）
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* 手机框骨架（播放器与关键帧共用） */
+function phoneHTML(label, sub) {
+  return `
+  <div class="stage" style="position:absolute;inset:0">
+    <div class="scene">
+      <div class="scene__sun"></div>
+      <div class="scene__cloud scene__cloud--1"></div>
+      <div class="scene__cloud scene__cloud--2"></div>
+      <div class="scene__cloud scene__cloud--3"></div>
+      <div class="scene__water"></div>
+      <div class="scene__line" style="left:8%;width:34%;bottom:24%"></div>
+      <div class="scene__line" style="left:52%;width:30%;bottom:18%"></div>
+      <div class="scene__line" style="left:24%;width:44%;bottom:11%"></div>
+      <svg class="scene__boat" viewBox="0 0 44 24" fill="none">
+        <path d="M2 14h30l-8 8H9z" fill="#e8a06a"/>
+        <path d="M16 2v12" stroke="#b4763f" stroke-width="2"/>
+        <path d="M16 3l14 5-14 5z" fill="#f2c98a"/>
+      </svg>
+    </div>
+
+    <div class="home">
+      <div class="home__top"><b>知一学习</b><span style="font-size:12px">学习</span><span style="font-size:12px">我的</span></div>
+      <div class="home__cards">
+        <div class="home__card"><i></i><span>拍照搜题</span></div>
+        <div class="home__card"><i></i><span>错题学习</span></div>
+        <div class="home__card"><i></i><span>AI 对话</span></div>
+        <div class="home__card"><i></i><span>学习工具</span></div>
+      </div>
+      <div class="home__quick">
+        <div class="home__ico"><i></i>课程表</div>
+        <div class="home__ico"><i></i>社区</div>
+        <div class="home__ico"><i></i>考试</div>
+        <div class="home__ico"><i></i>班级</div>
+      </div>
+      <div class="home__info">
+        <i></i>
+        <div><b>4 道错题该复习了</b><em>按遗忘曲线，今天到期</em></div>
+      </div>
+    </div>
+
+    <div class="boot">
+      <div class="boot__inner">
+        <div class="boot__mark">
+          <svg viewBox="0 0 14 14" fill="none"><path d="M2.4 11C4.3 7.2 6.4 5.4 8.7 5.4c1.7 0 3 1.1 3 2.6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="9.8" cy="3.6" r="1.5" fill="currentColor"/></svg>
+        </div>
+        <div class="boot__text">
+          <div class="boot__name">知一</div>
+          <div class="boot__slogan">知理于一，笃学前行</div>
+        </div>
+      </div>
+    </div>
+  </div>`
+}
+
+/* 播放器 */
+const player = document.getElementById('player')
+player.innerHTML = `
+  <div>
+    <div class="phone"><div class="stage" id="liveStage" style="position:absolute;inset:0"></div></div>
+    <div class="phone__label">390 × 844</div>
+    <div class="phone__cap">点上方按钮播放</div>
+  </div>`
+document.getElementById('liveStage').innerHTML = phoneHTML().replace('<div class="stage" style="position:absolute;inset:0">', '').replace(/<\/div>\s*$/, '')
+
+let running = false
+function play() {
+  const el = document.getElementById('liveStage')
+  el.classList.remove('is-playing')
+  void el.offsetWidth          // 强制重排以重置动画
+  el.classList.add('is-playing')
+  running = true
+}
+document.getElementById('playBtn').addEventListener('click', () => {
+  play()
+  document.getElementById('playBtn').textContent = '↻ 重播'
+  document.getElementById('playTip').textContent = '正在播放…（1.8 秒）'
+  setTimeout(() => { document.getElementById('playTip').textContent = '播放完毕，可点「重播」再看一遍' }, 1900)
+})
+
+/* 关键帧分解 */
+const KEYS = [
+  [0.15, '0.15s', '图标淡入中'],
+  [0.45, '0.45s', '名称落位，标语将出'],
+  [0.80, '0.80s', '开屏淡出，场景展开'],
+  [1.10, '1.10s', '云/水面/小船驶入'],
+  [1.45, '1.45s', '内容级联中'],
+  [1.80, '1.80s', '全部就位'],
+]
+document.getElementById('keyframes').innerHTML = KEYS.map(([t, label, cap]) => `
+  <div>
+    <div class="phone">
+      <div class="stage is-frozen is-playing" style="position:absolute;inset:0;--f:${t}s">${phoneHTML().replace('<div class="stage" style="position:absolute;inset:0">', '').replace(/<\/div>\s*$/, '')}</div>
+    </div>
+    <div class="phone__label">${label}</div>
+    <div class="phone__cap">${cap}</div>
+  </div>`).join('')
+</script>
+</body>
+</html>

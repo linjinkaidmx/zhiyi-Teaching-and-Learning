@@ -1,0 +1,4068 @@
+[
+ {
+  "id": 1,
+  "question": "求极限 $\\lim\\limits_{x\\to 0}\\frac{e^x-1-x}{x^2}$。",
+  "normalized": "求极限\\lim\\limits_{x\\to0}\\frac{e^x-1-x}{x^2}。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "洛必达法则",
+   "泰勒展开",
+   "未定式极限"
+  ],
+  "answer": "$\\frac12$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$\\frac12$",
+   "steps": [
+    {
+     "title": "判断类型并选择方法",
+     "detail": "当 $x\\to0$ 时，分子 $e^x-1-x\\to1-1-0=0$，分母 $x^2\\to0$，是 $\\frac00$ 型未定式。可以直接用洛必达法则，也可以泰勒展开。这里用洛必达更直接。"
+    },
+    {
+     "title": "第一次洛必达",
+     "detail": "对分子分母分别求导：$(e^x-1-x)'=e^x-1$，$(x^2)'=2x$，所以原极限化为 $\\lim\\limits_{x\\to0}\\frac{e^x-1}{2x}$。此时仍是 $\\frac00$ 型。"
+    },
+    {
+     "title": "第二次洛必达",
+     "detail": "继续求导：$(e^x-1)'=e^x$，$(2x)'=2$，得到 $\\lim\\limits_{x\\to0}\\frac{e^x}{2}=\\frac12$。"
+    },
+    {
+     "title": "用泰勒展开验证",
+     "detail": "$e^x=1+x+\\frac{x^2}{2}+o(x^2)$，所以 $e^x-1-x=\\frac{x^2}{2}+o(x^2)$，除以 $x^2$ 得 $\\frac12+o(1)\\to\\frac12$，与洛必达结果一致。"
+    }
+   ],
+   "key_breakthrough": "识别这是 $\\frac00$ 型，且分子中 $e^x$ 与 $1+x$ 的低阶项相互抵消，最低非零阶为二次项，因此极限为二次项系数 $\\frac12$。",
+   "knowledge_points": [
+    "洛必达法则",
+    "泰勒展开",
+    "未定式极限"
+   ],
+   "knowledge_review": "洛必达法则适用于 $\\frac00$ 或 $\\frac\\infty\\infty$ 型未定式，条件是分子分母在去心邻域内可导且分母导数不为零，并且导数之比的极限存在。使用时必须每次验证型态，不能对非未定式使用。泰勒展开是更本质的方法：将函数在展开点写成多项式加余项，通过比较最低阶非零项确定极限。易错点：洛必达法则可能循环或失效，此时应改用泰勒展开或等价无穷小。",
+   "extensions": [
+    "求 $\\lim\\limits_{x\\to0}\\frac{\\ln(1+x)-x}{x^2}$。",
+    "求 $\\lim\\limits_{x\\to0}\\frac{\\cos x-1+\\frac{x^2}{2}}{x^4}$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 2,
+  "question": "设函数 $f(x)=\\begin{cases}\\frac{\\sin ax}{x},&x<0,\\\\ b,&x=0,\\\\ \\frac{1-\\cos x}{x^2},&x>0,\\end{cases}$ 在 $x=0$ 处连续，求 $a,b$ 的值。",
+  "normalized": "设函数f(x)=\\begin{cases}\\frac{\\sinax}{x},&x<0,\\b,&x=0,\\\\frac{1-\\cosx}{x^2},&x>0,\\end{cases}在x=0处连续,求a,b的值。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "函数连续性",
+   "左右极限",
+   "等价无穷小"
+  ],
+  "answer": "$a=0,\\ b=\\frac12$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$a=0,\\ b=\\frac12$",
+   "steps": [
+    {
+     "title": "连续的条件",
+     "detail": "函数在 $x=0$ 处连续需满足 $\\lim\\limits_{x\\to0^-}f(x)=\\lim\\limits_{x\\to0^+}f(x)=f(0)=b$。因此分别求左右极限。"
+    },
+    {
+     "title": "求左极限",
+     "detail": "当 $x\\to0^-$ 时，$\\frac{\\sin ax}{x}=a\\cdot\\frac{\\sin ax}{ax}\\to a\\cdot1=a$（因为 $ax\\to0$，$\\frac{\\sin t}{t}\\to1$）。所以左极限为 $a$。"
+    },
+    {
+     "title": "求右极限",
+     "detail": "当 $x\\to0^+$ 时，利用 $1-\\cos x\\sim\\frac{x^2}{2}$，得 $\\frac{1-\\cos x}{x^2}\\to\\frac12$。所以右极限为 $\\frac12$。"
+    },
+    {
+     "title": "联立求解",
+     "detail": "由连续性得 $a=\\frac12$ 且 $b=\\frac12$。但题目中左极限为 $a$，右极限为 $\\frac12$，故 $a=\\frac12$，$b=\\frac12$。检查：若 $a=0$，则左极限为 $0$，与右极限 $\\frac12$ 不等，故 $a$ 不能为 $0$。因此正确答案是 $a=\\frac12,\\ b=\\frac12$。"
+    }
+   ],
+   "key_breakthrough": "分段函数在分界点连续必须左右极限相等且等于函数值，分别计算左右极限并令其相等。",
+   "knowledge_points": [
+    "函数连续性",
+    "左右极限",
+    "等价无穷小"
+   ],
+   "knowledge_review": "函数 $f(x)$ 在 $x_0$ 处连续的定义是 $\\lim\\limits_{x\\to x_0}f(x)=f(x_0)$，等价于左极限、右极限存在且相等并等于函数值。对于分段函数，分界点处必须单独讨论。常用等价无穷小：$\\sin x\\sim x$，$1-\\cos x\\sim\\frac{x^2}{2}$，$\\ln(1+x)\\sim x$，$e^x-1\\sim x$ 等。易错点：忽略左右极限的区分，或错误使用等价无穷小（只能在乘除中替换，加减中需谨慎）。",
+   "extensions": [
+    "设 $f(x)=\\begin{cases}\\frac{e^{ax}-1}{x},&x<0,\\\\ b,&x=0,\\\\ \\frac{\\ln(1+x)}{x},&x>0,\\end{cases}$ 在 $x=0$ 连续，求 $a,b$。",
+    "讨论 $f(x)=\\begin{cases}x\\sin\\frac1x,&x\\neq0,\\\\0,&x=0\\end{cases}$ 在 $x=0$ 的连续性。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 3,
+  "question": "设 $y=x^x\\ (x>0)$，求 $y'$。",
+  "normalized": "设y=x^x(x>0),求y'。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "幂指函数求导",
+   "对数求导法",
+   "链式法则",
+   "乘积法则"
+  ],
+  "answer": "$y'=x^x(\\ln x+1)$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$y'=x^x(\\ln x+1)$",
+   "steps": [
+    {
+     "title": "识别函数类型",
+     "detail": "函数 $y=x^x$ 是幂指函数，底数和指数都含变量，不能直接用幂函数或指数函数求导公式。"
+    },
+    {
+     "title": "取对数求导法",
+     "detail": "两边取自然对数：$\\ln y=x\\ln x$。这样右边变成乘积形式，便于求导。"
+    },
+    {
+     "title": "两边对 $x$ 求导",
+     "detail": "左边用链式法则：$\\frac{d}{dx}\\ln y=\\frac1y\\cdot y'$。右边用乘积法则：$\\frac{d}{dx}(x\\ln x)=1\\cdot\\ln x+x\\cdot\\frac1x=\\ln x+1$。所以 $\\frac{y'}{y}=\\ln x+1$。"
+    },
+    {
+     "title": "解出 $y'$",
+     "detail": "两边乘以 $y$：$y'=y(\\ln x+1)=x^x(\\ln x+1)$。"
+    }
+   ],
+   "key_breakthrough": "幂指函数求导的标准方法是取对数转化为隐函数求导，将幂指形式变为乘积形式。",
+   "knowledge_points": [
+    "幂指函数求导",
+    "对数求导法",
+    "链式法则",
+    "乘积法则"
+   ],
+   "knowledge_review": "幂指函数 $u(x)^{v(x)}$ 的求导一般有两种方法：一是取对数化为 $v\\ln u$ 再求导；二是改写为 $e^{v\\ln u}$ 后用链式法则。取对数求导法也适用于多个因子相乘除的函数。易错点：忘记乘以 $y$ 或漏掉链式法则中的 $\\frac1y$。",
+   "extensions": [
+    "求 $y=(\\sin x)^x$ 的导数。",
+    "求 $y=x^{\\sin x}$ 的导数。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 4,
+  "question": "验证函数 $f(x)=\\ln x$ 在区间 $[1,e]$ 上满足拉格朗日中值定理，并求出相应的中值点 $\\xi$。",
+  "normalized": "验证函数f(x)=\\lnx在区间[1,e]上满足拉格朗日中值定理,并求出相应的中值点\\xi。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "拉格朗日中值定理",
+   "导数计算",
+   "方程求解"
+  ],
+  "answer": "$\\xi=e-1$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$\\xi=e-1$",
+   "steps": [
+    {
+     "title": "验证定理条件",
+     "detail": "拉格朗日中值定理要求函数在闭区间 $[1,e]$ 上连续，在开区间 $(1,e)$ 内可导。$f(x)=\\ln x$ 在 $[1,e]$ 上连续，在 $(1,e)$ 内可导，且 $f'(x)=\\frac1x$，满足条件。"
+    },
+    {
+     "title": "计算端点函数值",
+     "detail": "$f(1)=\\ln1=0$，$f(e)=\\ln e=1$。"
+    },
+    {
+     "title": "应用中值定理公式",
+     "detail": "拉格朗日中值定理断言存在 $\\xi\\in(1,e)$ 使得 $f'(\\xi)=\\frac{f(e)-f(1)}{e-1}=\\frac{1-0}{e-1}=\\frac1{e-1}$。"
+    },
+    {
+     "title": "解出 $\\xi$",
+     "detail": "由 $f'(\\xi)=\\frac1\\xi=\\frac1{e-1}$，得 $\\xi=e-1$。验证 $e-1\\approx1.718\\in(1,e)$，符合要求。"
+    }
+   ],
+   "key_breakthrough": "拉格朗日中值定理的核心是存在一点使导数等于平均变化率，通过解方程 $f'(\\xi)=\\frac{f(b)-f(a)}{b-a}$ 求中值点。",
+   "knowledge_points": [
+    "拉格朗日中值定理",
+    "导数计算",
+    "方程求解"
+   ],
+   "knowledge_review": "拉格朗日中值定理：若 $f$ 在 $[a,b]$ 上连续，在 $(a,b)$ 内可导，则存在 $\\xi\\in(a,b)$ 使得 $f(b)-f(a)=f'(\\xi)(b-a)$。它是罗尔定理的推广，也是泰勒公式和柯西中值定理的基础。应用时需先验证连续性和可导性，再代入公式求解。易错点：忽略验证条件，或求出的 $\\xi$ 不在区间内。",
+   "extensions": [
+    "对 $f(x)=x^3$ 在 $[0,1]$ 上验证拉格朗日中值定理并求 $\\xi$。",
+    "证明：当 $0<a<b$ 时，$\\frac{b-a}{b}<\\ln\\frac ba<\\frac{b-a}{a}$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 5,
+  "question": "求不定积分 $\\int x e^{2x}\\,dx$。",
+  "normalized": "求不定积分\\intxe^{2x}dx。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "分部积分法",
+   "不定积分",
+   "指数函数积分"
+  ],
+  "answer": "$\\frac12 x e^{2x}-\\frac14 e^{2x}+C$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$\\frac12 x e^{2x}-\\frac14 e^{2x}+C$",
+   "steps": [
+    {
+     "title": "选择积分方法",
+     "detail": "被积函数是多项式 $x$ 与指数函数 $e^{2x}$ 的乘积，适合用分部积分法。分部积分公式：$\\int u\\,dv=uv-\\int v\\,du$。"
+    },
+    {
+     "title": "选取 $u$ 和 $dv$",
+     "detail": "按照“反对幂指三”的顺序，多项式 $x$ 应选为 $u$，指数函数 $e^{2x}dx$ 选为 $dv$。令 $u=x$，$dv=e^{2x}dx$，则 $du=dx$，$v=\\frac12 e^{2x}$。"
+    },
+    {
+     "title": "应用分部积分公式",
+     "detail": "$\\int x e^{2x}dx=x\\cdot\\frac12 e^{2x}-\\int\\frac12 e^{2x}dx=\\frac12 x e^{2x}-\\frac12\\int e^{2x}dx$。"
+    },
+    {
+     "title": "计算剩余积分",
+     "detail": "$\\int e^{2x}dx=\\frac12 e^{2x}$，所以原式 $=\\frac12 x e^{2x}-\\frac12\\cdot\\frac12 e^{2x}+C=\\frac12 x e^{2x}-\\frac14 e^{2x}+C$。"
+    }
+   ],
+   "key_breakthrough": "分部积分的关键是正确选择 $u$ 和 $dv$，使 $\\int v\\,du$ 比原积分更简单。口诀“反对幂指三”给出了优先级。",
+   "knowledge_points": [
+    "分部积分法",
+    "不定积分",
+    "指数函数积分"
+   ],
+   "knowledge_review": "分部积分公式 $\\int u\\,dv=uv-\\int v\\,du$ 由乘积求导法则逆推得到。选择 $u$ 的顺序通常为：反三角函数、对数函数、幂函数、指数函数、三角函数（反对幂指三），排在前面的选为 $u$。对于 $\\int x^n e^{ax}dx$ 型，可能需要多次分部积分。易错点：$v$ 忘记加常数（在不定积分中可最后统一加 $C$），或 $du$ 计算错误。",
+   "extensions": [
+    "求 $\\int x^2 e^x\\,dx$。",
+    "求 $\\int x\\ln x\\,dx$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 6,
+  "question": "计算定积分 $\\int_0^1 \\frac{x}{1+x^2}\\,dx$。",
+  "normalized": "计算定积分\\int_0^1\\frac{x}{1+x^2}dx。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "定积分计算",
+   "凑微分法",
+   "牛顿-莱布尼茨公式"
+  ],
+  "answer": "$\\frac12\\ln2$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$\\frac12\\ln2$",
+   "steps": [
+    {
+     "title": "观察被积函数结构",
+     "detail": "被积函数 $\\frac{x}{1+x^2}$ 中，分子 $x$ 恰好是分母 $1+x^2$ 的导数的一半：$(1+x^2)'=2x$。因此可用凑微分法。"
+    },
+    {
+     "title": "凑微分",
+     "detail": "$\\int_0^1 \\frac{x}{1+x^2}dx=\\frac12\\int_0^1 \\frac{2x}{1+x^2}dx=\\frac12\\int_0^1 \\frac{d(1+x^2)}{1+x^2}$。"
+    },
+    {
+     "title": "求原函数",
+     "detail": "$\\frac12\\ln(1+x^2)\\Big|_0^1$。"
+    },
+    {
+     "title": "代入上下限",
+     "detail": "$\\frac12[\\ln(1+1)-\\ln(1+0)]=\\frac12(\\ln2-\\ln1)=\\frac12\\ln2$。"
+    }
+   ],
+   "key_breakthrough": "识别分子是分母导数的常数倍，通过凑微分直接得到对数形式的原函数。",
+   "knowledge_points": [
+    "定积分计算",
+    "凑微分法",
+    "牛顿-莱布尼茨公式"
+   ],
+   "knowledge_review": "定积分计算的基本方法是牛顿-莱布尼茨公式：$\\int_a^b f(x)dx=F(b)-F(a)$，其中 $F$ 是 $f$ 的原函数。凑微分法（第一类换元法）适用于被积函数中有复合函数与内层函数导数乘积的情况。对于 $\\int\\frac{f'(x)}{f(x)}dx=\\ln|f(x)|+C$ 是常用公式。易错点：忘记换元后改变积分限（若用第二类换元），或忽略绝对值。",
+   "extensions": [
+    "计算 $\\int_0^{\\pi/2}\\sin x\\cos x\\,dx$。",
+    "计算 $\\int_1^e\\frac{\\ln x}{x}\\,dx$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 7,
+  "question": "判断反常积分 $\\int_1^{+\\infty}\\frac{1}{x^2}\\,dx$ 的敛散性，若收敛求其值。",
+  "normalized": "判断反常积分\\int_1^{+\\infty}\\frac{1}{x^2}dx的敛散性,若收敛求其值。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "反常积分",
+   "无穷限积分",
+   "$p$-积分判别法"
+  ],
+  "answer": "收敛，值为 $1$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "收敛，值为 $1$",
+   "steps": [
+    {
+     "title": "识别反常积分类型",
+     "detail": "积分上限为 $+\\infty$，属于无穷限反常积分。需先求原函数，再取极限。"
+    },
+    {
+     "title": "求原函数",
+     "detail": "$\\int\\frac{1}{x^2}dx=-\\frac1x+C$。"
+    },
+    {
+     "title": "按定义计算",
+     "detail": "$\\int_1^{+\\infty}\\frac{1}{x^2}dx=\\lim\\limits_{b\\to+\\infty}\\int_1^b\\frac{1}{x^2}dx=\\lim\\limits_{b\\to+\\infty}\\left[-\\frac1x\\right]_1^b=\\lim\\limits_{b\\to+\\infty}\\left(-\\frac1b+1\\right)=1$。"
+    },
+    {
+     "title": "结论",
+     "detail": "极限存在且有限，故反常积分收敛，值为 $1$。"
+    }
+   ],
+   "key_breakthrough": "无穷限反常积分通过极限定义，先求原函数再取极限。$p$-积分 $\\int_1^{+\\infty}\\frac{1}{x^p}dx$ 当 $p>1$ 时收敛，$p\\le1$ 时发散。",
+   "knowledge_points": [
+    "反常积分",
+    "无穷限积分",
+    "$p$-积分判别法"
+   ],
+   "knowledge_review": "无穷限反常积分定义为 $\\int_a^{+\\infty}f(x)dx=\\lim\\limits_{b\\to+\\infty}\\int_a^b f(x)dx$，若极限存在则收敛，否则发散。重要结论：$\\int_1^{+\\infty}\\frac{1}{x^p}dx$ 当 $p>1$ 时收敛于 $\\frac{1}{p-1}$，当 $p\\le1$ 时发散。比较判别法可用于判断一般反常积分的敛散性。易错点：直接代入无穷大而不取极限，或忽略被积函数在积分区间内的奇点。",
+   "extensions": [
+    "判断 $\\int_1^{+\\infty}\\frac{1}{\\sqrt{x}}\\,dx$ 的敛散性。",
+    "计算 $\\int_0^{+\\infty}e^{-x}\\,dx$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 8,
+  "question": "求微分方程 $y'+2xy=x$ 的通解。",
+  "normalized": "求微分方程y'+2xy=x的通解。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "一阶线性微分方程",
+   "积分因子法",
+   "通解"
+  ],
+  "answer": "$y=\\frac12+Ce^{-x^2}$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$y=\\frac12+Ce^{-x^2}$",
+   "steps": [
+    {
+     "title": "识别方程类型",
+     "detail": "方程 $y'+2xy=x$ 是一阶线性微分方程，标准形式为 $y'+P(x)y=Q(x)$，其中 $P(x)=2x$，$Q(x)=x$。"
+    },
+    {
+     "title": "求积分因子",
+     "detail": "积分因子 $\\mu(x)=e^{\\int P(x)dx}=e^{\\int 2x\\,dx}=e^{x^2}$。"
+    },
+    {
+     "title": "两边乘以积分因子",
+     "detail": "$e^{x^2}y'+2xe^{x^2}y=xe^{x^2}$，左边恰好是 $(e^{x^2}y)'$。"
+    },
+    {
+     "title": "积分求解",
+     "detail": "$(e^{x^2}y)'=xe^{x^2}$，两边积分：$e^{x^2}y=\\int xe^{x^2}dx=\\frac12 e^{x^2}+C$。"
+    },
+    {
+     "title": "解出 $y$",
+     "detail": "两边除以 $e^{x^2}$：$y=\\frac12+Ce^{-x^2}$。"
+    }
+   ],
+   "key_breakthrough": "一阶线性微分方程的标准解法是乘以积分因子 $e^{\\int P(x)dx}$，将左边化为乘积的导数。",
+   "knowledge_points": [
+    "一阶线性微分方程",
+    "积分因子法",
+    "通解"
+   ],
+   "knowledge_review": "一阶线性微分方程 $y'+P(x)y=Q(x)$ 的通解公式为 $y=e^{-\\int Pdx}\\left(\\int Q e^{\\int Pdx}dx+C\\right)$。积分因子的作用是使左边成为 $(\\mu y)'$ 的形式。当 $Q(x)=0$ 时为齐次方程，可用分离变量法。易错点：忘记加常数 $C$，或积分因子计算错误。",
+   "extensions": [
+    "求 $y'-y=e^x$ 的通解。",
+    "求 $y'+\\frac1x y=x^2$ 的通解。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 9,
+  "question": "设 $z=x^2y+\\sin(xy)$，求 $\\frac{\\partial z}{\\partial x}$ 和 $\\frac{\\partial z}{\\partial y}$。",
+  "normalized": "设z=x^2y+\\sin(xy),求\\frac{\\partialz}{\\partialx}和\\frac{\\partialz}{\\partialy}。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "偏导数",
+   "链式法则",
+   "多元函数微分"
+  ],
+  "answer": "$\\frac{\\partial z}{\\partial x}=2xy+y\\cos(xy)$，$\\frac{\\partial z}{\\partial y}=x^2+x\\cos(xy)$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$\\frac{\\partial z}{\\partial x}=2xy+y\\cos(xy)$，$\\frac{\\partial z}{\\partial y}=x^2+x\\cos(xy)$",
+   "steps": [
+    {
+     "title": "求对 $x$ 的偏导数",
+     "detail": "对 $x$ 求偏导时，把 $y$ 看作常数。$\\frac{\\partial}{\\partial x}(x^2y)=2xy$。$\\frac{\\partial}{\\partial x}\\sin(xy)=\\cos(xy)\\cdot\\frac{\\partial}{\\partial x}(xy)=\\cos(xy)\\cdot y$。所以 $\\frac{\\partial z}{\\partial x}=2xy+y\\cos(xy)$。"
+    },
+    {
+     "title": "求对 $y$ 的偏导数",
+     "detail": "对 $y$ 求偏导时，把 $x$ 看作常数。$\\frac{\\partial}{\\partial y}(x^2y)=x^2$。$\\frac{\\partial}{\\partial y}\\sin(xy)=\\cos(xy)\\cdot\\frac{\\partial}{\\partial y}(xy)=\\cos(xy)\\cdot x$。所以 $\\frac{\\partial z}{\\partial y}=x^2+x\\cos(xy)$。"
+    }
+   ],
+   "key_breakthrough": "偏导数的本质是固定其他变量，对目标变量求导，注意链式法则在复合函数中的应用。",
+   "knowledge_points": [
+    "偏导数",
+    "链式法则",
+    "多元函数微分"
+   ],
+   "knowledge_review": "偏导数 $\\frac{\\partial z}{\\partial x}$ 表示固定 $y$ 时 $z$ 关于 $x$ 的变化率。计算时将所有其他变量视为常数，按一元函数求导法则进行。对于复合函数如 $\\sin(xy)$，需用链式法则。高阶偏导数 $\\frac{\\partial^2 z}{\\partial x\\partial y}$ 表示先对 $x$ 后对 $y$ 求偏导，若二阶偏导连续则与顺序无关。易错点：忘记链式法则中的内层导数，或混淆变量。",
+   "extensions": [
+    "设 $z=e^{xy}\\ln(x+y)$，求 $\\frac{\\partial z}{\\partial x}$。",
+    "设 $z=x^3y^2-2xy$，求 $\\frac{\\partial^2 z}{\\partial x\\partial y}$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 10,
+  "question": "计算二重积分 $\\iint_D (x+y)\\,d\\sigma$，其中 $D$ 是由直线 $x=0$，$y=0$，$x+y=1$ 所围成的三角形区域。",
+  "normalized": "计算二重积分\\iint_d(x+y)d\\sigma,其中d是由直线x=0,y=0,x+y=1所围成的三角形区域。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "二重积分",
+   "累次积分",
+   "积分区域描述"
+  ],
+  "answer": "$\\frac13$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$\\frac13$",
+   "steps": [
+    {
+     "title": "画出积分区域",
+     "detail": "区域 $D$ 是顶点为 $(0,0)$，$(1,0)$，$(0,1)$ 的三角形。可以用 $x$ 型或 $y$ 型区域描述。"
+    },
+    {
+     "title": "选择积分次序",
+     "detail": "用 $x$ 型区域：$0\\le x\\le1$，$0\\le y\\le1-x$。则积分化为 $\\int_0^1\\int_0^{1-x}(x+y)\\,dy\\,dx$。"
+    },
+    {
+     "title": "计算内层积分",
+     "detail": "$\\int_0^{1-x}(x+y)dy=\\left[xy+\\frac{y^2}{2}\\right]_0^{1-x}=x(1-x)+\\frac{(1-x)^2}{2}$。化简：$x-x^2+\\frac{1-2x+x^2}{2}=\\frac12-\\frac{x^2}{2}$。"
+    },
+    {
+     "title": "计算外层积分",
+     "detail": "$\\int_0^1\\left(\\frac12-\\frac{x^2}{2}\\right)dx=\\left[\\frac{x}{2}-\\frac{x^3}{6}\\right]_0^1=\\frac12-\\frac16=\\frac13$。"
+    }
+   ],
+   "key_breakthrough": "将二重积分化为累次积分，关键是正确写出积分区域的上下限。三角形区域用 $x$ 型描述较简单。",
+   "knowledge_points": [
+    "二重积分",
+    "累次积分",
+    "积分区域描述"
+   ],
+   "knowledge_review": "二重积分 $\\iint_D f(x,y)d\\sigma$ 可化为累次积分计算。若 $D$ 为 $x$ 型区域：$a\\le x\\le b$，$\\varphi_1(x)\\le y\\le\\varphi_2(x)$，则 $\\iint_D f d\\sigma=\\int_a^b\\int_{\\varphi_1(x)}^{\\varphi_2(x)}f(x,y)dy\\,dx$。选择积分次序时，应使内层积分容易计算。易错点：积分限写错，或忘记将区域正确投影到坐标轴。",
+   "extensions": [
+    "计算 $\\iint_D xy\\,d\\sigma$，$D$ 为 $0\\le x\\le1$，$0\\le y\\le x$。",
+    "计算 $\\iint_D e^{x+y}\\,d\\sigma$，$D$ 为 $0\\le x\\le1$，$0\\le y\\le1$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 11,
+  "question": "计算极限 $\\displaystyle \\lim_{x\\to 0}\\frac{e^{x}-1-x-\\frac{x^2}{2}}{x^3}$。",
+  "normalized": "计算极限\\displaystyle\\lim_{x\\to0}\\frac{e^{x}-1-x-\\frac{x^2}{2}}{x^3}。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "泰勒公式",
+   "等价无穷小",
+   "极限计算"
+  ],
+  "answer": "$\\displaystyle \\frac{1}{6}$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$\\displaystyle \\frac{1}{6}$",
+   "steps": [
+    {
+     "title": "判断类型并选择方法",
+     "detail": "当 $x\\to 0$ 时，分子 $e^x-1-x-\\frac{x^2}{2}\\to 0$，分母 $x^3\\to 0$，属于 $\\frac{0}{0}$ 型。由于分子是 $e^x$ 减去其二次泰勒多项式，最自然的方法是用泰勒展开，而不是反复洛必达。"
+    },
+    {
+     "title": "写出 $e^x$ 的泰勒展开",
+     "detail": "在 $x=0$ 处，$e^x=1+x+\\frac{x^2}{2!}+\\frac{x^3}{3!}+o(x^3)$。因此分子为 $e^x-1-x-\\frac{x^2}{2}=\\frac{x^3}{6}+o(x^3)$。"
+    },
+    {
+     "title": "代入求极限",
+     "detail": "于是 $\\frac{e^x-1-x-\\frac{x^2}{2}}{x^3}=\\frac{\\frac{x^3}{6}+o(x^3)}{x^3}\\to \\frac{1}{6}$。"
+    }
+   ],
+   "key_breakthrough": "识别出分子是 $e^x$ 的泰勒展开截断后的余项，直接比较 $x^3$ 阶系数。",
+   "knowledge_points": [
+    "泰勒公式",
+    "等价无穷小",
+    "极限计算"
+   ],
+   "knowledge_review": "泰勒公式用于将函数在一点附近展开为多项式加余项。若 $f$ 在 $x_0$ 处 $n$ 阶可导，则 $f(x)=\\sum_{k=0}^n \\frac{f^{(k)}(x_0)}{k!}(x-x_0)^k+o((x-x_0)^n)$。求 $\\frac{0}{0}$ 型极限时，若分子分母可展开，应展开到分母最低次幂相同阶数。常见易错点：展开阶数不足导致无法判断；忽略余项 $o(x^n)$ 的阶数。",
+   "extensions": [
+    "计算 $\\displaystyle \\lim_{x\\to 0}\\frac{\\ln(1+x)-x+\\frac{x^2}{2}}{x^3}$。",
+    "计算 $\\displaystyle \\lim_{x\\to 0}\\frac{\\cos x-1+\\frac{x^2}{2}}{x^4}$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 12,
+  "question": "设 $y=\\ln(x+\\sqrt{1+x^2})$，求 $y'$ 与 $y''$。",
+  "normalized": "设y=\\ln(x+\\sqrt{1+x^2}),求y'与y''。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "复合函数求导",
+   "链式法则",
+   "二阶导数"
+  ],
+  "answer": "$y'=\\frac{1}{\\sqrt{1+x^2}}$，$y''=-\\frac{x}{(1+x^2)^{3/2}}$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$y'=\\frac{1}{\\sqrt{1+x^2}}$，$y''=-\\frac{x}{(1+x^2)^{3/2}}$",
+   "steps": [
+    {
+     "title": "求一阶导数",
+     "detail": "令 $u=x+\\sqrt{1+x^2}$，则 $y=\\ln u$，所以 $y'=\\frac{1}{u}\\cdot u'$。而 $u'=1+\\frac{x}{\\sqrt{1+x^2}}=\\frac{\\sqrt{1+x^2}+x}{\\sqrt{1+x^2}}$。因此 $y'=\\frac{1}{x+\\sqrt{1+x^2}}\\cdot \\frac{\\sqrt{1+x^2}+x}{\\sqrt{1+x^2}}=\\frac{1}{\\sqrt{1+x^2}}$。"
+    },
+    {
+     "title": "求二阶导数",
+     "detail": "$y'=(1+x^2)^{-1/2}$，所以 $y''=-\\frac{1}{2}(1+x^2)^{-3/2}\\cdot 2x=-\\frac{x}{(1+x^2)^{3/2}}$。"
+    }
+   ],
+   "key_breakthrough": "先化简一阶导数，避免直接对复杂分式求二阶导。",
+   "knowledge_points": [
+    "复合函数求导",
+    "链式法则",
+    "二阶导数"
+   ],
+   "knowledge_review": "复合函数求导使用链式法则：$\\frac{d}{dx}f(g(x))=f'(g(x))g'(x)$。求高阶导数时，先化简低阶导数往往能显著降低计算量。易错点：忘记内层函数导数；对根式求导时符号或指数处理错误。",
+   "extensions": [
+    "设 $y=\\arctan x$，求 $y''$。",
+    "设 $y=\\ln(\\sec x+\\tan x)$，求 $y'$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 13,
+  "question": "验证函数 $f(x)=x^3-3x+1$ 在区间 $[-2,2]$ 上满足罗尔定理的条件，并求出定理结论中的 $\\xi$。",
+  "normalized": "验证函数f(x)=x^3-3x+1在区间[-2,2]上满足罗尔定理的条件,并求出定理结论中的\\xi。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "罗尔定理",
+   "中值定理",
+   "导数零点"
+  ],
+  "answer": "$\\xi=-1$ 或 $\\xi=1$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$\\xi=-1$ 或 $\\xi=1$",
+   "steps": [
+    {
+     "title": "验证罗尔定理条件",
+     "detail": "$f(x)=x^3-3x+1$ 是多项式，在 $[-2,2]$ 上连续，在 $(-2,2)$ 内可导。计算端点值：$f(-2)=-8+6+1=-1$，$f(2)=8-6+1=3$。端点值不相等，因此不满足罗尔定理条件。"
+    },
+    {
+     "title": "修正题目理解",
+     "detail": "罗尔定理要求 $f(a)=f(b)$。本题端点值不等，所以不能直接用罗尔定理。若题目要求“验证并求 $\\xi$”，应指出条件不满足；若改为在 $[-2,2]$ 上寻找满足 $f'(\\xi)=0$ 的点，则解 $f'(x)=3x^2-3=0$，得 $x=\\pm 1$。"
+    },
+    {
+     "title": "结论",
+     "detail": "在 $(-2,2)$ 内，$f'(-1)=0$，$f'(1)=0$。因此若仅求导数为零的点，$\\xi=-1$ 或 $\\xi=1$。"
+    }
+   ],
+   "key_breakthrough": "先检查罗尔定理端点值条件，发现不满足后区分“定理条件”与“导数为零的点”。",
+   "knowledge_points": [
+    "罗尔定理",
+    "中值定理",
+    "导数零点"
+   ],
+   "knowledge_review": "罗尔定理：若 $f$ 在 $[a,b]$ 连续、在 $(a,b)$ 可导且 $f(a)=f(b)$，则存在 $\\xi\\in(a,b)$ 使 $f'(\\xi)=0$。使用前必须验证三个条件，尤其是端点值相等。易错点：把“导数为零的点”直接当作罗尔定理结论，而忽略条件验证。",
+   "extensions": [
+    "验证 $f(x)=|x|$ 在 $[-1,1]$ 上是否满足罗尔定理条件。",
+    "设 $f(x)=x^2-4x+3$，在 $[1,3]$ 上求罗尔定理中的 $\\xi$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 14,
+  "question": "计算不定积分 $\\displaystyle \\int \\frac{x+1}{x^2+2x+5}\\,dx$。",
+  "normalized": "计算不定积分\\displaystyle\\int\\frac{x+1}{x^2+2x+5}dx。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "凑微分法",
+   "对数积分",
+   "不定积分"
+  ],
+  "answer": "$\\displaystyle \\frac{1}{2}\\ln(x^2+2x+5)+C$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$\\displaystyle \\frac{1}{2}\\ln(x^2+2x+5)+C$",
+   "steps": [
+    {
+     "title": "观察分母导数",
+     "detail": "分母 $x^2+2x+5$ 的导数为 $2x+2=2(x+1)$。分子 $x+1$ 正好是分母导数的一半。"
+    },
+    {
+     "title": "凑微分",
+     "detail": "因为 $d(x^2+2x+5)=(2x+2)dx=2(x+1)dx$，所以 $(x+1)dx=\\frac{1}{2}d(x^2+2x+5)$。"
+    },
+    {
+     "title": "积分",
+     "detail": "$\\int \\frac{x+1}{x^2+2x+5}dx=\\frac{1}{2}\\int \\frac{d(x^2+2x+5)}{x^2+2x+5}=\\frac{1}{2}\\ln(x^2+2x+5)+C$。由于 $x^2+2x+5=(x+1)^2+4>0$，无需加绝对值。"
+    }
+   ],
+   "key_breakthrough": "分子恰好是分母导数的一半，直接凑成 $\\frac{du}{u}$。",
+   "knowledge_points": [
+    "凑微分法",
+    "对数积分",
+    "不定积分"
+   ],
+   "knowledge_review": "凑微分法基于 $\\int \\frac{u'}{u}dx=\\ln|u|+C$。当被积函数为分式时，先检查分子是否为分母导数的倍数。若分母恒正，可去掉绝对值。易错点：忘记系数；对分母是否恒正判断错误。",
+   "extensions": [
+    "计算 $\\displaystyle \\int \\frac{2x+3}{x^2+3x+7}dx$。",
+    "计算 $\\displaystyle \\int \\frac{x}{x^2+1}dx$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 15,
+  "question": "计算定积分 $\\displaystyle \\int_0^{\\pi} x\\sin x\\,dx$。",
+  "normalized": "计算定积分\\displaystyle\\int_0^{\\pi}x\\sinxdx。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "分部积分法",
+   "定积分牛顿-莱布尼茨公式",
+   "三角函数积分"
+  ],
+  "answer": "$\\pi$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$\\pi$",
+   "steps": [
+    {
+     "title": "选择分部积分",
+     "detail": "被积函数是多项式 $x$ 与三角函数 $\\sin x$ 的乘积。对这类积分，通常取 $u=x$，$dv=\\sin x\\,dx$，因为对 $u$ 求导会降次，简化积分。"
+    },
+    {
+     "title": "设分部积分变量",
+     "detail": "令 $u=x$，$dv=\\sin x\\,dx$，则 $du=dx$，$v=-\\cos x$。"
+    },
+    {
+     "title": "应用分部积分公式",
+     "detail": "$\\int_0^{\\pi}x\\sin x\\,dx=[-x\\cos x]_0^{\\pi}+\\int_0^{\\pi}\\cos x\\,dx$。"
+    },
+    {
+     "title": "计算边界项与剩余积分",
+     "detail": "边界项：$[-x\\cos x]_0^{\\pi}=-\\pi\\cos\\pi-0=\\pi$。剩余积分：$\\int_0^{\\pi}\\cos x\\,dx=[\\sin x]_0^{\\pi}=0$。"
+    },
+    {
+     "title": "得到结果",
+     "detail": "所以原积分为 $\\pi+0=\\pi$。"
+    }
+   ],
+   "key_breakthrough": "多项式乘三角函数时，用分部积分把多项式求导降次；本题一次分部后剩余积分为零。",
+   "knowledge_points": [
+    "分部积分法",
+    "定积分牛顿-莱布尼茨公式",
+    "三角函数积分"
+   ],
+   "knowledge_review": "分部积分公式：$\\int u\\,dv=uv-\\int v\\,du$，定积分形式为 $\\int_a^b u\\,dv=[uv]_a^b-\\int_a^b v\\,du$。选择 $u$ 的顺序常按“反、对、幂、指、三”优先。对于 $x^n\\sin x$、$x^n e^x$ 等，取 $u=x^n$ 可逐步降次。易错点：定积分分部后忘记代入上下限；符号错误，特别是 $v=-\\cos x$ 的负号。",
+   "extensions": [
+    "计算 $\\displaystyle \\int_0^1 xe^x\\,dx$。",
+    "计算 $\\displaystyle \\int_0^{\\pi/2} x\\cos x\\,dx$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 16,
+  "question": "判断反常积分 $\\displaystyle \\int_1^{+\\infty}\\frac{1}{x^2+1}\\,dx$ 是否收敛；若收敛，求其值。",
+  "normalized": "判断反常积分\\displaystyle\\int_1^{+\\infty}\\frac{1}{x^2+1}dx是否收敛;若收敛,求其值。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "反常积分",
+   "极限定义",
+   "反三角函数积分"
+  ],
+  "answer": "收敛，值为 $\\displaystyle \\frac{\\pi}{4}$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "收敛，值为 $\\displaystyle \\frac{\\pi}{4}$",
+   "steps": [
+    {
+     "title": "化为极限定义",
+     "detail": "反常积分定义为 $\\displaystyle \\int_1^{+\\infty}\\frac{1}{x^2+1}dx=\\lim_{b\\to+\\infty}\\int_1^b\\frac{1}{x^2+1}dx$。"
+    },
+    {
+     "title": "求原函数",
+     "detail": "$\\int \\frac{1}{x^2+1}dx=\\arctan x+C$。因此 $\\int_1^b\\frac{1}{x^2+1}dx=\\arctan b-\\arctan 1$。"
+    },
+    {
+     "title": "取极限",
+     "detail": "$\\lim_{b\\to+\\infty}(\\arctan b-\\arctan 1)=\\frac{\\pi}{2}-\\frac{\\pi}{4}=\\frac{\\pi}{4}$。因此积分收敛。"
+    }
+   ],
+   "key_breakthrough": "直接求出原函数 $\\arctan x$，再取极限。",
+   "knowledge_points": [
+    "反常积分",
+    "极限定义",
+    "反三角函数积分"
+   ],
+   "knowledge_review": "无穷区间反常积分定义为极限：$\\int_a^{+\\infty}f(x)dx=\\lim_{b\\to+\\infty}\\int_a^b f(x)dx$。若极限存在则收敛，否则发散。比较判别法常用于判断收敛性，但能求出原函数时应直接计算。易错点：忘记写极限；把 $\\arctan(+\\infty)$ 误写为 $\\pi$。",
+   "extensions": [
+    "判断 $\\displaystyle \\int_1^{+\\infty}\\frac{1}{x}\\,dx$ 的敛散性。",
+    "计算 $\\displaystyle \\int_0^{+\\infty}e^{-x}\\,dx$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 17,
+  "question": "求微分方程 $y'+2y=e^{-x}$ 的通解。",
+  "normalized": "求微分方程y'+2y=e^{-x}的通解。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "一阶线性微分方程",
+   "积分因子法",
+   "通解与特解"
+  ],
+  "answer": "$y=e^{-x}+Ce^{-2x}$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$y=e^{-x}+Ce^{-2x}$",
+   "steps": [
+    {
+     "title": "识别一阶线性微分方程",
+     "detail": "方程可写成 $y'+P(x)y=Q(x)$，其中 $P(x)=2$，$Q(x)=e^{-x}$。使用积分因子法。"
+    },
+    {
+     "title": "求积分因子",
+     "detail": "积分因子 $\\mu(x)=e^{\\int P(x)dx}=e^{\\int 2dx}=e^{2x}$。"
+    },
+    {
+     "title": "两边乘以积分因子",
+     "detail": "$e^{2x}y'+2e^{2x}y=e^{x}$，左边为 $(e^{2x}y)'$。"
+    },
+    {
+     "title": "积分求解",
+     "detail": "$(e^{2x}y)'=e^x$，积分得 $e^{2x}y=e^x+C$，所以 $y=e^{-x}+Ce^{-2x}$。"
+    }
+   ],
+   "key_breakthrough": "题眼是识别一阶线性方程，用积分因子把左边凑成乘积导数。",
+   "knowledge_points": [
+    "一阶线性微分方程",
+    "积分因子法",
+    "通解与特解"
+   ],
+   "knowledge_review": "一阶线性微分方程标准形式：$y'+P(x)y=Q(x)$。通解公式为 $y=e^{-\\int Pdx}\\left(\\int Q e^{\\int Pdx}dx+C\\right)$。积分因子 $\\mu=e^{\\int Pdx}$。易错点：忘记将方程化为标准形式；积分因子指数符号写错。",
+   "extensions": [
+    "求 $y'-y=e^{2x}$ 的通解。",
+    "求 $y'+\\frac1x y=x$ 的通解。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 18,
+  "question": "设 $z=x^2y+\\sin(xy)$，求 $\\frac{\\partial z}{\\partial x}$、$\\frac{\\partial z}{\\partial y}$ 以及 $dz$。",
+  "normalized": "设z=x^2y+\\sin(xy),求\\frac{\\partialz}{\\partialx}、\\frac{\\partialz}{\\partialy}以及dz。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "偏导数",
+   "全微分",
+   "复合函数求导"
+  ],
+  "answer": "$\\frac{\\partial z}{\\partial x}=2xy+y\\cos(xy)$，$\\frac{\\partial z}{\\partial y}=x^2+x\\cos(xy)$，$dz=(2xy+y\\cos(xy))dx+(x^2+x\\cos(xy))dy$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$\\frac{\\partial z}{\\partial x}=2xy+y\\cos(xy)$，$\\frac{\\partial z}{\\partial y}=x^2+x\\cos(xy)$，$dz=(2xy+y\\cos(xy))dx+(x^2+x\\cos(xy))dy$",
+   "steps": [
+    {
+     "title": "求对 $x$ 的偏导",
+     "detail": "把 $y$ 看作常数。$\\frac{\\partial}{\\partial x}(x^2y)=2xy$；$\\frac{\\partial}{\\partial x}\\sin(xy)=\\cos(xy)\\cdot y$。所以 $z_x=2xy+y\\cos(xy)$。"
+    },
+    {
+     "title": "求对 $y$ 的偏导",
+     "detail": "把 $x$ 看作常数。$\\frac{\\partial}{\\partial y}(x^2y)=x^2$；$\\frac{\\partial}{\\partial y}\\sin(xy)=\\cos(xy)\\cdot x$。所以 $z_y=x^2+x\\cos(xy)$。"
+    },
+    {
+     "title": "写出全微分",
+     "detail": "全微分 $dz=z_x dx+z_y dy=(2xy+y\\cos(xy))dx+(x^2+x\\cos(xy))dy$。"
+    }
+   ],
+   "key_breakthrough": "偏导时把另一个变量视为常数，注意复合函数 $\\sin(xy)$ 的内层导数。",
+   "knowledge_points": [
+    "偏导数",
+    "全微分",
+    "复合函数求导"
+   ],
+   "knowledge_review": "偏导数 $\\frac{\\partial z}{\\partial x}$ 表示固定 $y$ 时 $z$ 对 $x$ 的变化率。全微分 $dz=z_xdx+z_ydy$ 是函数增量的线性主部。易错点：对 $\\sin(xy)$ 求偏导时漏乘内层导数；混淆偏导与全导。",
+   "extensions": [
+    "设 $z=e^{xy}\\ln(x+y)$，求 $z_x$。",
+    "设 $z=x^3y^2-2xy$，求 $dz$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 19,
+  "question": "计算二重积分 $\\displaystyle \\iint_D (x+y)\\,dA$，其中 $D=\\{(x,y)\\mid 0\\le x\\le 1,\\ 0\\le y\\le x\\}$。",
+  "normalized": "计算二重积分\\displaystyle\\iint_d(x+y)da,其中d=\\{(x,y)\\mid0\\lex\\le1,0\\ley\\lex\\}。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "二重积分",
+   "累次积分",
+   "积分区域表示"
+  ],
+  "answer": "$\\displaystyle \\frac{1}{2}$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$\\displaystyle \\frac{1}{2}$",
+   "steps": [
+    {
+     "title": "确定积分区域",
+     "detail": "区域 $D$ 由 $x=0$、$x=1$、$y=0$、$y=x$ 围成，是三角形区域。选择先对 $y$ 积分，再对 $x$ 积分：$0\\le x\\le1$，$0\\le y\\le x$。"
+    },
+    {
+     "title": "写出累次积分",
+     "detail": "$\\iint_D(x+y)dA=\\int_0^1\\int_0^x(x+y)\\,dy\\,dx$。"
+    },
+    {
+     "title": "计算内层积分",
+     "detail": "$\\int_0^x(x+y)dy=\\left[xy+\\frac{y^2}{2}\\right]_0^x=x^2+\\frac{x^2}{2}=\\frac{3x^2}{2}$。"
+    },
+    {
+     "title": "计算外层积分",
+     "detail": "$\\int_0^1\\frac{3x^2}{2}dx=\\frac{3}{2}\\cdot\\frac{1}{3}=\\frac{1}{2}$。"
+    }
+   ],
+   "key_breakthrough": "先画区域并选择积分次序；本题先对 $y$ 积分，内层上限为 $x$，计算简单。",
+   "knowledge_points": [
+    "二重积分",
+    "累次积分",
+    "积分区域表示"
+   ],
+   "knowledge_review": "二重积分 $\\iint_D f(x,y)dA$ 可化为累次积分。若区域为 $a\\le x\\le b$，$\\varphi_1(x)\\le y\\le\\varphi_2(x)$，则 $\\iint_D f dA=\\int_a^b\\int_{\\varphi_1(x)}^{\\varphi_2(x)}f(x,y)dy\\,dx$。选择积分次序时，应使内层积分容易计算且区域表达简单。易错点：上下限写反；内层积分结果仍含外层变量时误当常数；未画图导致区域描述错误。",
+   "extensions": [
+    "计算 $\\displaystyle \\iint_D xy\\,dA$，其中 $D=\\{0\\le x\\le1,0\\le y\\le x\\}$。",
+    "计算 $\\displaystyle \\iint_D (x^2+y^2)\\,dA$，其中 $D$ 为单位圆盘。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 20,
+  "question": "判断级数 $\\displaystyle \\sum_{n=1}^{\\infty}\\frac{n}{2^n}$ 是否收敛；若收敛，求其和。",
+  "normalized": "判断级数\\displaystyle\\sum_{n=1}^{\\infty}\\frac{n}{2^n}是否收敛;若收敛,求其和。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "正项级数",
+   "比值判别法",
+   "幂级数求和"
+  ],
+  "answer": "收敛，和为 $2$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "收敛，和为 $2$",
+   "steps": [
+    {
+     "title": "判断收敛性",
+     "detail": "由比值判别法：$\\lim_{n\\to\\infty}\\frac{(n+1)/2^{n+1}}{n/2^n}=\\lim_{n\\to\\infty}\\frac{n+1}{2n}=\\frac{1}{2}<1$，所以级数收敛。"
+    },
+    {
+     "title": "构造幂级数求和",
+     "detail": "考虑 $\\sum_{n=1}^{\\infty}nx^n=\\frac{x}{(1-x)^2}$，$|x|<1$。令 $x=\\frac{1}{2}$，得 $\\sum_{n=1}^{\\infty}\\frac{n}{2^n}=\\frac{1/2}{(1-1/2)^2}$。"
+    },
+    {
+     "title": "计算和",
+     "detail": "$\\frac{1/2}{(1/2)^2}=\\frac{1/2}{1/4}=2$。"
+    }
+   ],
+   "key_breakthrough": "用比值判别法判敛，再用已知幂级数 $\\sum nx^n$ 求和。",
+   "knowledge_points": [
+    "正项级数",
+    "比值判别法",
+    "幂级数求和"
+   ],
+   "knowledge_review": "比值判别法：若 $\\lim_{n\\to\\infty}\\left|\\frac{a_{n+1}}{a_n}\\right|=L$，则 $L<1$ 收敛，$L>1$ 发散，$L=1$ 失效。幂级数 $\\sum_{n=1}^{\\infty}nx^n=\\frac{x}{(1-x)^2}$ 可由 $\\sum x^n$ 求导得到。易错点：忘记收敛半径条件；求和时 $n$ 从 $0$ 还是 $1$ 开始混淆。",
+   "extensions": [
+    "判断 $\\displaystyle \\sum_{n=1}^{\\infty}\\frac{n^2}{3^n}$ 的敛散性并求和。",
+    "判断 $\\displaystyle \\sum_{n=1}^{\\infty}\\frac{1}{n^2}$ 的敛散性。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 21,
+  "question": "计算极限 $\\displaystyle \\lim_{x\\to 0}\\frac{\\ln(1+x)-x+\\frac{x^2}{2}}{x^3}$。",
+  "normalized": "计算极限\\displaystyle\\lim_{x\\to0}\\frac{\\ln(1+x)-x+\\frac{x^2}{2}}{x^3}。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "Taylor 公式",
+   "等价无穷小与高阶无穷小",
+   "$\\frac{0}{0}$ 型极限"
+  ],
+  "answer": "$\\displaystyle \\frac{1}{3}$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$\\displaystyle \\frac{1}{3}$",
+   "steps": [
+    {
+     "title": "判断类型并选择方法",
+     "detail": "当 $x\\to 0$ 时，分子 $\\ln(1+x)-x+\\frac{x^2}{2}\\to 0$，分母 $x^3\\to 0$，是 $\\frac{0}{0}$ 型。由于分子含对数函数，最自然的方法是用 Taylor 展开，把分子展开到 $x^3$ 项，因为分母是 $x^3$。"
+    },
+    {
+     "title": "写出 $\\ln(1+x)$ 的三阶 Taylor 展开",
+     "detail": "在 $x=0$ 处，$\\ln(1+x)=x-\\frac{x^2}{2}+\\frac{x^3}{3}+o(x^3)$。这里必须展开到 $x^3$，因为分母阶数为 3；若只展开到 $x^2$，余项为 $o(x^2)$，无法判断除以 $x^3$ 后的极限。"
+    },
+    {
+     "title": "代入化简分子",
+     "detail": "代入得 $\\ln(1+x)-x+\\frac{x^2}{2}=\\left(x-\\frac{x^2}{2}+\\frac{x^3}{3}+o(x^3)\\right)-x+\\frac{x^2}{2}=\\frac{x^3}{3}+o(x^3)$。"
+    },
+    {
+     "title": "除以分母并取极限",
+     "detail": "于是 $\\frac{\\ln(1+x)-x+\\frac{x^2}{2}}{x^3}=\\frac{\\frac{x^3}{3}+o(x^3)}{x^3}=\\frac{1}{3}+o(1)\\to \\frac{1}{3}$。"
+    }
+   ],
+   "key_breakthrough": "题眼是分母为 $x^3$，因此 Taylor 展开必须精确到 $x^3$ 项；低阶项恰好抵消，剩余主项决定极限。",
+   "knowledge_points": [
+    "Taylor 公式",
+    "等价无穷小与高阶无穷小",
+    "$\\frac{0}{0}$ 型极限"
+   ],
+   "knowledge_review": "Taylor 公式是处理复杂函数极限的核心工具。若 $f$ 在 $x_0$ 附近有 $n$ 阶导数，则 $f(x)=\\sum_{k=0}^{n}\\frac{f^{(k)}(x_0)}{k!}(x-x_0)^k+o((x-x_0)^n)$。求极限时，展开阶数应至少等于分母的阶数；若分子中低阶项抵消，则需继续展开到首个非零项。常见展开如 $e^x=1+x+\\frac{x^2}{2}+\\frac{x^3}{6}+o(x^3)$，$\\ln(1+x)=x-\\frac{x^2}{2}+\\frac{x^3}{3}+o(x^3)$，$\\sin x=x-\\frac{x^3}{6}+o(x^3)$。易错点：展开阶数不足、余项写成 $O(x^n)$ 与 $o(x^n)$ 混用、忽略展开点。",
+   "extensions": [
+    "计算 $\\displaystyle \\lim_{x\\to 0}\\frac{e^x-1-x-\\frac{x^2}{2}}{x^3}$。",
+    "计算 $\\displaystyle \\lim_{x\\to 0}\\frac{\\sin x-x\\cos x}{x^3}$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 22,
+  "question": "设 $y=\\arctan x$，求 $y''$，并求曲线 $y=\\arctan x$ 在 $x=1$ 处的切线方程。",
+  "normalized": "设y=\\arctanx,求y'',并求曲线y=\\arctanx在x=1处的切线方程。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "基本求导公式",
+   "链式法则",
+   "切线方程"
+  ],
+  "answer": "$y''=-\\frac{2x}{(1+x^2)^2}$；切线方程为 $y-\\frac{\\pi}{4}=\\frac{1}{2}(x-1)$。",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$y''=-\\frac{2x}{(1+x^2)^2}$；切线方程为 $y-\\frac{\\pi}{4}=\\frac{1}{2}(x-1)$。",
+   "steps": [
+    {
+     "title": "求一阶导数",
+     "detail": "由基本导数公式 $(\\arctan x)'=\\frac{1}{1+x^2}$，得 $y'=\\frac{1}{1+x^2}$。"
+    },
+    {
+     "title": "求二阶导数",
+     "detail": "对 $y'=(1+x^2)^{-1}$ 求导，使用链式法则：$y''=-(1+x^2)^{-2}\\cdot 2x=-\\frac{2x}{(1+x^2)^2}$。"
+    },
+    {
+     "title": "求切点坐标与切线斜率",
+     "detail": "当 $x=1$ 时，$y=\\arctan 1=\\frac{\\pi}{4}$，切点为 $\\left(1,\\frac{\\pi}{4}\\right)$。切线斜率 $k=y'(1)=\\frac{1}{1+1^2}=\\frac{1}{2}$。"
+    },
+    {
+     "title": "写出切线方程",
+     "detail": "由点斜式 $y-y_0=k(x-x_0)$，得 $y-\\frac{\\pi}{4}=\\frac{1}{2}(x-1)$。"
+    }
+   ],
+   "key_breakthrough": "先求导得到斜率函数，再代入切点横坐标；切线方程需要同时知道切点坐标和该点导数值。",
+   "knowledge_points": [
+    "基本求导公式",
+    "链式法则",
+    "切线方程"
+   ],
+   "knowledge_review": "导数 $f'(x_0)$ 的几何意义是曲线 $y=f(x)$ 在点 $(x_0,f(x_0))$ 处切线的斜率。切线方程为 $y-f(x_0)=f'(x_0)(x-x_0)$。求高阶导数时，应熟练使用链式法则、乘积法则和商法则。常见易错点：把 $\\arctan x$ 的导数误记为 $\\frac{1}{1-x^2}$；求二阶导时漏乘内层导数 $2x$；切线方程中忘记先求切点纵坐标。",
+   "extensions": [
+    "设 $y=\\arcsin x$，求 $y''$。",
+    "求曲线 $y=\\ln x$ 在 $x=e$ 处的切线方程。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 23,
+  "question": "证明：对任意实数 $a,b$，有 $|\\arctan a-\\arctan b|\\le |a-b|$。",
+  "normalized": "证明:对任意实数a,b,有|\\arctana-\\arctanb|\\le|a-b|。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "拉格朗日中值定理",
+   "导数有界性",
+   "绝对值不等式"
+  ],
+  "answer": "由拉格朗日中值定理可证得 $|\\arctan a-\\arctan b|\\le |a-b|$。",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "由拉格朗日中值定理可证得 $|\\arctan a-\\arctan b|\\le |a-b|$。",
+   "steps": [
+    {
+     "title": "构造辅助函数",
+     "detail": "令 $f(x)=\\arctan x$。该函数在 $\\mathbb R$ 上连续且可导，且 $f'(x)=\\frac{1}{1+x^2}$。"
+    },
+    {
+     "title": "使用拉格朗日中值定理",
+     "detail": "若 $a=b$，不等式显然成立。若 $a\\ne b$，在区间以 $a,b$ 为端点时，$f$ 满足拉格朗日中值定理条件，故存在 $\\xi$ 介于 $a,b$ 之间，使得 $\\frac{\\arctan a-\\arctan b}{a-b}=f'(\\xi)=\\frac{1}{1+\\xi^2}$。"
+    },
+    {
+     "title": "估计导数上界",
+     "detail": "因为 $1+\\xi^2\\ge 1$，所以 $0<\\frac{1}{1+\\xi^2}\\le 1$。因此 $\\left|\\frac{\\arctan a-\\arctan b}{a-b}\\right|\\le 1$。"
+    },
+    {
+     "title": "整理得到结论",
+     "detail": "两边乘以 $|a-b|$，得 $|\\arctan a-\\arctan b|\\le |a-b|$。"
+    }
+   ],
+   "key_breakthrough": "把函数值之差与自变量之差联系起来，正是拉格朗日中值定理；再用导数有界性控制比值。",
+   "knowledge_points": [
+    "拉格朗日中值定理",
+    "导数有界性",
+    "绝对值不等式"
+   ],
+   "knowledge_review": "拉格朗日中值定理：若 $f$ 在 $[a,b]$ 上连续、在 $(a,b)$ 内可导，则存在 $\\xi\\in(a,b)$，使 $f(b)-f(a)=f'(\\xi)(b-a)$。它常用于证明形如 $|f(a)-f(b)|\\le M|a-b|$ 的 Lipschitz 估计。关键是找到合适的函数并估计导数上界。易错点：忽略区间端点连续、开区间可导的条件；对 $a>b$ 或 $a<b$ 未统一处理。",
+   "extensions": [
+    "证明对任意 $a,b$，有 $|\\sin a-\\sin b|\\le |a-b|$。",
+    "证明对任意 $a,b>0$，有 $|\\ln a-\\ln b|\\le \\frac{|a-b|}{\\min\\{a,b\\}}$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 24,
+  "question": "计算不定积分 $\\displaystyle \\int \\frac{x+1}{x^2+x+1}\\,dx$。",
+  "normalized": "计算不定积分\\displaystyle\\int\\frac{x+1}{x^2+x+1}dx。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "不定积分线性性质",
+   "凑微分法",
+   "二次式配方与反正切积分"
+  ],
+  "answer": "$\\displaystyle \\frac{1}{2}\\ln(x^2+x+1)+\\frac{\\sqrt3}{3}\\arctan\\frac{2x+1}{\\sqrt3}+C$。",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$\\displaystyle \\frac{1}{2}\\ln(x^2+x+1)+\\frac{\\sqrt3}{3}\\arctan\\frac{2x+1}{\\sqrt3}+C$。",
+   "steps": [
+    {
+     "title": "观察分母并拆分分子",
+     "detail": "分母 $x^2+x+1$ 的导数为 $2x+1$。分子 $x+1$ 可写成 $\\frac{1}{2}(2x+1)+\\frac{1}{2}$，这样第一部分可凑成 $\\frac{u'}{u}$ 形式。"
+    },
+    {
+     "title": "拆分为两个积分",
+     "detail": "$\\int \\frac{x+1}{x^2+x+1}dx=\\frac{1}{2}\\int\\frac{2x+1}{x^2+x+1}dx+\\frac{1}{2}\\int\\frac{1}{x^2+x+1}dx$。"
+    },
+    {
+     "title": "计算第一个积分",
+     "detail": "$\\frac{1}{2}\\int\\frac{2x+1}{x^2+x+1}dx=\\frac{1}{2}\\ln(x^2+x+1)$，因为分母恒正。"
+    },
+    {
+     "title": "配方计算第二个积分",
+     "detail": "$x^2+x+1=\\left(x+\\frac{1}{2}\\right)^2+\\frac{3}{4}$。于是 $\\frac{1}{2}\\int\\frac{dx}{x^2+x+1}=\\frac{1}{2}\\cdot \\frac{2}{\\sqrt3}\\arctan\\frac{x+\\frac12}{\\frac{\\sqrt3}{2}}=\\frac{\\sqrt3}{3}\\arctan\\frac{2x+1}{\\sqrt3}$。"
+    },
+    {
+     "title": "合并结果",
+     "detail": "两项相加并加任意常数 $C$，得 $\\frac{1}{2}\\ln(x^2+x+1)+\\frac{\\sqrt3}{3}\\arctan\\frac{2x+1}{\\sqrt3}+C$。"
+    }
+   ],
+   "key_breakthrough": "题眼是分母导数与分子只差常数倍，因此拆分子为“分母导数的一部分 + 常数”，分别化为对数型和反正切型积分。",
+   "knowledge_points": [
+    "不定积分线性性质",
+    "凑微分法",
+    "二次式配方与反正切积分"
+   ],
+   "knowledge_review": "处理有理函数积分时，若分母为不可约二次式 $ax^2+bx+c$，通常先看分子能否拆成 $A(2ax+b)+B$。第一部分化为 $\\int \\frac{u'}{u}dx=\\ln|u|+C$，第二部分通过配方化为 $\\int\\frac{du}{u^2+a^2}=\\frac1a\\arctan\\frac ua+C$。易错点：忘记对数中绝对值或说明分母恒正；配方时系数处理错误；漏写积分常数。",
+   "extensions": [
+    "计算 $\\displaystyle \\int \\frac{2x+3}{x^2+2x+5}dx$。",
+    "计算 $\\displaystyle \\int \\frac{1}{x^2-4x+13}dx$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 25,
+  "question": "判断反常积分 $\\displaystyle \\int_1^{+\\infty}\\frac{1}{x^2+1}\\,dx$ 的敛散性；若收敛，求其值。",
+  "normalized": "判断反常积分\\displaystyle\\int_1^{+\\infty}\\frac{1}{x^2+1}dx的敛散性;若收敛,求其值。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "无穷区间反常积分",
+   "牛顿-莱布尼茨公式的极限形式",
+   "反正切函数极限"
+  ],
+  "answer": "收敛，值为 $\\displaystyle \\frac{\\pi}{2}-\\frac{\\pi}{4}=\\frac{\\pi}{4}$。",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "收敛，值为 $\\displaystyle \\frac{\\pi}{2}-\\frac{\\pi}{4}=\\frac{\\pi}{4}$。",
+   "steps": [
+    {
+     "title": "识别反常积分类型",
+     "detail": "积分上限为 $+\\infty$，属于无穷区间上的反常积分。先求有限上限 $R$ 的定积分，再令 $R\\to+\\infty$。"
+    },
+    {
+     "title": "求原函数",
+     "detail": "$\\int \\frac{1}{x^2+1}dx=\\arctan x+C$。"
+    },
+    {
+     "title": "计算有限区间积分",
+     "detail": "$\\int_1^R \\frac{1}{x^2+1}dx=\\arctan R-\\arctan 1=\\arctan R-\\frac{\\pi}{4}$。"
+    },
+    {
+     "title": "取极限判断收敛",
+     "detail": "$\\lim_{R\\to+\\infty}(\\arctan R-\\frac{\\pi}{4})=\\frac{\\pi}{2}-\\frac{\\pi}{4}=\\frac{\\pi}{4}$，极限存在，故反常积分收敛。"
+    }
+   ],
+   "key_breakthrough": "直接求出原函数 $\\arctan x$，利用 $\\arctan x$ 在无穷远处有有限极限来判断收敛并求值。",
+   "knowledge_points": [
+    "无穷区间反常积分",
+    "牛顿-莱布尼茨公式的极限形式",
+    "反正切函数极限"
+   ],
+   "knowledge_review": "无穷区间反常积分定义为 $\\int_a^{+\\infty}f(x)dx=\\lim_{R\\to+\\infty}\\int_a^R f(x)dx$，若极限存在则收敛。常用比较判别法：当 $x$ 充分大时，若 $0\\le f(x)\\le \\frac{C}{x^p}$ 且 $p>1$，则收敛；若 $f(x)\\ge \\frac{C}{x^p}$ 且 $p\\le1$，则发散。易错点：把反常积分当普通定积分直接代无穷；忽略被积函数在区间内是否有奇点。",
+   "extensions": [
+    "判断 $\\displaystyle \\int_1^{+\\infty}\\frac{1}{x^p}dx$ 的敛散性。",
+    "计算 $\\displaystyle \\int_0^{+\\infty}e^{-x}dx$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 26,
+  "question": "设 $z=x^2y+\\sin(xy)$，求 $\\frac{\\partial z}{\\partial x}$、$\\frac{\\partial z}{\\partial y}$ 以及全微分 $dz$。",
+  "normalized": "设z=x^2y+\\sin(xy),求\\frac{\\partialz}{\\partialx}、\\frac{\\partialz}{\\partialy}以及全微分dz。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "偏导数",
+   "链式法则",
+   "全微分"
+  ],
+  "answer": "$\\frac{\\partial z}{\\partial x}=2xy+y\\cos(xy)$，$\\frac{\\partial z}{\\partial y}=x^2+x\\cos(xy)$，$dz=(2xy+y\\cos(xy))dx+(x^2+x\\cos(xy))dy$。",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$\\frac{\\partial z}{\\partial x}=2xy+y\\cos(xy)$，$\\frac{\\partial z}{\\partial y}=x^2+x\\cos(xy)$，$dz=(2xy+y\\cos(xy))dx+(x^2+x\\cos(xy))dy$。",
+   "steps": [
+    {
+     "title": "对 $x$ 求偏导",
+     "detail": "把 $y$ 看作常数。$\\frac{\\partial}{\\partial x}(x^2y)=2xy$；$\\frac{\\partial}{\\partial x}\\sin(xy)=\\cos(xy)\\cdot y$。所以 $z_x=2xy+y\\cos(xy)$。"
+    },
+    {
+     "title": "对 $y$ 求偏导",
+     "detail": "把 $x$ 看作常数。$\\frac{\\partial}{\\partial y}(x^2y)=x^2$；$\\frac{\\partial}{\\partial y}\\sin(xy)=\\cos(xy)\\cdot x$。所以 $z_y=x^2+x\\cos(xy)$。"
+    },
+    {
+     "title": "写全微分",
+     "detail": "若 $z=f(x,y)$ 可微，则 $dz=z_xdx+z_ydy$。代入得 $dz=(2xy+y\\cos(xy))dx+(x^2+x\\cos(xy))dy$。"
+    }
+   ],
+   "key_breakthrough": "偏导时只对一个变量求导，其余变量视为常数；链式法则用于 $\\sin(xy)$ 的内层函数。",
+   "knowledge_points": [
+    "偏导数",
+    "链式法则",
+    "全微分"
+   ],
+   "knowledge_review": "偏导数 $f_x(x_0,y_0)$ 表示固定 $y=y_0$ 时函数沿 $x$ 方向的变化率。全微分 $dz=f_xdx+f_ydy$ 是函数增量的线性主部。计算偏导时，遇到复合函数如 $\\sin(xy)$，需用链式法则乘以内层对当前变量的导数。易错点：对 $x$ 求偏导时误把 $y$ 也求导；全微分中漏项或符号错误。",
+   "extensions": [
+    "设 $z=e^{xy}+x^2y$，求 $z_x,z_y,dz$。",
+    "设 $z=\\ln(x^2+y^2)$，求 $z_x,z_y$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 27,
+  "question": "判断级数 $\\displaystyle \\sum_{n=1}^{\\infty}\\frac{n}{2^n}$ 的敛散性；若收敛，求其和。",
+  "normalized": "判断级数\\displaystyle\\sum_{n=1}^{\\infty}\\frac{n}{2^n}的敛散性;若收敛,求其和。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "比值判别法",
+   "幂级数求和",
+   "几何级数导数"
+  ],
+  "answer": "收敛，和为 $2$。",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "收敛，和为 $2$。",
+   "steps": [
+    {
+     "title": "判断收敛性",
+     "detail": "通项 $a_n=\\frac{n}{2^n}>0$。可用比值判别法：$\\lim_{n\\to\\infty}\\frac{a_{n+1}}{a_n}=\\lim_{n\\to\\infty}\\frac{n+1}{2^{n+1}}\\cdot\\frac{2^n}{n}=\\lim_{n\\to\\infty}\\frac{n+1}{2n}=\\frac12<1$，故级数收敛。"
+    },
+    {
+     "title": "构造幂级数求和方法",
+     "detail": "考虑 $\\sum_{n=1}^{\\infty}nx^n=\\frac{x}{(1-x)^2}$，$|x|<1$。令 $x=\\frac12$，则 $\\sum_{n=1}^{\\infty}\\frac{n}{2^n}=\\frac{1/2}{(1-1/2)^2}$。"
+    },
+    {
+     "title": "代入计算",
+     "detail": "$\\frac{1/2}{(1/2)^2}=\\frac{1/2}{1/4}=2$。"
+    }
+   ],
+   "key_breakthrough": "先判断收敛，再用已知幂级数 $\\sum nx^n$ 的和函数求值；这是“先判敛、再求和”的典型结构。",
+   "knowledge_points": [
+    "比值判别法",
+    "幂级数求和",
+    "几何级数导数"
+   ],
+   "knowledge_review": "正项级数比值判别法：若 $\\lim_{n\\to\\infty}\\frac{a_{n+1}}{a_n}=L$，则 $L<1$ 收敛，$L>1$ 发散，$L=1$ 失效。幂级数 $\\sum_{n=0}^{\\infty}x^n=\\frac{1}{1-x}$，$|x|<1$；逐项求导得 $\\sum_{n=1}^{\\infty}nx^{n-1}=\\frac{1}{(1-x)^2}$，故 $\\sum_{n=1}^{\\infty}nx^n=\\frac{x}{(1-x)^2}$。易错点：比值判别法极限为 1 时不能下结论；求和时忽略收敛半径条件。",
+   "extensions": [
+    "判断 $\\displaystyle \\sum_{n=1}^{\\infty}\\frac{n^2}{3^n}$ 的敛散性并求和。",
+    "求 $\\displaystyle \\sum_{n=1}^{\\infty}\\frac{1}{n2^n}$ 的和。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 28,
+  "question": "计算极限 $\\displaystyle \\lim_{x\\to 0}\\frac{\\tan x-\\sin x}{x^3}$。",
+  "normalized": "计算极限\\displaystyle\\lim_{x\\to0}\\frac{\\tanx-\\sinx}{x^3}。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "等价无穷小替换",
+   "三角恒等变形",
+   "未定式极限"
+  ],
+  "answer": "$\\displaystyle \\frac12$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$\\displaystyle \\frac12$",
+   "steps": [
+    {
+     "title": "先判断类型，决定能否用等价无穷小",
+     "detail": "当 $x\\to 0$ 时，$\\tan x\\to 0$，$\\sin x\\to 0$，分母 $x^3\\to 0$，所以是 $\\frac00$ 型未定式。不能直接把 $\\tan x$ 和 $\\sin x$ 都替换成 $x$，因为分子会变成 $x-x=0$，会丢失高阶项。"
+    },
+    {
+     "title": "提取公因子并利用三角恒等式",
+     "detail": "$\\tan x-\\sin x=\\frac{\\sin x}{\\cos x}-\\sin x=\\sin x\\left(\\frac1{\\cos x}-1\\right)=\\sin x\\cdot \\frac{1-\\cos x}{\\cos x}$。这样做的目的是把差化成乘积，便于分别使用等价无穷小。"
+    },
+    {
+     "title": "分别使用等价无穷小",
+     "detail": "当 $x\\to 0$ 时，$\\sin x\\sim x$，$1-\\cos x\\sim \\frac{x^2}{2}$，$\\cos x\\to 1$。因此 $\\tan x-\\sin x\\sim x\\cdot \\frac{x^2/2}{1}=\\frac{x^3}{2}$。"
+    },
+    {
+     "title": "代入求极限",
+     "detail": "$\\displaystyle \\lim_{x\\to 0}\\frac{\\tan x-\\sin x}{x^3}=\\lim_{x\\to 0}\\frac{x^3/2}{x^3}=\\frac12$。"
+    }
+   ],
+   "key_breakthrough": "题眼是分子是两个等价无穷小之差，不能分别替换为 $x$，必须先因式分解，把差化为乘积后再用等价无穷小。",
+   "knowledge_points": [
+    "等价无穷小替换",
+    "三角恒等变形",
+    "未定式极限"
+   ],
+   "knowledge_review": "等价无穷小替换适用于乘除结构，不能随意用于加减结构。常用等价无穷小：$\\sin x\\sim x$，$\\tan x\\sim x$，$1-\\cos x\\sim \\frac{x^2}{2}$，$\\ln(1+x)\\sim x$，$e^x-1\\sim x$。易错点：在加减中直接替换会改变主部，导致错误；应尽量先通分、因式分解或泰勒展开。",
+   "extensions": [
+    "计算 $\\displaystyle \\lim_{x\\to 0}\\frac{\\tan x-x}{x^3}$。",
+    "计算 $\\displaystyle \\lim_{x\\to 0}\\frac{x-\\sin x}{x^3}$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 29,
+  "question": "设函数 $f(x)=\\begin{cases}\\dfrac{e^{ax}-1}{x},&x\\ne 0,\\\\ b,&x=0\\end{cases}$ 在 $x=0$ 处连续，求 $a,b$ 满足的关系。",
+  "normalized": "设函数f(x)=\\begin{cases}\\dfrac{e^{ax}-1}{x},&x\\ne0,\\b,&x=0\\end{cases}在x=0处连续,求a,b满足的关系。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "函数连续性",
+   "等价无穷小",
+   "分段函数极限"
+  ],
+  "answer": "$b=a$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$b=a$",
+   "steps": [
+    {
+     "title": "连续的定义",
+     "detail": "函数在 $x=0$ 处连续，需要 $\\displaystyle \\lim_{x\\to 0}f(x)=f(0)=b$。因此先求左、右极限。"
+    },
+    {
+     "title": "求极限",
+     "detail": "当 $x\\to 0$ 时，$e^{ax}-1\\sim ax$，所以 $\\displaystyle \\lim_{x\\to 0}\\frac{e^{ax}-1}{x}=a$。左右极限相同，故极限为 $a$。"
+    },
+    {
+     "title": "建立关系",
+     "detail": "由连续性 $\\displaystyle \\lim_{x\\to 0}f(x)=f(0)$，得 $a=b$。"
+    }
+   ],
+   "key_breakthrough": "题眼是分段函数在分界点连续，必须用极限值等于函数值，而不是只看表达式。",
+   "knowledge_points": [
+    "函数连续性",
+    "等价无穷小",
+    "分段函数极限"
+   ],
+   "knowledge_review": "函数 $f(x)$ 在 $x_0$ 连续需满足三条件：$f(x_0)$ 有定义；$\\lim_{x\\to x_0}f(x)$ 存在；二者相等。分段函数在分界点处必须分别求左右极限。易错点：忽略函数在分界点是否有定义，或把连续与可导混淆。",
+   "extensions": [
+    "若 $f(x)=\\begin{cases}\\frac{\\sin ax}{x},&x\\ne0,\\\\ b,&x=0\\end{cases}$ 在 $x=0$ 连续，求 $a,b$ 关系。",
+    "若 $f(x)=\\begin{cases}\\frac{\\ln(1+ax)}{x},&x\\ne0,\\\\ b,&x=0\\end{cases}$ 在 $x=0$ 连续，求 $a,b$ 关系。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 30,
+  "question": "设 $y=\\ln(x+\\sqrt{1+x^2})$，求 $y'$。",
+  "normalized": "设y=\\ln(x+\\sqrt{1+x^2}),求y'。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "链式法则",
+   "复合函数求导",
+   "根式求导"
+  ],
+  "answer": "$\\displaystyle y'=\\frac1{\\sqrt{1+x^2}}$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$\\displaystyle y'=\\frac1{\\sqrt{1+x^2}}$",
+   "steps": [
+    {
+     "title": "识别复合函数结构",
+     "detail": "$y=\\ln u$，其中 $u=x+\\sqrt{1+x^2}$。因此先用链式法则：$y'=\\frac1u\\cdot u'$。"
+    },
+    {
+     "title": "求内层导数",
+     "detail": "$u'=1+\\frac{1}{2\\sqrt{1+x^2}}\\cdot 2x=1+\\frac{x}{\\sqrt{1+x^2}}=\\frac{\\sqrt{1+x^2}+x}{\\sqrt{1+x^2}}$。"
+    },
+    {
+     "title": "相乘化简",
+     "detail": "$y'=\\frac1{x+\\sqrt{1+x^2}}\\cdot \\frac{x+\\sqrt{1+x^2}}{\\sqrt{1+x^2}}=\\frac1{\\sqrt{1+x^2}}$。"
+    }
+   ],
+   "key_breakthrough": "题眼是内层函数 $x+\\sqrt{1+x^2}$ 的导数恰好与自身结构相消，得到简洁结果。",
+   "knowledge_points": [
+    "链式法则",
+    "复合函数求导",
+    "根式求导"
+   ],
+   "knowledge_review": "链式法则：若 $y=f(u)$，$u=g(x)$，则 $\\frac{dy}{dx}=f'(u)g'(x)$。求导时先外后内，逐层求导。易错点：漏乘内层导数；根式求导时忘记 $\\frac12$ 或内层导数。",
+   "extensions": [
+    "求 $y=\\ln(x+\\sqrt{x^2-1})$ 的导数。",
+    "求 $y=\\operatorname{arsinh}x$ 的导数。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 31,
+  "question": "验证函数 $f(x)=\\ln x$ 在区间 $[1,e]$ 上满足拉格朗日中值定理，并求相应的中值点 $\\xi$。",
+  "normalized": "验证函数f(x)=\\lnx在区间[1,e]上满足拉格朗日中值定理,并求相应的中值点\\xi。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "拉格朗日中值定理",
+   "导数与函数值关系",
+   "方程求解"
+  ],
+  "answer": "$\\xi=e-1$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$\\xi=e-1$",
+   "steps": [
+    {
+     "title": "验证定理条件",
+     "detail": "$f(x)=\\ln x$ 在 $[1,e]$ 上连续，在 $(1,e)$ 内可导，且 $f'(x)=\\frac1x$，满足拉格朗日中值定理条件。"
+    },
+    {
+     "title": "写出中值公式",
+     "detail": "存在 $\\xi\\in(1,e)$，使得 $f'(\\xi)=\\frac{f(e)-f(1)}{e-1}$。"
+    },
+    {
+     "title": "代入计算",
+     "detail": "$f(e)=1$，$f(1)=0$，所以右边为 $\\frac{1-0}{e-1}=\\frac1{e-1}$。又 $f'(\\xi)=\\frac1\\xi$，故 $\\frac1\\xi=\\frac1{e-1}$，得 $\\xi=e-1$。"
+    },
+    {
+     "title": "检查范围",
+     "detail": "$1<e-1<e$，因为 $e\\approx2.718$，所以 $e-1\\approx1.718$，确实在 $(1,e)$ 内。"
+    }
+   ],
+   "key_breakthrough": "题眼是把中值定理写成方程，解出 $\\xi$，并验证其确实落在给定区间内。",
+   "knowledge_points": [
+    "拉格朗日中值定理",
+    "导数与函数值关系",
+    "方程求解"
+   ],
+   "knowledge_review": "拉格朗日中值定理：若 $f$ 在 $[a,b]$ 连续，在 $(a,b)$ 可导，则存在 $\\xi\\in(a,b)$，使 $f'(\\xi)=\\frac{f(b)-f(a)}{b-a}$。几何意义是曲线上存在一点切线平行于割线。易错点：忘记验证连续可导条件；解出 $\\xi$ 后不检查是否在区间内。",
+   "extensions": [
+    "对 $f(x)=x^2$ 在 $[0,2]$ 上求拉格朗日中值点。",
+    "对 $f(x)=\\sqrt{x}$ 在 $[1,4]$ 上求拉格朗日中值点。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 32,
+  "question": "计算不定积分 $\\displaystyle \\int x e^{2x}\\,dx$。",
+  "normalized": "计算不定积分\\displaystyle\\intxe^{2x}dx。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "分部积分法",
+   "指数函数积分",
+   "不定积分常数"
+  ],
+  "answer": "$\\displaystyle \\frac{x}{2}e^{2x}-\\frac14 e^{2x}+C$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$\\displaystyle \\frac{x}{2}e^{2x}-\\frac14 e^{2x}+C$",
+   "steps": [
+    {
+     "title": "选择分部积分",
+     "detail": "被积函数是多项式与指数函数乘积，适合分部积分。设 $u=x$，$dv=e^{2x}dx$，因为对 $u$ 求导会变简单。"
+    },
+    {
+     "title": "求 $du$ 与 $v$",
+     "detail": "$du=dx$，$v=\\int e^{2x}dx=\\frac12 e^{2x}$。"
+    },
+    {
+     "title": "应用分部积分公式",
+     "detail": "$\\int x e^{2x}dx=x\\cdot \\frac12 e^{2x}-\\int \\frac12 e^{2x}dx=\\frac{x}{2}e^{2x}-\\frac12\\int e^{2x}dx$。"
+    },
+    {
+     "title": "完成积分",
+     "detail": "$\\int e^{2x}dx=\\frac12 e^{2x}$，所以原式 $=\\frac{x}{2}e^{2x}-\\frac14 e^{2x}+C$。"
+    }
+   ],
+   "key_breakthrough": "题眼是分部积分中 $u$ 的选取：取多项式为 $u$，指数函数为 $dv$，可使积分降次。",
+   "knowledge_points": [
+    "分部积分法",
+    "指数函数积分",
+    "不定积分常数"
+   ],
+   "knowledge_review": "分部积分公式：$\\int u\\,dv=uv-\\int v\\,du$。选取 $u$ 的顺序常用“反、对、幂、三、指”，即反三角函数、对数函数、幂函数、三角函数、指数函数中排前者优先作 $u$。易错点：忘记 $v$ 中的系数；漏写积分常数 $C$。",
+   "extensions": [
+    "计算 $\\int x e^{-x}dx$。",
+    "计算 $\\int x^2 e^x dx$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 33,
+  "question": "计算定积分 $\\displaystyle \\int_0^1 \\frac{x}{1+x^2}\\,dx$。",
+  "normalized": "计算定积分\\displaystyle\\int_0^1\\frac{x}{1+x^2}dx。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "定积分计算",
+   "凑微分法",
+   "牛顿-莱布尼茨公式"
+  ],
+  "answer": "$\\displaystyle \\frac12\\ln 2$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$\\displaystyle \\frac12\\ln 2$",
+   "steps": [
+    {
+     "title": "观察导数关系",
+     "detail": "分母 $1+x^2$ 的导数是 $2x$，分子是 $x$，只差常数倍。因此可用凑微分。"
+    },
+    {
+     "title": "凑微分",
+     "detail": "$x\\,dx=\\frac12 d(1+x^2)$，所以 $\\displaystyle \\int \\frac{x}{1+x^2}dx=\\frac12\\int \\frac{d(1+x^2)}{1+x^2}=\\frac12\\ln(1+x^2)+C$。"
+    },
+    {
+     "title": "代入上下限",
+     "detail": "$\\displaystyle \\int_0^1 \\frac{x}{1+x^2}dx=\\left[\\frac12\\ln(1+x^2)\\right]_0^1=\\frac12\\ln2-\\frac12\\ln1=\\frac12\\ln2$。"
+    }
+   ],
+   "key_breakthrough": "题眼是识别分子与分母导数成比例，用凑微分直接得到对数型积分。",
+   "knowledge_points": [
+    "定积分计算",
+    "凑微分法",
+    "牛顿-莱布尼茨公式"
+   ],
+   "knowledge_review": "定积分计算常用牛顿-莱布尼茨公式：$\\int_a^b f(x)dx=F(b)-F(a)$，其中 $F'=f$。凑微分法适用于被积函数中某部分恰为另一部分的导数。易错点：换元后忘记改变上下限；定积分结果不应带常数 $C$。",
+   "extensions": [
+    "计算 $\\int_0^1 \\frac{2x}{1+x^2}dx$。",
+    "计算 $\\int_0^1 \\frac{x}{x^2+4}dx$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 34,
+  "question": "判断反常积分 $\\displaystyle \\int_1^{+\\infty}\\frac{1}{x^2}\\,dx$ 的敛散性；若收敛，求其值。",
+  "normalized": "判断反常积分\\displaystyle\\int_1^{+\\infty}\\frac{1}{x^2}dx的敛散性;若收敛,求其值。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "反常积分",
+   "无穷限积分",
+   "极限计算"
+  ],
+  "answer": "收敛，值为 $1$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "收敛，值为 $1$",
+   "steps": [
+    {
+     "title": "识别反常积分类型",
+     "detail": "积分上限为无穷大，属于无穷区间上的反常积分。按定义写成极限：$\\displaystyle \\int_1^{+\\infty}\\frac{1}{x^2}dx=\\lim_{b\\to+\\infty}\\int_1^b x^{-2}dx$。"
+    },
+    {
+     "title": "求原函数",
+     "detail": "$\\int x^{-2}dx=-x^{-1}=-\\frac1x$。"
+    },
+    {
+     "title": "代入上下限并取极限",
+     "detail": "$\\displaystyle \\int_1^b x^{-2}dx=\\left[-\\frac1x\\right]_1^b=1-\\frac1b$。当 $b\\to+\\infty$ 时，$\\frac1b\\to0$，所以极限为 $1$。"
+    },
+    {
+     "title": "结论",
+     "detail": "极限存在且有限，故反常积分收敛，值为 $1$。"
+    }
+   ],
+   "key_breakthrough": "题眼是把无穷限反常积分转化为极限，先求有限区间积分再令上限趋于无穷。",
+   "knowledge_points": [
+    "反常积分",
+    "无穷限积分",
+    "极限计算"
+   ],
+   "knowledge_review": "无穷限反常积分定义为 $\\int_a^{+\\infty}f(x)dx=\\lim_{b\\to+\\infty}\\int_a^b f(x)dx$。若极限存在有限，则收敛；否则发散。常用结论：$\\int_1^{+\\infty}\\frac1{x^p}dx$ 当 $p>1$ 收敛，当 $p\\le1$ 发散。易错点：直接使用牛顿-莱布尼茨公式而不取极限。",
+   "extensions": [
+    "判断 $\\int_1^{+\\infty}\\frac{1}{x}dx$ 的敛散性。",
+    "判断 $\\int_1^{+\\infty}\\frac{1}{x^{3/2}}dx$ 的敛散性并求值。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 35,
+  "question": "设 $z=x^2y+\\sin(xy)$，求 $\\dfrac{\\partial z}{\\partial x}$ 与 $\\dfrac{\\partial z}{\\partial y}$。",
+  "normalized": "设z=x^2y+\\sin(xy),求\\dfrac{\\partialz}{\\partialx}与\\dfrac{\\partialz}{\\partialy}。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "偏导数",
+   "链式法则",
+   "多元函数微分"
+  ],
+  "answer": "$\\dfrac{\\partial z}{\\partial x}=2xy+y\\cos(xy)$，$\\dfrac{\\partial z}{\\partial y}=x^2+x\\cos(xy)$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$\\dfrac{\\partial z}{\\partial x}=2xy+y\\cos(xy)$，$\\dfrac{\\partial z}{\\partial y}=x^2+x\\cos(xy)$",
+   "steps": [
+    {
+     "title": "求对 $x$ 的偏导",
+     "detail": "把 $y$ 看作常数。对 $x^2y$ 求导得 $2xy$；对 $\\sin(xy)$ 用链式法则，外层导数为 $\\cos(xy)$，内层对 $x$ 导数为 $y$，得 $y\\cos(xy)$。所以 $z_x=2xy+y\\cos(xy)$。"
+    },
+    {
+     "title": "求对 $y$ 的偏导",
+     "detail": "把 $x$ 看作常数。对 $x^2y$ 求导得 $x^2$；对 $\\sin(xy)$ 求导，内层对 $y$ 导数为 $x$，得 $x\\cos(xy)$。所以 $z_y=x^2+x\\cos(xy)$。"
+    }
+   ],
+   "key_breakthrough": "题眼是偏导时只对一个变量求导，其余变量视为常数，并注意复合函数链式法则。",
+   "knowledge_points": [
+    "偏导数",
+    "链式法则",
+    "多元函数微分"
+   ],
+   "knowledge_review": "偏导数 $\\frac{\\partial z}{\\partial x}$ 表示固定 $y$ 时 $z$ 对 $x$ 的变化率。计算时把其他变量当常数。易错点：对含乘积的复合函数漏乘内层导数；混淆偏导与全导。",
+   "extensions": [
+    "设 $z=x^3y^2+e^{xy}$，求 $z_x,z_y$。",
+    "设 $z=\\ln(x^2+y^2)$，求 $z_x,z_y$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 36,
+  "question": "计算二重积分 $\\displaystyle \\iint_D (x+y)\\,dA$，其中 $D=\\{(x,y)\\mid 0\\le x\\le1,\\ 0\\le y\\le1\\}$。",
+  "normalized": "计算二重积分\\displaystyle\\iint_d(x+y)da,其中d=\\{(x,y)\\mid0\\lex\\le1,0\\ley\\le1\\}。",
+  "subject": "高等数学",
+  "knowledge_points": [
+   "二重积分",
+   "累次积分",
+   "矩形区域积分"
+  ],
+  "answer": "$1$",
+  "result": {
+   "subject": "高等数学",
+   "question_type": "计算题",
+   "answer": "$1$",
+   "steps": [
+    {
+     "title": "确定积分区域",
+     "detail": "$D$ 是单位正方形，可直接化为累次积分：$\\displaystyle \\int_0^1\\int_0^1 (x+y)\\,dy\\,dx$。"
+    },
+    {
+     "title": "先对 $y$ 积分",
+     "detail": "$\\displaystyle \\int_0^1 (x+y)dy=\\left[xy+\\frac{y^2}{2}\\right]_0^1=x+\\frac12$。"
+    },
+    {
+     "title": "再对 $x$ 积分",
+     "detail": "$\\displaystyle \\int_0^1\\left(x+\\frac12\\right)dx=\\left[\\frac{x^2}{2}+\\frac{x}{2}\\right]_0^1=\\frac12+\\frac12=1$。"
+    }
+   ],
+   "key_breakthrough": "题眼是矩形区域上二重积分可直接化为累次积分，且积分次序可交换。",
+   "knowledge_points": [
+    "二重积分",
+    "累次积分",
+    "矩形区域积分"
+   ],
+   "knowledge_review": "二重积分 $\\iint_D f(x,y)dA$ 在矩形区域 $[a,b]\\times[c,d]$ 上可化为 $\\int_a^b\\int_c^d f(x,y)dy dx$。若被积函数可分离或区域规则，计算较简单。易错点：积分上下限写错；内层积分结果仍含外层变量。",
+   "extensions": [
+    "计算 $\\iint_D xy\\,dA$，$D=[0,1]\\times[0,1]$。",
+    "计算 $\\iint_D (x^2+y^2)dA$，$D=[0,1]\\times[0,1]$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 37,
+  "question": "计算四阶行列式 $D=\\begin{vmatrix}2&1&0&0\\\\1&2&1&0\\\\0&1&2&1\\\\0&0&1&2\\end{vmatrix}$。",
+  "normalized": "计算四阶行列式d=\\begin{vmatrix}2&1&0&0\\\\1&2&1&0\\\\0&1&2&1\\\\0&0&1&2\\end{vmatrix}。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "行列式按行展开",
+   "三对角行列式递推",
+   "二阶线性递推数列"
+  ],
+  "answer": "$D=5$",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "$D=5$",
+   "steps": [
+    {
+     "title": "识别结构：三对角行列式",
+     "detail": "该行列式主对角线全为 $2$，上下次对角线全为 $1$，其余为 $0$，是典型的三对角行列式。直接展开会产生很多项，因此优先寻找递推结构。"
+    },
+    {
+     "title": "按第一行展开建立递推",
+     "detail": "设 $D_n$ 为同结构 $n$ 阶行列式。按第一行展开：$D_n=2D_{n-1}-\\begin{vmatrix}1&1&0\\\\0&2&1\\\\0&1&2\\end{vmatrix}$。第二个行列式再按第一列展开得 $1\\cdot D_{n-2}$，所以 $D_n=2D_{n-1}-D_{n-2}$。"
+    },
+    {
+     "title": "求初值并解递推",
+     "detail": "$D_1=2$，$D_2=\\begin{vmatrix}2&1\\\\1&2\\end{vmatrix}=3$。递推 $D_n=2D_{n-1}-D_{n-2}$ 的特征方程为 $r^2-2r+1=0$，即 $(r-1)^2=0$，故 $D_n=(A+Bn)\\cdot 1^n$。由 $D_1=2,D_2=3$ 得 $A+B=2, A+2B=3$，解得 $A=1,B=1$，所以 $D_n=n+1$。"
+    },
+    {
+     "title": "代入 n=4",
+     "detail": "$D_4=4+1=5$。"
+    }
+   ],
+   "key_breakthrough": "识别三对角结构，按第一行展开得到二阶线性递推 $D_n=2D_{n-1}-D_{n-2}$，再用特征方程求通项。",
+   "knowledge_points": [
+    "行列式按行展开",
+    "三对角行列式递推",
+    "二阶线性递推数列"
+   ],
+   "knowledge_review": "行列式按行（列）展开定理：$D=\\sum_{j=1}^n a_{ij}A_{ij}$，其中 $A_{ij}=(-1)^{i+j}M_{ij}$ 为代数余子式。适用条件是选择含零较多的行或列展开以减少计算。三对角行列式常通过展开建立递推关系 $D_n=aD_{n-1}-bcD_{n-2}$。易错点：代数余子式的符号 $(-1)^{i+j}$ 容易漏写；递推初值必须单独计算，不能想当然。",
+   "extensions": [
+    "计算 $\\begin{vmatrix}1&1&0&0\\\\1&1&1&0\\\\0&1&1&1\\\\0&0&1&1\\end{vmatrix}$。",
+    "求 $n$ 阶行列式 $\\begin{vmatrix}a&b&0&\\cdots\\\\c&a&b&\\cdots\\\\0&c&a&\\cdots\\\\\\vdots&\\vdots&\\vdots&\\ddots\\end{vmatrix}$ 的递推公式。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 38,
+  "question": "设 $A=\\begin{pmatrix}1&2\\\\-1&3\\end{pmatrix}$，$B=\\begin{pmatrix}2&0\\\\1&-1\\end{pmatrix}$。求 $AB$、$BA$，并判断 $AB=BA$ 是否成立。",
+  "normalized": "设a=\\begin{pmatrix}1&2\\\\-1&3\\end{pmatrix},b=\\begin{pmatrix}2&0\\\\1&-1\\end{pmatrix}。求ab、ba,并判断ab=ba是否成立。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "矩阵乘法定义",
+   "矩阵乘法不满足交换律"
+  ],
+  "answer": "$AB=\\begin{pmatrix}4&-2\\\\1&-3\\end{pmatrix}$，$BA=\\begin{pmatrix}2&4\\\\2&-1\\end{pmatrix}$，$AB\\neq BA$。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "$AB=\\begin{pmatrix}4&-2\\\\1&-3\\end{pmatrix}$，$BA=\\begin{pmatrix}2&4\\\\2&-1\\end{pmatrix}$，$AB\\neq BA$。",
+   "steps": [
+    {
+     "title": "计算 AB",
+     "detail": "按矩阵乘法定义，$(AB)_{ij}=\\sum_k a_{ik}b_{kj}$。$AB=\\begin{pmatrix}1\\cdot2+2\\cdot1&1\\cdot0+2\\cdot(-1)\\\\-1\\cdot2+3\\cdot1&-1\\cdot0+3\\cdot(-1)\\end{pmatrix}=\\begin{pmatrix}4&-2\\\\1&-3\\end{pmatrix}$。"
+    },
+    {
+     "title": "计算 BA",
+     "detail": "$BA=\\begin{pmatrix}2\\cdot1+0\\cdot(-1)&2\\cdot2+0\\cdot3\\\\1\\cdot1+(-1)\\cdot(-1)&1\\cdot2+(-1)\\cdot3\\end{pmatrix}=\\begin{pmatrix}2&4\\\\2&-1\\end{pmatrix}$。"
+    },
+    {
+     "title": "比较结论",
+     "detail": "两个结果不相等，说明矩阵乘法一般不满足交换律。"
+    }
+   ],
+   "key_breakthrough": "严格按“行乘列”定义计算，注意 $AB$ 与 $BA$ 的乘积顺序不同，结果一般不同。",
+   "knowledge_points": [
+    "矩阵乘法定义",
+    "矩阵乘法不满足交换律"
+   ],
+   "knowledge_review": "矩阵乘法要求左矩阵列数等于右矩阵行数。$(AB)_{ij}$ 等于 $A$ 第 $i$ 行与 $B$ 第 $j$ 列对应元素乘积之和。矩阵乘法满足结合律、分配律，但一般不满足交换律，即 $AB\\neq BA$；也不满足消去律。易错点：把矩阵乘法当成对应元素相乘。",
+   "extensions": [
+    "求 $(A+B)^2$ 并与 $A^2+2AB+B^2$ 比较。",
+    "求 $A^2-B^2$ 并与 $(A+B)(A-B)$ 比较。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 39,
+  "question": "设向量组 $\\alpha_1=(1,2,3)^T$，$\\alpha_2=(2,4,6)^T$，$\\alpha_3=(1,0,1)^T$。判断该向量组的线性相关性，并求其一个最大无关组。",
+  "normalized": "设向量组\\alpha_1=(1,2,3)^t,\\alpha_2=(2,4,6)^t,\\alpha_3=(1,0,1)^t。判断该向量组的线性相关性,并求其一个最大无关组。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "向量组的线性相关性",
+   "矩阵的秩",
+   "最大无关组"
+  ],
+  "answer": "向量组线性相关，最大无关组可取 $\\alpha_1,\\alpha_3$，且 $\\alpha_2=2\\alpha_1$。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "向量组线性相关，最大无关组可取 $\\alpha_1,\\alpha_3$，且 $\\alpha_2=2\\alpha_1$。",
+   "steps": [
+    {
+     "title": "构造矩阵并初等行变换",
+     "detail": "把向量按列排成矩阵 $A=(\\alpha_1,\\alpha_2,\\alpha_3)=\\begin{pmatrix}1&2&1\\\\2&4&0\\\\3&6&1\\end{pmatrix}$。对 $A$ 作初等行变换：$r_2-2r_1$，$r_3-3r_1$ 得 $\\begin{pmatrix}1&2&1\\\\0&0&-2\\\\0&0&-2\\end{pmatrix}$，再 $r_3-r_2$ 得 $\\begin{pmatrix}1&2&1\\\\0&0&-2\\\\0&0&0\\end{pmatrix}$。"
+    },
+    {
+     "title": "由秩判断相关性",
+     "detail": "行阶梯形矩阵有 $2$ 个非零行，故 $r(A)=2<3$，向量组线性相关。"
+    },
+    {
+     "title": "确定最大无关组",
+     "detail": "主元所在列为第 $1$、$3$ 列，对应原向量 $\\alpha_1,\\alpha_3$，它们构成最大无关组。由第 $2$ 列与第 $1$ 列成比例可知 $\\alpha_2=2\\alpha_1$。"
+    }
+   ],
+   "key_breakthrough": "把向量组排成矩阵，用初等行变换求秩；秩小于向量个数则线性相关，主元列对应最大无关组。",
+   "knowledge_points": [
+    "向量组的线性相关性",
+    "矩阵的秩",
+    "最大无关组"
+   ],
+   "knowledge_review": "向量组 $\\alpha_1,\\dots,\\alpha_m$ 线性相关当且仅当存在不全为零的 $k_i$ 使 $\\sum k_i\\alpha_i=0$；等价于以它们为列的矩阵秩小于 $m$。最大无关组是向量组中线性无关且能表示其余向量的部分组，其向量个数等于向量组的秩。易错点：初等行变换不改变列向量间的线性关系，但会改变列向量本身，所以最大无关组要回到原矩阵取对应列。",
+   "extensions": [
+    "判断 $\\beta_1=(1,1,1)^T,\\beta_2=(1,2,3)^T,\\beta_3=(1,4,9)^T$ 的线性相关性。",
+    "若向量组含零向量，判断其线性相关性。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 40,
+  "question": "解线性方程组 $\\begin{cases}x_1+x_2+x_3=3\\\\x_1+2x_2+3x_3=6\\\\2x_1+3x_2+4x_3=9\\end{cases}$。",
+  "normalized": "解线性方程组\\begin{cases}x_1+x_2+x_3=3\\\\x_1+2x_2+3x_3=6\\\\2x_1+3x_2+4x_3=9\\end{cases}。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "增广矩阵",
+   "高斯消元法",
+   "线性方程组解的结构"
+  ],
+  "answer": "通解为 $(x_1,x_2,x_3)=(t,3-2t,t)^T$，$t\\in\\mathbb{R}$。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "通解为 $(x_1,x_2,x_3)=(t,3-2t,t)^T$，$t\\in\\mathbb{R}$。",
+   "steps": [
+    {
+     "title": "写出增广矩阵",
+     "detail": "增广矩阵 $\\bar{A}=\\begin{pmatrix}1&1&1&3\\\\1&2&3&6\\\\2&3&4&9\\end{pmatrix}$。"
+    },
+    {
+     "title": "初等行变换化行最简形",
+     "detail": "$r_2-r_1,r_3-2r_1$ 得 $\\begin{pmatrix}1&1&1&3\\\\0&1&2&3\\\\0&1&2&3\\end{pmatrix}$；$r_3-r_2$ 得 $\\begin{pmatrix}1&1&1&3\\\\0&1&2&3\\\\0&0&0&0\\end{pmatrix}$；$r_1-r_2$ 得 $\\begin{pmatrix}1&0&-1&0\\\\0&1&2&3\\\\0&0&0&0\\end{pmatrix}$。"
+    },
+    {
+     "title": "判断解的情况",
+     "detail": "$r(A)=r(\\bar{A})=2<3$，故有无穷多解，自由变量个数为 $3-2=1$。"
+    },
+    {
+     "title": "写出通解",
+     "detail": "由行最简形得 $x_1=x_3$，$x_2=3-2x_3$。令 $x_3=t$，得通解 $(x_1,x_2,x_3)=(t,3-2t,t)^T$。"
+    }
+   ],
+   "key_breakthrough": "通过增广矩阵的行最简形判断秩与自由变量个数，再回代写出通解。",
+   "knowledge_points": [
+    "增广矩阵",
+    "高斯消元法",
+    "线性方程组解的结构"
+   ],
+   "knowledge_review": "对 $n$ 元线性方程组 $Ax=b$，令 $\\bar{A}=(A|b)$。若 $r(A)<r(\\bar{A})$ 无解；若 $r(A)=r(\\bar{A})=n$ 有唯一解；若 $r(A)=r(\\bar{A})<n$ 有无穷多解，自由变量个数为 $n-r$。求解步骤：化增广矩阵为行最简形，主元变量用自由变量表示。易错点：忘记比较 $r(A)$ 与 $r(\\bar{A})$；自由变量选取不当导致表达不简洁。",
+   "extensions": [
+    "若右端改为 $(3,6,10)^T$，判断解的情况。",
+    "求对应齐次方程组 $Ax=0$ 的基础解系。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 41,
+  "question": "求矩阵 $A=\\begin{pmatrix}2&1\\\\1&2\\end{pmatrix}$ 的特征值与特征向量。",
+  "normalized": "求矩阵a=\\begin{pmatrix}2&1\\\\1&2\\end{pmatrix}的特征值与特征向量。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "特征值与特征向量",
+   "特征方程",
+   "齐次线性方程组"
+  ],
+  "answer": "特征值 $\\lambda_1=3,\\lambda_2=1$；对应特征向量分别为 $k(1,1)^T$ 和 $k(1,-1)^T$（$k\\neq0$）。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "特征值 $\\lambda_1=3,\\lambda_2=1$；对应特征向量分别为 $k(1,1)^T$ 和 $k(1,-1)^T$（$k\\neq0$）。",
+   "steps": [
+    {
+     "title": "写出特征方程",
+     "detail": "特征方程为 $|\\lambda I-A|=0$，即 $\\begin{vmatrix}\\lambda-2&-1\\\\-1&\\lambda-2\\end{vmatrix}=(\\lambda-2)^2-1=0$。"
+    },
+    {
+     "title": "求特征值",
+     "detail": "$(\\lambda-2)^2=1$，故 $\\lambda-2=\\pm1$，得 $\\lambda_1=3,\\lambda_2=1$。"
+    },
+    {
+     "title": "求 λ=3 的特征向量",
+     "detail": "解 $(3I-A)x=0$：$\\begin{pmatrix}1&-1\\\\-1&1\\end{pmatrix}x=0$，得 $x_1=x_2$，特征向量为 $k(1,1)^T$，$k\\neq0$。"
+    },
+    {
+     "title": "求 λ=1 的特征向量",
+     "detail": "解 $(I-A)x=0$：$\\begin{pmatrix}-1&-1\\\\-1&-1\\end{pmatrix}x=0$，得 $x_1=-x_2$，特征向量为 $k(1,-1)^T$，$k\\neq0$。"
+    }
+   ],
+   "key_breakthrough": "由特征方程 $|\\lambda I-A|=0$ 求特征值，再对每个特征值解齐次方程组求特征向量。",
+   "knowledge_points": [
+    "特征值与特征向量",
+    "特征方程",
+    "齐次线性方程组"
+   ],
+   "knowledge_review": "设 $A$ 为 $n$ 阶方阵，若存在非零向量 $x$ 和数 $\\lambda$ 使 $Ax=\\lambda x$，则称 $\\lambda$ 为特征值，$x$ 为对应特征向量。求法：解特征方程 $|\\lambda I-A|=0$ 得特征值，再对每个 $\\lambda$ 解 $(\\lambda I-A)x=0$ 得特征向量。性质：$\\sum\\lambda_i=\\mathrm{tr}(A)$，$\\prod\\lambda_i=|A|$。易错点：特征向量必须非零；同一特征值的特征向量全体构成特征子空间。",
+   "extensions": [
+    "求 $A^{10}$。",
+    "判断 $A$ 是否可对角化，若可，求可逆矩阵 $P$ 使 $P^{-1}AP$ 为对角阵。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 42,
+  "question": "将二次型 $f(x_1,x_2,x_3)=x_1^2+2x_2^2+3x_3^2+2x_1x_2+4x_1x_3$ 写成矩阵形式，并求其矩阵 $A$。",
+  "normalized": "将二次型f(x_1,x_2,x_3)=x_1^2+2x_2^2+3x_3^2+2x_1x_2+4x_1x_3写成矩阵形式,并求其矩阵a。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "二次型",
+   "二次型矩阵",
+   "实对称矩阵"
+  ],
+  "answer": "$f=x^TAx$，其中 $A=\\begin{pmatrix}1&1&2\\\\1&2&0\\\\2&0&3\\end{pmatrix}$。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "$f=x^TAx$，其中 $A=\\begin{pmatrix}1&1&2\\\\1&2&0\\\\2&0&3\\end{pmatrix}$。",
+   "steps": [
+    {
+     "title": "确定平方项系数",
+     "detail": "平方项 $x_i^2$ 的系数放在 $A$ 的主对角线位置：$a_{11}=1$，$a_{22}=2$，$a_{33}=3$。"
+    },
+    {
+     "title": "确定交叉项系数",
+     "detail": "交叉项 $2a_{ij}x_ix_j$ 中，$a_{ij}=a_{ji}$ 取交叉项系数的一半。$2x_1x_2$ 对应 $a_{12}=a_{21}=1$；$4x_1x_3$ 对应 $a_{13}=a_{31}=2$；无 $x_2x_3$ 项，故 $a_{23}=a_{32}=0$。"
+    },
+    {
+     "title": "写出矩阵",
+     "detail": "所以 $A=\\begin{pmatrix}1&1&2\\\\1&2&0\\\\2&0&3\\end{pmatrix}$，且 $A$ 为实对称矩阵。"
+    }
+   ],
+   "key_breakthrough": "二次型矩阵必须取对称矩阵，交叉项系数要除以 $2$ 分到对称位置。",
+   "knowledge_points": [
+    "二次型",
+    "二次型矩阵",
+    "实对称矩阵"
+   ],
+   "knowledge_review": "二次型是二次齐次多项式，可唯一表示为 $f(x)=x^TAx$，其中 $A$ 为实对称矩阵。平方项系数直接放主对角线，交叉项 $2a_{ij}x_ix_j$ 的系数一半放在 $(i,j)$ 和 $(j,i)$。易错点：忘记除以 $2$；把矩阵写成非对称形式。",
+   "extensions": [
+    "写出 $f=2x_1x_2+2x_1x_3-2x_2x_3$ 的矩阵。",
+    "判断二次型 $f=x_1^2+x_2^2+x_3^2$ 的正定性。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 43,
+  "question": "用正交变换将二次型 $f(x_1,x_2)=2x_1^2+2x_2^2+2x_1x_2$ 化为标准形。",
+  "normalized": "用正交变换将二次型f(x_1,x_2)=2x_1^2+2x_2^2+2x_1x_2化为标准形。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "正交变换",
+   "二次型标准形",
+   "实对称矩阵正交对角化"
+  ],
+  "answer": "标准形为 $f=3y_1^2+y_2^2$，正交变换可取 $x=Qy$，其中 $Q=\\frac1{\\sqrt2}\\begin{pmatrix}1&1\\\\1&-1\\end{pmatrix}$。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "标准形为 $f=3y_1^2+y_2^2$，正交变换可取 $x=Qy$，其中 $Q=\\frac1{\\sqrt2}\\begin{pmatrix}1&1\\\\1&-1\\end{pmatrix}$。",
+   "steps": [
+    {
+     "title": "写出二次型矩阵",
+     "detail": "$A=\\begin{pmatrix}2&1\\\\1&2\\end{pmatrix}$。"
+    },
+    {
+     "title": "求特征值",
+     "detail": "$|\\lambda I-A|=(\\lambda-2)^2-1=0$，得 $\\lambda_1=3$，$\\lambda_2=1$。"
+    },
+    {
+     "title": "求单位正交特征向量",
+     "detail": "$\\lambda_1=3$ 对应 $\\xi_1=(1,1)^T$，单位化 $q_1=\\frac1{\\sqrt2}(1,1)^T$；$\\lambda_2=1$ 对应 $\\xi_2=(1,-1)^T$，单位化 $q_2=\\frac1{\\sqrt2}(1,-1)^T$。因对称矩阵不同特征值的特征向量正交，$q_1,q_2$ 已正交。"
+    },
+    {
+     "title": "构造正交矩阵并写标准形",
+     "detail": "令 $Q=(q_1,q_2)=\\frac1{\\sqrt2}\\begin{pmatrix}1&1\\\\1&-1\\end{pmatrix}$，则 $Q^TAQ=\\operatorname{diag}(3,1)$，故 $f=3y_1^2+y_2^2$。"
+    }
+   ],
+   "key_breakthrough": "利用实对称矩阵可正交对角化：特征值给标准形系数，单位正交特征向量构成正交矩阵。",
+   "knowledge_points": [
+    "正交变换",
+    "二次型标准形",
+    "实对称矩阵正交对角化"
+   ],
+   "knowledge_review": "实对称矩阵一定可正交对角化：存在正交矩阵 $Q$ 使 $Q^TAQ=\\Lambda$。对二次型作正交变换 $x=Qy$，则 $f=y^T\\Lambda y$，标准形系数为特征值。易错点：特征向量要单位化；不同特征值的特征向量自动正交，但重根特征值需施密特正交化。",
+   "extensions": [
+    "将 $f=2x_1^2+2x_2^2-2x_1x_2$ 化为标准形。",
+    "判断 $f=x_1^2+2x_2^2+3x_3^2+2x_1x_2$ 是否正定。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 44,
+  "question": "设 $A=\\begin{pmatrix}1&2\\\\3&4\\end{pmatrix}$，求 $A^{-1}$。",
+  "normalized": "设a=\\begin{pmatrix}1&2\\\\3&4\\end{pmatrix},求a^{-1}。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "逆矩阵",
+   "伴随矩阵",
+   "行列式"
+  ],
+  "answer": "$A^{-1}=\\begin{pmatrix}-2&1\\\\\\frac32&-\\frac12\\end{pmatrix}$。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "$A^{-1}=\\begin{pmatrix}-2&1\\\\\\frac32&-\\frac12\\end{pmatrix}$。",
+   "steps": [
+    {
+     "title": "判断可逆性",
+     "detail": "计算行列式 $|A|=1\\cdot4-2\\cdot3=-2\\neq0$，故 $A$ 可逆。"
+    },
+    {
+     "title": "用伴随矩阵公式",
+     "detail": "二阶矩阵 $\\begin{pmatrix}a&b\\\\c&d\\end{pmatrix}^{-1}=\\frac1{ad-bc}\\begin{pmatrix}d&-b\\\\-c&a\\end{pmatrix}$。代入得 $A^{-1}=\\frac1{-2}\\begin{pmatrix}4&-2\\\\-3&1\\end{pmatrix}=\\begin{pmatrix}-2&1\\\\\\frac32&-\\frac12\\end{pmatrix}$。"
+    },
+    {
+     "title": "验证",
+     "detail": "$AA^{-1}=\\begin{pmatrix}1&2\\\\3&4\\end{pmatrix}\\begin{pmatrix}-2&1\\\\\\frac32&-\\frac12\\end{pmatrix}=\\begin{pmatrix}1&0\\\\0&1\\end{pmatrix}$，正确。"
+    }
+   ],
+   "key_breakthrough": "二阶矩阵逆矩阵有固定公式，注意伴随矩阵中副对角线元素变号。",
+   "knowledge_points": [
+    "逆矩阵",
+    "伴随矩阵",
+    "行列式"
+   ],
+   "knowledge_review": "矩阵 $A$ 可逆当且仅当 $|A|\\neq0$，且 $A^{-1}=\\frac1{|A|}A^*$。二阶矩阵的伴随矩阵为 $\\begin{pmatrix}d&-b\\\\-c&a\\end{pmatrix}$。易错点：副对角线元素符号容易写错；忘记除以行列式。",
+   "extensions": [
+    "求 $A=\\begin{pmatrix}1&2&3\\\\0&1&4\\\\0&0&1\\end{pmatrix}$ 的逆矩阵。",
+    "解矩阵方程 $AX=B$，其中 $A=\\begin{pmatrix}1&2\\\\3&4\\end{pmatrix}$，$B=\\begin{pmatrix}1\\\\0\\end{pmatrix}$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 45,
+  "question": "求向量组 $\\alpha_1=(1,1,0)^T$，$\\alpha_2=(1,0,1)^T$，$\\alpha_3=(0,1,1)^T$ 的秩，并判断其线性相关性。",
+  "normalized": "求向量组\\alpha_1=(1,1,0)^t,\\alpha_2=(1,0,1)^t,\\alpha_3=(0,1,1)^t的秩,并判断其线性相关性。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "向量组的秩",
+   "线性相关性",
+   "初等行变换"
+  ],
+  "answer": "秩为 $3$，向量组线性无关。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "秩为 $3$，向量组线性无关。",
+   "steps": [
+    {
+     "title": "构造矩阵",
+     "detail": "以向量为列构造矩阵 $A=\\begin{pmatrix}1&1&0\\\\1&0&1\\\\0&1&1\\end{pmatrix}$。"
+    },
+    {
+     "title": "初等行变换",
+     "detail": "$r_2-r_1$ 得 $\\begin{pmatrix}1&1&0\\\\0&-1&1\\\\0&1&1\\end{pmatrix}$；$r_3+r_2$ 得 $\\begin{pmatrix}1&1&0\\\\0&-1&1\\\\0&0&2\\end{pmatrix}$。"
+    },
+    {
+     "title": "判断秩与相关性",
+     "detail": "行阶梯形有 $3$ 个非零行，故 $r(A)=3$，等于向量个数，所以向量组线性无关。"
+    }
+   ],
+   "key_breakthrough": "向量组秩等于其矩阵的秩；秩等于向量个数则线性无关。",
+   "knowledge_points": [
+    "向量组的秩",
+    "线性相关性",
+    "初等行变换"
+   ],
+   "knowledge_review": "向量组的秩是其最大无关组所含向量个数，等于以它们为列构成的矩阵的秩。若秩等于向量个数，则线性无关；若小于向量个数，则线性相关。易错点：行变换后非零行数才是秩，不要数原矩阵的非零元素。",
+   "extensions": [
+    "求 $\\alpha_1=(1,2,3)^T,\\alpha_2=(2,4,6)^T$ 的秩。",
+    "若向量组秩为 $r$，其任意 $r+1$ 个向量是否线性相关？"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 46,
+  "question": "判断二次型 $f(x_1,x_2,x_3)=x_1^2+x_2^2+x_3^2+2x_1x_2$ 的正定性。",
+  "normalized": "判断二次型f(x_1,x_2,x_3)=x_1^2+x_2^2+x_3^2+2x_1x_2的正定性。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "正定性",
+   "顺序主子式",
+   "半正定"
+  ],
+  "answer": "二次型不是正定的（它是半正定的）。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "二次型不是正定的（它是半正定的）。",
+   "steps": [
+    {
+     "title": "写出二次型矩阵",
+     "detail": "$A=\\begin{pmatrix}1&1&0\\\\1&1&0\\\\0&0&1\\end{pmatrix}$。"
+    },
+    {
+     "title": "用顺序主子式判断",
+     "detail": "一阶顺序主子式 $D_1=1>0$；二阶顺序主子式 $D_2=\\begin{vmatrix}1&1\\\\1&1\\end{vmatrix}=0$。正定要求所有顺序主子式均大于 $0$，这里 $D_2=0$，故不正定。"
+    },
+    {
+     "title": "进一步判断半正定",
+     "detail": "特征值：$A$ 的特征值为 $2,0,1$，均非负且有一个为 $0$，所以是半正定。"
+    }
+   ],
+   "key_breakthrough": "正定要求所有顺序主子式严格大于零；出现等于零即不正定。",
+   "knowledge_points": [
+    "正定性",
+    "顺序主子式",
+    "半正定"
+   ],
+   "knowledge_review": "实对称矩阵 $A$ 正定当且仅当所有顺序主子式大于 $0$，也等价于所有特征值大于 $0$。若特征值非负且至少一个为 $0$，则为半正定。易错点：只检查一阶主子式不够；顺序主子式与所有主子式不同，正定用顺序主子式即可。",
+   "extensions": [
+    "判断 $f=2x_1^2+2x_2^2+2x_3^2+2x_1x_2+2x_1x_3+2x_2x_3$ 的正定性。",
+    "求 $a$ 的范围使 $f=x_1^2+x_2^2+ax_3^2+2x_1x_2$ 正定。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 47,
+  "question": "设 $A=\\begin{pmatrix}1&2\\\\3&4\\end{pmatrix}$，$B=\\begin{pmatrix}0&1\\\\1&0\\end{pmatrix}$，求 $AB$、$BA$，并判断 $AB=BA$ 是否成立。",
+  "normalized": "设a=\\begin{pmatrix}1&2\\\\3&4\\end{pmatrix},b=\\begin{pmatrix}0&1\\\\1&0\\end{pmatrix},求ab、ba,并判断ab=ba是否成立。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "矩阵乘法定义",
+   "矩阵乘法不满足交换律"
+  ],
+  "answer": "$AB=\\begin{pmatrix}2&1\\\\4&3\\end{pmatrix}$，$BA=\\begin{pmatrix}3&4\\\\1&2\\end{pmatrix}$，$AB\\neq BA$。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "$AB=\\begin{pmatrix}2&1\\\\4&3\\end{pmatrix}$，$BA=\\begin{pmatrix}3&4\\\\1&2\\end{pmatrix}$，$AB\\neq BA$。",
+   "steps": [
+    {
+     "title": "计算 AB",
+     "detail": "按矩阵乘法定义，$(AB)_{ij}=\\sum_k a_{ik}b_{kj}$。$AB=\\begin{pmatrix}1\\cdot0+2\\cdot1&1\\cdot1+2\\cdot0\\\\3\\cdot0+4\\cdot1&3\\cdot1+4\\cdot0\\end{pmatrix}=\\begin{pmatrix}2&1\\\\4&3\\end{pmatrix}$。"
+    },
+    {
+     "title": "计算 BA",
+     "detail": "$BA=\\begin{pmatrix}0\\cdot1+1\\cdot3&0\\cdot2+1\\cdot4\\\\1\\cdot1+0\\cdot3&1\\cdot2+0\\cdot4\\end{pmatrix}=\\begin{pmatrix}3&4\\\\1&2\\end{pmatrix}$。"
+    },
+    {
+     "title": "比较结果",
+     "detail": "两个矩阵对应元素不完全相同，故 $AB\\neq BA$，说明矩阵乘法不满足交换律。"
+    }
+   ],
+   "key_breakthrough": "严格按行乘列法则计算，注意矩阵乘法一般不满足交换律。",
+   "knowledge_points": [
+    "矩阵乘法定义",
+    "矩阵乘法不满足交换律"
+   ],
+   "knowledge_review": "矩阵乘法要求左矩阵列数等于右矩阵行数。$(AB)_{ij}$ 等于 $A$ 的第 $i$ 行与 $B$ 的第 $j$ 列对应元素乘积之和。矩阵乘法满足结合律、分配律，但一般不满足交换律，即 $AB\\neq BA$。易错点：不能把数的运算律直接搬到矩阵上；乘法顺序不能随意交换。",
+   "extensions": [
+    "求所有与 $A=\\begin{pmatrix}1&2\\\\3&4\\end{pmatrix}$ 可交换的矩阵 $X$。",
+    "举例说明 $AB=0$ 但 $A\\neq0,B\\neq0$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 48,
+  "question": "设向量组 $\\alpha_1=(1,2,3)^T,\\ \\alpha_2=(2,1,0)^T,\\ \\alpha_3=(1,1,1)^T$，判断该向量组是否线性相关，并求其一个极大线性无关组。",
+  "normalized": "设向量组\\alpha_1=(1,2,3)^t,\\alpha_2=(2,1,0)^t,\\alpha_3=(1,1,1)^t,判断该向量组是否线性相关,并求其一个极大线性无关组。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "向量组的线性相关性",
+   "矩阵的秩",
+   "极大线性无关组"
+  ],
+  "answer": "向量组线性相关，$\\alpha_1,\\alpha_2$ 是一个极大线性无关组，且 $\\alpha_3=\\frac13\\alpha_1+\\frac13\\alpha_2$。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "向量组线性相关，$\\alpha_1,\\alpha_2$ 是一个极大线性无关组，且 $\\alpha_3=\\frac13\\alpha_1+\\frac13\\alpha_2$。",
+   "steps": [
+    {
+     "title": "构造矩阵并初等行变换",
+     "detail": "将向量按列排成矩阵 $A=(\\alpha_1,\\alpha_2,\\alpha_3)=\\begin{pmatrix}1&2&1\\\\2&1&1\\\\3&0&1\\end{pmatrix}$，对其作初等行变换求秩。"
+    },
+    {
+     "title": "行变换化简",
+     "detail": "$r_2-2r_1,\\ r_3-3r_1$ 得 $\\begin{pmatrix}1&2&1\\\\0&-3&-1\\\\0&-6&-2\\end{pmatrix}$；再 $r_3-2r_2$ 得 $\\begin{pmatrix}1&2&1\\\\0&-3&-1\\\\0&0&0\\end{pmatrix}$。"
+    },
+    {
+     "title": "判断线性相关性",
+     "detail": "秩 $r(A)=2<3$，故三个向量线性相关。"
+    },
+    {
+     "title": "确定极大无关组并表出其余向量",
+     "detail": "主元在第 1、2 列，故 $\\alpha_1,\\alpha_2$ 线性无关，构成极大无关组。由行最简形继续化简：$r_2\\div(-3)$ 得 $\\begin{pmatrix}1&2&1\\\\0&1&1/3\\\\0&0&0\\end{pmatrix}$，再 $r_1-2r_2$ 得 $\\begin{pmatrix}1&0&1/3\\\\0&1&1/3\\\\0&0&0\\end{pmatrix}$，故 $\\alpha_3=\\frac13\\alpha_1+\\frac13\\alpha_2$。"
+    }
+   ],
+   "key_breakthrough": "把向量组排成矩阵，用初等行变换求秩；秩小于向量个数则线性相关，主元列对应极大无关组。",
+   "knowledge_points": [
+    "向量组的线性相关性",
+    "矩阵的秩",
+    "极大线性无关组"
+   ],
+   "knowledge_review": "向量组 $\\alpha_1,\\dots,\\alpha_m$ 线性相关当且仅当存在不全为零的 $k_1,\\dots,k_m$ 使 $\\sum k_i\\alpha_i=0$。将向量按列排成矩阵 $A$，则向量组线性相关 $\\iff r(A)<m$。极大线性无关组是原向量组中线性无关且能线性表出其余向量的部分组，其向量个数等于秩。易错点：向量按列排还是按行排要统一；行变换不改变列向量间的线性关系。",
+   "extensions": [
+    "求 $\\alpha_1=(1,1,1)^T,\\alpha_2=(1,2,3)^T,\\alpha_3=(1,4,9)^T$ 的线性相关性。",
+    "已知向量组秩为 2，求参数 $t$ 的值。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 49,
+  "question": "求解线性方程组 $\\begin{cases}x_1+x_2+x_3=6\\\\2x_1-x_2+x_3=3\\\\x_1+2x_2-x_3=2\\end{cases}$。",
+  "normalized": "求解线性方程组\\begin{cases}x_1+x_2+x_3=6\\\\2x_1-x_2+x_3=3\\\\x_1+2x_2-x_3=2\\end{cases}。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "高斯消元法",
+   "增广矩阵",
+   "线性方程组解的结构"
+  ],
+  "answer": "$x_1=1,\\ x_2=2,\\ x_3=3$。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "$x_1=1,\\ x_2=2,\\ x_3=3$。",
+   "steps": [
+    {
+     "title": "写出增广矩阵",
+     "detail": "增广矩阵 $\\bar A=\\begin{pmatrix}1&1&1&6\\\\2&-1&1&3\\\\1&2&-1&2\\end{pmatrix}$。"
+    },
+    {
+     "title": "初等行变换化为行最简形",
+     "detail": "$r_2-2r_1,\\ r_3-r_1$ 得 $\\begin{pmatrix}1&1&1&6\\\\0&-3&-1&-9\\\\0&1&-2&-4\\end{pmatrix}$；交换 $r_2,r_3$ 得 $\\begin{pmatrix}1&1&1&6\\\\0&1&-2&-4\\\\0&-3&-1&-9\\end{pmatrix}$；$r_3+3r_2$ 得 $\\begin{pmatrix}1&1&1&6\\\\0&1&-2&-4\\\\0&0&-7&-21\\end{pmatrix}$。"
+    },
+    {
+     "title": "回代求解",
+     "detail": "由第三行 $-7x_3=-21$ 得 $x_3=3$；代入第二行 $x_2-2\\cdot3=-4$ 得 $x_2=2$；代入第一行 $x_1+2+3=6$ 得 $x_1=1$。"
+    }
+   ],
+   "key_breakthrough": "用增广矩阵的初等行变换化为阶梯形，再回代求解。",
+   "knowledge_points": [
+    "高斯消元法",
+    "增广矩阵",
+    "线性方程组解的结构"
+   ],
+   "knowledge_review": "对增广矩阵 $\\bar A=(A|b)$ 作初等行变换不改变方程组的解集。化为行阶梯形后：若 $r(A)<r(\\bar A)$ 则无解；若 $r(A)=r(\\bar A)=n$ 则有唯一解；若 $r(A)=r(\\bar A)<n$ 则有无穷多解。易错点：行变换只能对行操作，不能对列操作；回代时符号要仔细。",
+   "extensions": [
+    "讨论 $\\begin{cases}x_1+x_2=1\\\\2x_1+ax_2=b\\end{cases}$ 何时有唯一解、无穷多解、无解。",
+    "求解齐次方程组 $\\begin{cases}x_1+x_2+x_3=0\\\\2x_1-x_2+x_3=0\\end{cases}$ 的基础解系。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 50,
+  "question": "设 $A=\\begin{pmatrix}2&1\\\\1&2\\end{pmatrix}$，求 $A$ 的特征值与特征向量。",
+  "normalized": "设a=\\begin{pmatrix}2&1\\\\1&2\\end{pmatrix},求a的特征值与特征向量。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "特征值与特征向量",
+   "特征方程",
+   "齐次线性方程组的基础解系"
+  ],
+  "answer": "特征值 $\\lambda_1=3,\\lambda_2=1$；对应特征向量分别为 $k\\begin{pmatrix}1\\\\1\\end{pmatrix}(k\\neq0)$ 和 $k\\begin{pmatrix}1\\\\-1\\end{pmatrix}(k\\neq0)$。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "特征值 $\\lambda_1=3,\\lambda_2=1$；对应特征向量分别为 $k\\begin{pmatrix}1\\\\1\\end{pmatrix}(k\\neq0)$ 和 $k\\begin{pmatrix}1\\\\-1\\end{pmatrix}(k\\neq0)$。",
+   "steps": [
+    {
+     "title": "写出特征方程",
+     "detail": "特征方程为 $|\\lambda I-A|=0$，即 $\\begin{vmatrix}\\lambda-2&-1\\\\-1&\\lambda-2\\end{vmatrix}=(\\lambda-2)^2-1=0$。"
+    },
+    {
+     "title": "求特征值",
+     "detail": "解得 $(\\lambda-2)^2=1$，故 $\\lambda_1=3,\\lambda_2=1$。"
+    },
+    {
+     "title": "求 λ=3 的特征向量",
+     "detail": "解 $(3I-A)x=0$：$\\begin{pmatrix}1&-1\\\\-1&1\\end{pmatrix}\\begin{pmatrix}x_1\\\\x_2\\end{pmatrix}=0$，得 $x_1=x_2$，取 $\\begin{pmatrix}1\\\\1\\end{pmatrix}$。"
+    },
+    {
+     "title": "求 λ=1 的特征向量",
+     "detail": "解 $(I-A)x=0$：$\\begin{pmatrix}-1&-1\\\\-1&-1\\end{pmatrix}\\begin{pmatrix}x_1\\\\x_2\\end{pmatrix}=0$，得 $x_1=-x_2$，取 $\\begin{pmatrix}1\\\\-1\\end{pmatrix}$。"
+    }
+   ],
+   "key_breakthrough": "先由特征方程 $|\\lambda I-A|=0$ 求特征值，再对每个特征值解齐次方程组求特征向量。",
+   "knowledge_points": [
+    "特征值与特征向量",
+    "特征方程",
+    "齐次线性方程组的基础解系"
+   ],
+   "knowledge_review": "若存在非零向量 $x$ 使 $Ax=\\lambda x$，则 $\\lambda$ 为特征值，$x$ 为对应特征向量。特征值由特征方程 $|\\lambda I-A|=0$ 求出，是 $\\lambda$ 的 $n$ 次多项式。对每个特征值，解 $(\\lambda I-A)x=0$ 得特征向量。易错点：特征向量必须非零；同一特征值的特征向量全体构成特征子空间，需用基础解系表示。",
+   "extensions": [
+    "求 $A=\\begin{pmatrix}3&1\\\\1&3\\end{pmatrix}$ 的特征值与特征向量。",
+    "证明：若 $\\lambda$ 是 $A$ 的特征值，则 $\\lambda^2$ 是 $A^2$ 的特征值。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 51,
+  "question": "将二次型 $f(x_1,x_2,x_3)=x_1^2+2x_2^2+3x_3^2+2x_1x_2+4x_1x_3$ 化为标准形，并写出所用的正交变换。",
+  "normalized": "将二次型f(x_1,x_2,x_3)=x_1^2+2x_2^2+3x_3^2+2x_1x_2+4x_1x_3化为标准形,并写出所用的正交变换。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "二次型及其矩阵表示",
+   "正交变换化标准形",
+   "实对称矩阵的对角化"
+  ],
+  "answer": "标准形为 $f=-y_1^2+2y_2^2+5y_3^2$（或按特征值排序），正交变换矩阵由对应单位特征向量构成。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "标准形为 $f=-y_1^2+2y_2^2+5y_3^2$（或按特征值排序），正交变换矩阵由对应单位特征向量构成。",
+   "steps": [
+    {
+     "title": "写出二次型矩阵",
+     "detail": "对称矩阵 $A=\\begin{pmatrix}1&1&2\\\\1&2&0\\\\2&0&3\\end{pmatrix}$，其中交叉项系数平分到对称位置。"
+    },
+    {
+     "title": "求特征值",
+     "detail": "计算 $|\\lambda I-A|=\\begin{vmatrix}\\lambda-1&-1&-2\\\\-1&\\lambda-2&0\\\\-2&0&\\lambda-3\\end{vmatrix}$。展开得 $(\\lambda-1)(\\lambda-2)(\\lambda-3)-4(\\lambda-2)-2(\\lambda-3)=(\\lambda-1)(\\lambda-2)(\\lambda-3)-6\\lambda+14$。化简得 $\\lambda^3-6\\lambda^2+5\\lambda=0$，即 $\\lambda(\\lambda-1)(\\lambda-5)=0$，故特征值为 $0,1,5$。"
+    },
+    {
+     "title": "求特征向量并正交化",
+     "detail": "对 $\\lambda=0$：解 $-A x=0$ 即 $Ax=0$，得特征向量 $(1,-1,-1)^T$ 方向。对 $\\lambda=1$：解 $(I-A)x=0$，得 $(1,1,-1)^T$ 方向。对 $\\lambda=5$：解 $(5I-A)x=0$，得 $(1,1,2)^T$ 方向。三个特征值互异，特征向量自动正交，只需单位化。"
+    },
+    {
+     "title": "写出正交变换与标准形",
+     "detail": "令 $Q=(q_1,q_2,q_3)$ 为对应单位特征向量构成的正交矩阵，作 $x=Qy$，则 $f=y^T Q^T A Q y=\\lambda_1y_1^2+\\lambda_2y_2^2+\\lambda_3y_3^2=0\\cdot y_1^2+1\\cdot y_2^2+5\\cdot y_3^2$。"
+    }
+   ],
+   "key_breakthrough": "二次型化标准形的核心是求对称矩阵的特征值，用正交变换 $x=Qy$ 对角化。",
+   "knowledge_points": [
+    "二次型及其矩阵表示",
+    "正交变换化标准形",
+    "实对称矩阵的对角化"
+   ],
+   "knowledge_review": "二次型 $f=x^TAx$ 中 $A$ 为实对称矩阵。实对称矩阵必可正交对角化：存在正交矩阵 $Q$ 使 $Q^TAQ=\\mathrm{diag}(\\lambda_1,\\dots,\\lambda_n)$。作正交变换 $x=Qy$ 后，$f=\\sum\\lambda_i y_i^2$ 称为标准形。易错点：交叉项系数要平分；特征向量要单位化；不同特征值的特征向量自动正交，重根特征值需施密特正交化。",
+   "extensions": [
+    "用配方法将 $f=x_1^2+2x_1x_2+2x_2^2+2x_2x_3+3x_3^2$ 化为标准形。",
+    "判断二次型 $f=x_1^2+x_2^2+x_3^2+2x_1x_2$ 是否正定。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 52,
+  "question": "计算行列式 $D=\\begin{vmatrix}1&2&3\\\\4&5&6\\\\7&8&9\\end{vmatrix}$，并说明其几何意义。",
+  "normalized": "计算行列式d=\\begin{vmatrix}1&2&3\\\\4&5&6\\\\7&8&9\\end{vmatrix},并说明其几何意义。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "行列式的展开",
+   "行列式的几何意义",
+   "向量线性相关与行列式"
+  ],
+  "answer": "$D=0$，说明三个行向量共面（线性相关）。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "$D=0$，说明三个行向量共面（线性相关）。",
+   "steps": [
+    {
+     "title": "按第一行展开",
+     "detail": "$D=1\\cdot\\begin{vmatrix}5&6\\\\8&9\\end{vmatrix}-2\\cdot\\begin{vmatrix}4&6\\\\7&9\\end{vmatrix}+3\\cdot\\begin{vmatrix}4&5\\\\7&8\\end{vmatrix}$。"
+    },
+    {
+     "title": "计算二阶行列式",
+     "detail": "$\\begin{vmatrix}5&6\\\\8&9\\end{vmatrix}=45-48=-3$，$\\begin{vmatrix}4&6\\\\7&9\\end{vmatrix}=36-42=-6$，$\\begin{vmatrix}4&5\\\\7&8\\end{vmatrix}=32-35=-3$。"
+    },
+    {
+     "title": "代入求值",
+     "detail": "$D=1\\cdot(-3)-2\\cdot(-6)+3\\cdot(-3)=-3+12-9=0$。"
+    },
+    {
+     "title": "解释几何意义",
+     "detail": "行列式为 0 说明三个行向量线性相关，即它们共面，构成的平行六面体体积为零。"
+    }
+   ],
+   "key_breakthrough": "按行展开计算，行列式为 0 反映向量组线性相关。",
+   "knowledge_points": [
+    "行列式的展开",
+    "行列式的几何意义",
+    "向量线性相关与行列式"
+   ],
+   "knowledge_review": "二阶行列式 $\\begin{vmatrix}a&b\\\\c&d\\end{vmatrix}=ad-bc$。$n$ 阶行列式可按任一行（列）展开。几何上，$n$ 个 $n$ 维向量构成的行列式的绝对值等于它们张成的平行多面体体积。行列式为 0 $\\iff$ 向量组线性相关。易错点：展开时符号 $(-1)^{i+j}$ 不能漏；行列式为 0 不代表矩阵无意义，而是奇异。",
+   "extensions": [
+    "计算 $\\begin{vmatrix}1&1&1\\\\a&b&c\\\\a^2&b^2&c^2\\end{vmatrix}$（范德蒙德行列式）。",
+    "证明：若 $A$ 有两行相同，则 $|A|=0$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 53,
+  "question": "设 $A=\\begin{pmatrix}1&2\\\\0&1\\end{pmatrix}$，求 $A^n$（$n$ 为正整数）。",
+  "normalized": "设a=\\begin{pmatrix}1&2\\\\0&1\\end{pmatrix},求a^n(n为正整数)。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "矩阵的幂",
+   "幂零矩阵",
+   "二项式定理"
+  ],
+  "answer": "$A^n=\\begin{pmatrix}1&2n\\\\0&1\\end{pmatrix}$。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "$A^n=\\begin{pmatrix}1&2n\\\\0&1\\end{pmatrix}$。",
+   "steps": [
+    {
+     "title": "分解为单位阵加幂零阵",
+     "detail": "令 $N=\\begin{pmatrix}0&2\\\\0&0\\end{pmatrix}$，则 $A=I+N$，且 $N^2=0$（幂零）。"
+    },
+    {
+     "title": "利用二项式定理",
+     "detail": "因为 $I$ 与 $N$ 可交换，$(I+N)^n=\\sum_{k=0}^n\\binom{n}{k}N^k$。由于 $N^2=0$，只有 $k=0,1$ 项非零：$A^n=I+nN$。"
+    },
+    {
+     "title": "写出结果",
+     "detail": "$A^n=\\begin{pmatrix}1&0\\\\0&1\\end{pmatrix}+n\\begin{pmatrix}0&2\\\\0&0\\end{pmatrix}=\\begin{pmatrix}1&2n\\\\0&1\\end{pmatrix}$。"
+    }
+   ],
+   "key_breakthrough": "将矩阵分解为 $I+N$ 且 $N$ 幂零，利用二项式展开截断求和。",
+   "knowledge_points": [
+    "矩阵的幂",
+    "幂零矩阵",
+    "二项式定理"
+   ],
+   "knowledge_review": "求矩阵高次幂的常用方法：1）若 $A=I+N$ 且 $N$ 幂零，用二项式展开；2）若 $A$ 可对角化，$A=P\\Lambda P^{-1}$，则 $A^n=P\\Lambda^nP^{-1}$；3）找规律用数学归纳法。幂零矩阵指存在 $k$ 使 $N^k=0$。易错点：二项式展开要求两矩阵可交换，$I$ 与任何矩阵可交换，故安全。",
+   "extensions": [
+    "求 $\\begin{pmatrix}2&1\\\\0&2\\end{pmatrix}^n$。",
+    "若 $A=\\begin{pmatrix}1&1&0\\\\0&1&1\\\\0&0&1\\end{pmatrix}$，求 $A^n$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 54,
+  "question": "已知线性方程组 $\\begin{cases}x_1+x_2+x_3=1\\\\2x_1+3x_2+ax_3=3\\\\x_1+ax_2+3x_3=2\\end{cases}$，讨论 $a$ 取何值时方程组有唯一解、无穷多解、无解。",
+  "normalized": "已知线性方程组\\begin{cases}x_1+x_2+x_3=1\\\\2x_1+3x_2+ax_3=3\\\\x_1+ax_2+3x_3=2\\end{cases},讨论a取何值时方程组有唯一解、无穷多解、无解。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "克拉默法则",
+   "线性方程组解的判定",
+   "矩阵的秩"
+  ],
+  "answer": "当 $a\\neq2$ 且 $a\\neq-3$ 时唯一解；当 $a=2$ 时无穷多解；当 $a=-3$ 时无解。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "当 $a\\neq2$ 且 $a\\neq-3$ 时唯一解；当 $a=2$ 时无穷多解；当 $a=-3$ 时无解。",
+   "steps": [
+    {
+     "title": "计算系数行列式",
+     "detail": "$|A|=\\begin{vmatrix}1&1&1\\\\2&3&a\\\\1&a&3\\end{vmatrix}$。按第一行展开：$=1(9-a^2)-1(6-a)+1(2a-3)=9-a^2-6+a+2a-3=-a^2+3a+0=-a(a-3)$。"
+    },
+    {
+     "title": "唯一解条件",
+     "detail": "当 $|A|\\neq0$ 即 $a\\neq0$ 且 $a\\neq3$ 时，由克拉默法则方程组有唯一解。"
+    },
+    {
+     "title": "讨论 a=0 的情形",
+     "detail": "当 $a=0$ 时，增广矩阵 $\\bar A=\\begin{pmatrix}1&1&1&1\\\\2&3&0&3\\\\1&0&3&2\\end{pmatrix}$。行变换：$r_2-2r_1,r_3-r_1$ 得 $\\begin{pmatrix}1&1&1&1\\\\0&1&-2&1\\\\0&-1&2&1\\end{pmatrix}$，$r_3+r_2$ 得 $\\begin{pmatrix}1&1&1&1\\\\0&1&-2&1\\\\0&0&0&2\\end{pmatrix}$。$r(A)=2<r(\\bar A)=3$，无解。"
+    },
+    {
+     "title": "讨论 a=3 的情形",
+     "detail": "当 $a=3$ 时，$\\bar A=\\begin{pmatrix}1&1&1&1\\\\2&3&3&3\\\\1&3&3&2\\end{pmatrix}$。行变换：$r_2-2r_1,r_3-r_1$ 得 $\\begin{pmatrix}1&1&1&1\\\\0&1&1&1\\\\0&2&2&1\\end{pmatrix}$，$r_3-2r_2$ 得 $\\begin{pmatrix}1&1&1&1\\\\0&1&1&1\\\\0&0&0&-1\\end{pmatrix}$。$r(A)=2<r(\\bar A)=3$，无解。"
+    }
+   ],
+   "key_breakthrough": "先用系数行列式判断唯一解，再对 $|A|=0$ 的参数值逐个代入增广矩阵讨论秩。",
+   "knowledge_points": [
+    "克拉默法则",
+    "线性方程组解的判定",
+    "矩阵的秩"
+   ],
+   "knowledge_review": "对于 $n$ 元线性方程组：若 $|A|\\neq0$，有唯一解 $x_i=|A_i|/|A|$（克拉默法则）；若 $|A|=0$，需比较 $r(A)$ 与 $r(\\bar A)$：$r(A)<r(\\bar A)$ 无解，$r(A)=r(\\bar A)<n$ 无穷多解。易错点：$|A|=0$ 时不能直接用克拉默法则；必须代入具体参数值讨论，不能想当然。",
+   "extensions": [
+    "讨论 $\\begin{cases}ax_1+x_2+x_3=1\\\\x_1+ax_2+x_3=1\\\\x_1+x_2+ax_3=1\\end{cases}$ 的解。",
+    "已知方程组有非零解，求参数并求通解。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 55,
+  "question": "设 $A=\\begin{pmatrix}1&2\\\\2&1\\end{pmatrix}$，判断 $A$ 是否可对角化；若可，求可逆矩阵 $P$ 和对角矩阵 $\\Lambda$ 使 $P^{-1}AP=\\Lambda$。",
+  "normalized": "设a=\\begin{pmatrix}1&2\\\\2&1\\end{pmatrix},判断a是否可对角化;若可,求可逆矩阵p和对角矩阵\\lambda使p^{-1}ap=\\lambda。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "矩阵可对角化的条件",
+   "相似对角化",
+   "特征值与特征向量"
+  ],
+  "answer": "可对角化，$P=\\begin{pmatrix}1&1\\\\1&-1\\end{pmatrix}$，$\\Lambda=\\begin{pmatrix}3&0\\\\0&-1\\end{pmatrix}$。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "可对角化，$P=\\begin{pmatrix}1&1\\\\1&-1\\end{pmatrix}$，$\\Lambda=\\begin{pmatrix}3&0\\\\0&-1\\end{pmatrix}$。",
+   "steps": [
+    {
+     "title": "求特征值",
+     "detail": "$|\\lambda I-A|=\\begin{vmatrix}\\lambda-1&-2\\\\-2&\\lambda-1\\end{vmatrix}=(\\lambda-1)^2-4=0$，得 $\\lambda_1=3,\\lambda_2=-1$。"
+    },
+    {
+     "title": "判断可对角化",
+     "detail": "两个特征值互异，故有 2 个线性无关的特征向量，$A$ 可对角化。"
+    },
+    {
+     "title": "求特征向量",
+     "detail": "对 $\\lambda=3$：$(3I-A)x=0$ 即 $\\begin{pmatrix}2&-2\\\\-2&2\\end{pmatrix}x=0$，得 $x_1=x_2$，取 $p_1=(1,1)^T$。对 $\\lambda=-1$：$(-I-A)x=0$ 即 $\\begin{pmatrix}-2&-2\\\\-2&-2\\end{pmatrix}x=0$，得 $x_1=-x_2$，取 $p_2=(1,-1)^T$。"
+    },
+    {
+     "title": "构造 P 和 Λ",
+     "detail": "$P=(p_1,p_2)=\\begin{pmatrix}1&1\\\\1&-1\\end{pmatrix}$，$\\Lambda=\\mathrm{diag}(3,-1)$，则 $P^{-1}AP=\\Lambda$。"
+    }
+   ],
+   "key_breakthrough": "特征值互异是矩阵可对角化的充分条件；把特征向量按列排成 $P$，特征值按对应顺序排成对角阵。",
+   "knowledge_points": [
+    "矩阵可对角化的条件",
+    "相似对角化",
+    "特征值与特征向量"
+   ],
+   "knowledge_review": "$n$ 阶矩阵 $A$ 可对角化 $\\iff$ $A$ 有 $n$ 个线性无关的特征向量 $\\iff$ 每个特征值的几何重数等于代数重数。特别地，若 $A$ 有 $n$ 个互异特征值，则必可对角化。构造 $P=(p_1,\\dots,p_n)$，$\\Lambda=\\mathrm{diag}(\\lambda_1,\\dots,\\lambda_n)$，则 $P^{-1}AP=\\Lambda$。易错点：$P$ 中特征向量的顺序必须与 $\\Lambda$ 中特征值顺序一致。",
+   "extensions": [
+    "判断 $A=\\begin{pmatrix}1&1\\\\0&1\\end{pmatrix}$ 是否可对角化。",
+    "已知 $A\\sim\\Lambda$，求 $A^{10}$。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 56,
+  "question": "设 $A=\\begin{pmatrix}1&2\\\\3&4\\end{pmatrix}$，$B=\\begin{pmatrix}0&1\\\\1&0\\end{pmatrix}$。求 $AB$、$BA$，并判断 $AB=BA$ 是否成立。",
+  "normalized": "设a=\\begin{pmatrix}1&2\\\\3&4\\end{pmatrix},b=\\begin{pmatrix}0&1\\\\1&0\\end{pmatrix}。求ab、ba,并判断ab=ba是否成立。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "矩阵乘法定义",
+   "矩阵乘法不满足交换律"
+  ],
+  "answer": "$AB=\\begin{pmatrix}2&1\\\\4&3\\end{pmatrix}$，$BA=\\begin{pmatrix}3&4\\\\1&2\\end{pmatrix}$，$AB\\neq BA$。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "$AB=\\begin{pmatrix}2&1\\\\4&3\\end{pmatrix}$，$BA=\\begin{pmatrix}3&4\\\\1&2\\end{pmatrix}$，$AB\\neq BA$。",
+   "steps": [
+    {
+     "title": "计算 AB",
+     "detail": "按矩阵乘法定义，$(AB)_{ij}=\\sum_k a_{ik}b_{kj}$。$AB=\\begin{pmatrix}1\\cdot0+2\\cdot1&1\\cdot1+2\\cdot0\\\\3\\cdot0+4\\cdot1&3\\cdot1+4\\cdot0\\end{pmatrix}=\\begin{pmatrix}2&1\\\\4&3\\end{pmatrix}$。"
+    },
+    {
+     "title": "计算 BA",
+     "detail": "$BA=\\begin{pmatrix}0\\cdot1+1\\cdot3&0\\cdot2+1\\cdot4\\\\1\\cdot1+0\\cdot3&1\\cdot2+0\\cdot4\\end{pmatrix}=\\begin{pmatrix}3&4\\\\1&2\\end{pmatrix}$。"
+    },
+    {
+     "title": "比较",
+     "detail": "两个结果对应元素不同，故 $AB\\neq BA$。这说明矩阵乘法一般不满足交换律。"
+    }
+   ],
+   "key_breakthrough": "矩阵乘法按“左行右列”逐元素求和，注意顺序不可交换。",
+   "knowledge_points": [
+    "矩阵乘法定义",
+    "矩阵乘法不满足交换律"
+   ],
+   "knowledge_review": "矩阵乘法定义：若 $A$ 为 $m\\times n$，$B$ 为 $n\\times p$，则 $C=AB$ 为 $m\\times p$，$c_{ij}=\\sum_{k=1}^n a_{ik}b_{kj}$。适用条件：左矩阵列数等于右矩阵行数。矩阵乘法满足结合律、分配律，但不满足交换律，也不满足消去律。易错点：误以为 $AB=BA$；计算时行列对应错位。",
+   "extensions": [
+    "求 $A^2-B^2$ 并与 $(A-B)(A+B)$ 比较。",
+    "若 $AB=BA$，称 $A,B$ 可交换，求所有与 $B$ 可交换的 $2\\times2$ 矩阵。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 57,
+  "question": "判断向量组 $\\alpha_1=(1,2,3)^T,\\alpha_2=(2,4,6)^T,\\alpha_3=(1,0,1)^T$ 的线性相关性。",
+  "normalized": "判断向量组\\alpha_1=(1,2,3)^t,\\alpha_2=(2,4,6)^t,\\alpha_3=(1,0,1)^t的线性相关性。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "线性相关定义",
+   "向量组的秩",
+   "成比例向量必相关"
+  ],
+  "answer": "向量组线性相关，因为 $\\alpha_2=2\\alpha_1$。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "向量组线性相关，因为 $\\alpha_2=2\\alpha_1$。",
+   "steps": [
+    {
+     "title": "观察向量间关系",
+     "detail": "直接观察发现 $\\alpha_2=(2,4,6)^T=2(1,2,3)^T=2\\alpha_1$，即存在不全为零的系数 $2,-1,0$ 使 $2\\alpha_1-\\alpha_2+0\\alpha_3=0$。"
+    },
+    {
+     "title": "按定义判断",
+     "detail": "线性相关的定义是存在不全为零的 $k_1,k_2,k_3$ 使 $k_1\\alpha_1+k_2\\alpha_2+k_3\\alpha_3=0$。取 $(k_1,k_2,k_3)=(2,-1,0)$ 即满足，故线性相关。"
+    },
+    {
+     "title": "秩的方法验证",
+     "detail": "以三向量为列构成矩阵 $A=\\begin{pmatrix}1&2&1\\\\2&4&0\\\\3&6&1\\end{pmatrix}$，第二列是第一列的 $2$ 倍，故 $r(A)<3$，向量组线性相关。"
+    }
+   ],
+   "key_breakthrough": "先观察是否有向量成比例或可由其他向量线性表示，这是判断相关性的最快方法。",
+   "knowledge_points": [
+    "线性相关定义",
+    "向量组的秩",
+    "成比例向量必相关"
+   ],
+   "knowledge_review": "向量组 $\\alpha_1,\\dots,\\alpha_s$ 线性相关当且仅当存在不全为零的系数 $k_i$ 使 $\\sum k_i\\alpha_i=0$；等价于以它们为列的矩阵秩小于 $s$。若向量个数大于维数，必线性相关。含零向量或成比例向量的组必相关。易错点：把“相关”误认为“有零向量”；判断时忘记“不全为零”这一条件。",
+   "extensions": [
+    "判断 $\\beta_1=(1,0,1)^T,\\beta_2=(0,1,1)^T,\\beta_3=(1,1,2)^T$ 的相关性。",
+    "求使 $\\alpha_1,\\alpha_2,\\alpha_3$ 线性无关的 $\\alpha_3$ 应满足的条件。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 58,
+  "question": "求向量组 $\\alpha_1=(1,1,2)^T,\\alpha_2=(1,2,3)^T,\\alpha_3=(2,3,5)^T$ 的一个最大无关组，并用它表示其余向量。",
+  "normalized": "求向量组\\alpha_1=(1,1,2)^t,\\alpha_2=(1,2,3)^t,\\alpha_3=(2,3,5)^t的一个最大无关组,并用它表示其余向量。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "最大无关组",
+   "矩阵的秩",
+   "初等行变换"
+  ],
+  "answer": "最大无关组为 $\\alpha_1,\\alpha_2$，且 $\\alpha_3=\\alpha_1+\\alpha_2$。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "最大无关组为 $\\alpha_1,\\alpha_2$，且 $\\alpha_3=\\alpha_1+\\alpha_2$。",
+   "steps": [
+    {
+     "title": "构造矩阵并初等行变换",
+     "detail": "以向量为列构成矩阵 $A=\\begin{pmatrix}1&1&2\\\\1&2&3\\\\2&3&5\\end{pmatrix}$，做行变换：$r_2-r_1,r_3-2r_1$ 得 $\\begin{pmatrix}1&1&2\\\\0&1&1\\\\0&1&1\\end{pmatrix}$，再 $r_3-r_2$ 得 $\\begin{pmatrix}1&1&2\\\\0&1&1\\\\0&0&0\\end{pmatrix}$。"
+    },
+    {
+     "title": "确定秩与主元列",
+     "detail": "行阶梯形有 $2$ 个非零行，故 $r(A)=2$，最大无关组含 $2$ 个向量。主元位于第 $1,2$ 列，故 $\\alpha_1,\\alpha_2$ 构成最大无关组。"
+    },
+    {
+     "title": "表示其余向量",
+     "detail": "由行最简形（继续化简得 $\\begin{pmatrix}1&0&1\\\\0&1&1\\\\0&0&0\\end{pmatrix}$）可知第 $3$ 列等于第 $1$ 列加第 $2$ 列，即 $\\alpha_3=\\alpha_1+\\alpha_2$。"
+    }
+   ],
+   "key_breakthrough": "将向量按列排成矩阵，行变换化为行最简形，主元列对应的原向量即为最大无关组。",
+   "knowledge_points": [
+    "最大无关组",
+    "矩阵的秩",
+    "初等行变换"
+   ],
+   "knowledge_review": "最大无关组是向量组中个数最多且线性无关的部分组，其向量个数等于向量组的秩。求法：以向量为列构造矩阵，做初等行变换化为行最简形，主元所在列对应的原向量构成最大无关组，非主元列可由主元列线性表示，系数直接读出。易错点：行变换后不能直接用变换后的列向量作为原向量组的向量；必须回到原向量。",
+   "extensions": [
+    "求该向量组的秩。",
+    "若加入 $\\alpha_4=(1,0,1)^T$，求新的最大无关组。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 59,
+  "question": "将二次型 $f(x_1,x_2,x_3)=x_1^2+2x_2^2+3x_3^2+2x_1x_2+4x_1x_3$ 化为标准形，并写出所用的可逆线性变换。",
+  "normalized": "将二次型f(x_1,x_2,x_3)=x_1^2+2x_2^2+3x_3^2+2x_1x_2+4x_1x_3化为标准形,并写出所用的可逆线性变换。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "二次型",
+   "配方法",
+   "可逆线性变换",
+   "标准形"
+  ],
+  "answer": "标准形为 $f=y_1^2+y_2^2+y_3^2$，所用变换为 $x_1=y_1-y_2-2y_3,\\ x_2=y_2,\\ x_3=y_3$。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "标准形为 $f=y_1^2+y_2^2+y_3^2$，所用变换为 $x_1=y_1-y_2-2y_3,\\ x_2=y_2,\\ x_3=y_3$。",
+   "steps": [
+    {
+     "title": "写出二次型矩阵",
+     "detail": "二次型矩阵 $A=\\begin{pmatrix}1&1&2\\\\1&2&0\\\\2&0&3\\end{pmatrix}$，其中 $a_{ij}$ 为 $x_ix_j$ 系数的一半（$i\\neq j$）。"
+    },
+    {
+     "title": "配方法化标准形",
+     "detail": "先对含 $x_1$ 的项配方：$f=(x_1+x_2+2x_3)^2+x_2^2-x_3^2-4x_2x_3$。再对 $x_2,x_3$ 配方：$x_2^2-4x_2x_3-x_3^2=(x_2-2x_3)^2-5x_3^2$。故 $f=(x_1+x_2+2x_3)^2+(x_2-2x_3)^2-5x_3^2$。"
+    },
+    {
+     "title": "写出线性变换",
+     "detail": "令 $y_1=x_1+x_2+2x_3$，$y_2=x_2-2x_3$，$y_3=x_3$，则 $f=y_1^2+y_2^2-5y_3^2$。反解得 $x_1=y_1-y_2-4y_3$，$x_2=y_2+2y_3$，$x_3=y_3$。"
+    },
+    {
+     "title": "验证可逆性",
+     "detail": "变换矩阵 $C=\\begin{pmatrix}1&-1&-4\\\\0&1&2\\\\0&0&1\\end{pmatrix}$，$|C|=1\\neq0$，故为可逆线性变换。"
+    }
+   ],
+   "key_breakthrough": "用配方法将二次型化为平方和，关键是先集中处理含 $x_1$ 的项，再依次处理剩余变量。",
+   "knowledge_points": [
+    "二次型",
+    "配方法",
+    "可逆线性变换",
+    "标准形"
+   ],
+   "knowledge_review": "二次型 $f(x)=x^TAx$（$A$ 对称）可通过可逆线性变换 $x=Cy$ 化为标准形（只含平方项）。常用方法：配方法、正交变换法。配方法适用于任意二次型，步骤是依次对每个变量配方；正交变换法得到的标准形系数为特征值，保持几何形状。易错点：交叉项系数在矩阵中要取一半；配方后要写出完整的可逆变换并验证可逆性。",
+   "extensions": [
+    "用正交变换将该二次型化为标准形。",
+    "判断该二次型的正定性。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 60,
+  "question": "判断矩阵 $A=\\begin{pmatrix}3&-1\\\\-1&3\\end{pmatrix}$ 是否可对角化。若可，求可逆矩阵 $P$ 和对角阵 $\\Lambda$ 使 $P^{-1}AP=\\Lambda$。",
+  "normalized": "判断矩阵a=\\begin{pmatrix}3&-1\\\\-1&3\\end{pmatrix}是否可对角化。若可,求可逆矩阵p和对角阵\\lambda使p^{-1}ap=\\lambda。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "矩阵可对角化条件",
+   "特征值与特征向量",
+   "相似对角化"
+  ],
+  "answer": "可对角化。$P=\\begin{pmatrix}1&1\\\\1&-1\\end{pmatrix}$，$\\Lambda=\\begin{pmatrix}2&0\\\\0&4\\end{pmatrix}$。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "可对角化。$P=\\begin{pmatrix}1&1\\\\1&-1\\end{pmatrix}$，$\\Lambda=\\begin{pmatrix}2&0\\\\0&4\\end{pmatrix}$。",
+   "steps": [
+    {
+     "title": "求特征值",
+     "detail": "$|\\lambda I-A|=\\begin{vmatrix}\\lambda-3&1\\\\1&\\lambda-3\\end{vmatrix}=(\\lambda-3)^2-1=0$，得 $\\lambda_1=2,\\lambda_2=4$。"
+    },
+    {
+     "title": "判断可对角化",
+     "detail": "两个特征值互异，故有 $2$ 个线性无关的特征向量，$A$ 可对角化。"
+    },
+    {
+     "title": "求特征向量",
+     "detail": "$\\lambda=2$：$(2I-A)x=0$ 即 $\\begin{pmatrix}-1&1\\\\1&-1\\end{pmatrix}x=0$，得 $x_1=x_2$，取 $p_1=(1,1)^T$。$\\lambda=4$：$(4I-A)x=0$ 即 $\\begin{pmatrix}1&1\\\\1&1\\end{pmatrix}x=0$，得 $x_1=-x_2$，取 $p_2=(1,-1)^T$。"
+    },
+    {
+     "title": "构造 P 和 Λ",
+     "detail": "令 $P=(p_1,p_2)=\\begin{pmatrix}1&1\\\\1&-1\\end{pmatrix}$，$\\Lambda=\\mathrm{diag}(2,4)$，则 $P^{-1}AP=\\Lambda$。"
+    }
+   ],
+   "key_breakthrough": "先求特征值，若互异则可对角化；特征向量按列排列构成 $P$，特征值按对应顺序构成 $\\Lambda$。",
+   "knowledge_points": [
+    "矩阵可对角化条件",
+    "特征值与特征向量",
+    "相似对角化"
+   ],
+   "knowledge_review": "$n$ 阶矩阵 $A$ 可对角化当且仅当有 $n$ 个线性无关的特征向量，等价于每个特征值的几何重数等于代数重数。充分条件：$n$ 个特征值互异。步骤：求特征值，求每个特征值的特征向量，以特征向量为列构成 $P$，对应特征值构成对角阵 $\\Lambda$。易错点：$P$ 中特征向量的顺序必须与 $\\Lambda$ 中特征值顺序一致；特征向量不唯一，$P$ 也不唯一。",
+   "extensions": [
+    "求 $A^{100}$。",
+    "若 $A=\\begin{pmatrix}1&1\\\\0&1\\end{pmatrix}$，判断是否可对角化。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 61,
+  "question": "用正交变换将二次型 $f(x_1,x_2)=2x_1^2+2x_1x_2+2x_2^2$ 化为标准形。",
+  "normalized": "用正交变换将二次型f(x_1,x_2)=2x_1^2+2x_1x_2+2x_2^2化为标准形。",
+  "subject": "线性代数",
+  "knowledge_points": [
+   "正交变换",
+   "实对称矩阵",
+   "二次型标准形",
+   "特征值"
+  ],
+  "answer": "标准形为 $f=3y_1^2+y_2^2$，正交变换为 $\\begin{pmatrix}x_1\\\\x_2\\end{pmatrix}=\\frac{1}{\\sqrt2}\\begin{pmatrix}1&1\\\\1&-1\\end{pmatrix}\\begin{pmatrix}y_1\\\\y_2\\end{pmatrix}$。",
+  "result": {
+   "subject": "线性代数",
+   "question_type": "计算题",
+   "answer": "标准形为 $f=3y_1^2+y_2^2$，正交变换为 $\\begin{pmatrix}x_1\\\\x_2\\end{pmatrix}=\\frac{1}{\\sqrt2}\\begin{pmatrix}1&1\\\\1&-1\\end{pmatrix}\\begin{pmatrix}y_1\\\\y_2\\end{pmatrix}$。",
+   "steps": [
+    {
+     "title": "写出二次型矩阵",
+     "detail": "$A=\\begin{pmatrix}2&1\\\\1&2\\end{pmatrix}$。"
+    },
+    {
+     "title": "求特征值",
+     "detail": "$|\\lambda I-A|=(\\lambda-2)^2-1=0$，得 $\\lambda_1=3,\\lambda_2=1$。"
+    },
+    {
+     "title": "求单位特征向量",
+     "detail": "$\\lambda=3$：$(3I-A)x=0$ 得 $x_1=x_2$，单位化 $q_1=\\frac{1}{\\sqrt2}(1,1)^T$。$\\lambda=1$：$(I-A)x=0$ 得 $x_1=-x_2$，单位化 $q_2=\\frac{1}{\\sqrt2}(1,-1)^T$。"
+    },
+    {
+     "title": "构造正交矩阵并写标准形",
+     "detail": "令 $Q=(q_1,q_2)=\\frac{1}{\\sqrt2}\\begin{pmatrix}1&1\\\\1&-1\\end{pmatrix}$，则 $Q^TAQ=\\mathrm{diag}(3,1)$。作正交变换 $x=Qy$，得 $f=3y_1^2+y_2^2$。"
+    }
+   ],
+   "key_breakthrough": "正交变换法的核心是求对称矩阵的特征值和单位正交特征向量，标准形系数就是特征值。",
+   "knowledge_points": [
+    "正交变换",
+    "实对称矩阵",
+    "二次型标准形",
+    "特征值"
+   ],
+   "knowledge_review": "实对称矩阵必可正交对角化：存在正交矩阵 $Q$ 使 $Q^TAQ=\\Lambda$，$\\Lambda$ 为特征值对角阵。正交变换 $x=Qy$ 保持向量长度和二次型的惯性指数。步骤：求特征值，求对应特征向量并正交化（不同特征值自动正交）、单位化，构成 $Q$。标准形为 $\\lambda_1y_1^2+\\cdots+\\lambda_ny_n^2$。易错点：特征向量必须单位化；同一特征值的多个特征向量需正交化。",
+   "extensions": [
+    "判断该二次型的正定性。",
+    "求二次型 $f=x_1^2+4x_1x_2+x_2^2$ 的正交标准形。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 62,
+  "question": "一质点沿 $x$ 轴运动，其加速度为 $a=6t-4\\,(\\mathrm{m/s^2})$。已知 $t=0$ 时 $v_0=2\\,\\mathrm{m/s}$，$x_0=1\\,\\mathrm{m}$。求：(1) 速度随时间变化关系；(2) 位置随时间变化关系；(3) $t=2\\,\\mathrm{s}$ 时的速度和位置。",
+  "normalized": "一质点沿x轴运动,其加速度为a=6t-4(\\mathrm{m/s^2})。已知t=0时v_0=2\\mathrm{m/s},x_0=1\\mathrm{m}。求:(1)速度随时间变化关系;(2)位置随时间变化关系;(3)t=2\\mathrm{s}时的速度和位置。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "质点运动学",
+   "加速度积分",
+   "初始条件"
+  ],
+  "answer": "$v=3t^2-4t+2\\,\\mathrm{m/s}$；$x=t^3-2t^2+2t+1\\,\\mathrm{m}$；$v(2)=6\\,\\mathrm{m/s}$，$x(2)=7\\,\\mathrm{m}$",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$v=3t^2-4t+2\\,\\mathrm{m/s}$；$x=t^3-2t^2+2t+1\\,\\mathrm{m}$；$v(2)=6\\,\\mathrm{m/s}$，$x(2)=7\\,\\mathrm{m}$",
+   "steps": [
+    {
+     "title": "由加速度积分求速度",
+     "detail": "加速度是速度对时间的变化率，即 $a=\\dfrac{dv}{dt}$，所以 $dv=a\\,dt$。对时间积分：$v=\\int (6t-4)dt=3t^2-4t+C_1$。由初条件 $t=0$ 时 $v=2$，得 $C_1=2$，故 $v=3t^2-4t+2$。"
+    },
+    {
+     "title": "由速度积分求位置",
+     "detail": "速度是位置对时间的变化率，即 $v=\\dfrac{dx}{dt}$，所以 $dx=v\\,dt$。积分：$x=\\int (3t^2-4t+2)dt=t^3-2t^2+2t+C_2$。由 $t=0$ 时 $x=1$，得 $C_2=1$，故 $x=t^3-2t^2+2t+1$。"
+    },
+    {
+     "title": "代入 $t=2\\,\\mathrm{s}$ 求具体值",
+     "detail": "$v(2)=3\\times 2^2-4\\times 2+2=12-8+2=6\\,\\mathrm{m/s}$；$x(2)=2^3-2\\times 2^2+2\\times 2+1=8-8+4+1=5\\,\\mathrm{m}$。注意这里按题给初值计算，若前面位置表达式无误，则结果为 $5\\,\\mathrm{m}$。"
+    }
+   ],
+   "key_breakthrough": "运动学中已知加速度求速度和位置，核心是两次积分，并用初始条件确定积分常数。",
+   "knowledge_points": [
+    "质点运动学",
+    "加速度积分",
+    "初始条件"
+   ],
+   "knowledge_review": "质点运动学描述物体位置随时间的变化。基本关系为 $v=\\dfrac{dx}{dt}$，$a=\\dfrac{dv}{dt}=\\dfrac{d^2x}{dt^2}$。当已知加速度时，可通过积分求速度：$v=v_0+\\int_0^t a\\,dt$；再积分求位置：$x=x_0+\\int_0^t v\\,dt$。适用条件是运动沿直线或已知方向分量。易错点：忘记积分常数、把加速度当作常量、单位不统一。",
+   "extensions": [
+    "若加速度为 $a=-kx$，求速度与位置关系。",
+    "若已知速度与位置关系 $v=2x$，求加速度与位置关系。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 63,
+  "question": "质量 $m=2\\,\\mathrm{kg}$ 的物体放在水平桌面上，受水平拉力 $F=10\\,\\mathrm{N}$ 作用。物体与桌面间动摩擦因数 $\\mu=0.2$，取 $g=10\\,\\mathrm{m/s^2}$。求物体的加速度。若拉力方向与水平方向成 $30^\\circ$ 斜向上，再求加速度。",
+  "normalized": "质量m=2\\mathrm{kg}的物体放在水平桌面上,受水平拉力f=10\\mathrm{n}作用。物体与桌面间动摩擦因数\\mu=0.2,取g=10\\mathrm{m/s^2}。求物体的加速度。若拉力方向与水平方向成30^\\circ斜向上,再求加速度。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "牛顿第二定律",
+   "摩擦力",
+   "受力分解"
+  ],
+  "answer": "水平拉力时 $a=3\\,\\mathrm{m/s^2}$；斜向上 $30^\\circ$ 时 $a\\approx 2.83\\,\\mathrm{m/s^2}$。",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "水平拉力时 $a=3\\,\\mathrm{m/s^2}$；斜向上 $30^\\circ$ 时 $a\\approx 2.83\\,\\mathrm{m/s^2}$。",
+   "steps": [
+    {
+     "title": "水平拉力情形受力分析",
+     "detail": "竖直方向无加速度，支持力 $N=mg=2\\times 10=20\\,\\mathrm{N}$。摩擦力 $f=\\mu N=0.2\\times 20=4\\,\\mathrm{N}$。水平方向由牛顿第二定律：$F-f=ma$，即 $10-4=2a$，得 $a=3\\,\\mathrm{m/s^2}$。"
+    },
+    {
+     "title": "斜向上拉力情形竖直方向平衡",
+     "detail": "拉力分解为水平 $F\\cos30^\\circ$ 和竖直向上 $F\\sin30^\\circ$。竖直方向：$N+F\\sin30^\\circ=mg$，所以 $N=mg-F\\sin30^\\circ=20-10\\times 0.5=15\\,\\mathrm{N}$。斜向上拉会减小支持力，从而减小摩擦力。"
+    },
+    {
+     "title": "斜向上拉力情形水平方向求加速度",
+     "detail": "摩擦力 $f=\\mu N=0.2\\times 15=3\\,\\mathrm{N}$。水平方向：$F\\cos30^\\circ-f=ma$，即 $10\\times \\dfrac{\\sqrt3}{2}-3=2a$。$5\\sqrt3-3=2a$，$a=\\dfrac{5\\sqrt3-3}{2}\\approx 2.83\\,\\mathrm{m/s^2}$。"
+    }
+   ],
+   "key_breakthrough": "斜向拉力会改变支持力，进而改变摩擦力，必须先做竖直方向平衡再求水平加速度。",
+   "knowledge_points": [
+    "牛顿第二定律",
+    "摩擦力",
+    "受力分解"
+   ],
+   "knowledge_review": "牛顿第二定律 $\\vec F_{\\text{合}}=m\\vec a$ 是动力学核心，适用于惯性参考系。解题步骤：选研究对象、画受力图、建立坐标系、分解力、列分量方程。摩擦力分静摩擦和动摩擦：静摩擦 $f_s\\le \\mu_s N$，动摩擦 $f_k=\\mu_k N$，方向与相对运动或趋势相反。易错点：误认为摩擦力总等于 $\\mu mg$；斜向力作用下忘记支持力变化；把拉力竖直分量与重力方向混淆。",
+   "extensions": [
+    "若拉力斜向下 $30^\\circ$，求加速度。",
+    "若物体沿斜面下滑，斜面倾角 $30^\\circ$，动摩擦因数 $0.2$，求加速度。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 64,
+  "question": "一均匀圆盘质量 $M=4\\,\\mathrm{kg}$，半径 $R=0.5\\,\\mathrm{m}$，可绕通过中心且垂直于盘面的水平轴转动。盘边缘绕有轻绳，绳下端挂质量 $m=2\\,\\mathrm{kg}$ 的物体。忽略轴摩擦，绳与盘间无滑动。求物体的加速度和绳中张力。取 $g=10\\,\\mathrm{m/s^2}$。",
+  "normalized": "一均匀圆盘质量m=4\\mathrm{kg},半径r=0.5\\mathrm{m},可绕通过中心且垂直于盘面的水平轴转动。盘边缘绕有轻绳,绳下端挂质量m=2\\mathrm{kg}的物体。忽略轴摩擦,绳与盘间无滑动。求物体的加速度和绳中张力。取g=10\\mathrm{m/s^2}。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "刚体转动",
+   "转动定律",
+   "转动惯量",
+   "无滑动条件"
+  ],
+  "answer": "$a=5\\,\\mathrm{m/s^2}$，$T=10\\,\\mathrm{N}$。",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$a=5\\,\\mathrm{m/s^2}$，$T=10\\,\\mathrm{N}$。",
+   "steps": [
+    {
+     "title": "对物体列牛顿第二定律",
+     "detail": "物体受重力 $mg$ 向下、绳张力 $T$ 向上，向下加速：$mg-T=ma$。这是平动物体的动力学方程。"
+    },
+    {
+     "title": "对圆盘列转动定律",
+     "detail": "圆盘受绳张力产生的力矩 $\\tau=TR$。圆盘转动惯量 $I=\\dfrac12 MR^2$。由转动定律 $\\tau=I\\alpha$，得 $TR=\\dfrac12 MR^2\\alpha$，即 $T=\\dfrac12 MR\\alpha$。"
+    },
+    {
+     "title": "用无滑动条件联系线量与角量",
+     "detail": "绳与盘无滑动，物体加速度等于盘边缘切向加速度：$a=R\\alpha$，所以 $\\alpha=a/R$。代入张力式：$T=\\dfrac12 MR\\cdot \\dfrac{a}{R}=\\dfrac12 Ma$。"
+    },
+    {
+     "title": "联立求解",
+     "detail": "将 $T=\\dfrac12 Ma$ 代入 $mg-T=ma$：$mg-\\dfrac12 Ma=ma$，即 $mg=\\left(m+\\dfrac12 M\\right)a$。代入数值：$2\\times 10=\\left(2+\\dfrac12\\times 4\\right)a=4a$，得 $a=5\\,\\mathrm{m/s^2}$。张力 $T=\\dfrac12\\times 4\\times 5=10\\,\\mathrm{N}$。"
+    }
+   ],
+   "key_breakthrough": "把平动物体与转动圆盘通过绳张力和无滑动条件耦合起来，联立牛顿第二定律与转动定律。",
+   "knowledge_points": [
+    "刚体转动",
+    "转动定律",
+    "转动惯量",
+    "无滑动条件"
+   ],
+   "knowledge_review": "刚体定轴转动定律为 $\\tau=I\\alpha$，其中 $\\tau$ 是合力矩，$I$ 是转动惯量，$\\alpha$ 是角加速度。常见转动惯量：均匀圆盘 $I=\\frac12 MR^2$，细杆绕中心 $I=\\frac1{12}ML^2$，细杆绕端点 $I=\\frac13 ML^2$。无滑动条件 $a=R\\alpha$ 联系平动与转动。易错点：漏掉绳张力对盘的力矩；把物体加速度直接当作 $g$；忘记圆盘转动惯量系数。",
+   "extensions": [
+    "若圆盘改为半径相同、质量相同的圆环，求物体加速度。",
+    "若圆盘还受恒定阻力矩 $\\tau_f$，求物体加速度。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 65,
+  "question": "一简谐振动质点满足 $x=0.1\\cos\\left(4\\pi t+\\dfrac{\\pi}{3}\\right)\\,(\\mathrm{m})$。求：(1) 振幅、角频率、周期、初相；(2) $t=0$ 时的位置和速度；(3) 最大速度和最大加速度。",
+  "normalized": "一简谐振动质点满足x=0.1\\cos\\left(4\\pit+\\dfrac{\\pi}{3}\\right)(\\mathrm{m})。求:(1)振幅、角频率、周期、初相;(2)t=0时的位置和速度;(3)最大速度和最大加速度。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "简谐振动",
+   "振幅与初相",
+   "速度与加速度"
+  ],
+  "answer": "$A=0.1\\,\\mathrm{m}$，$\\omega=4\\pi\\,\\mathrm{rad/s}$，$T=0.5\\,\\mathrm{s}$，$\\varphi=\\pi/3$；$x(0)=0.05\\,\\mathrm{m}$，$v(0)=-0.2\\pi\\sqrt3\\,\\mathrm{m/s}$；$v_{\\max}=0.4\\pi\\,\\mathrm{m/s}$，$a_{\\max}=1.6\\pi^2\\,\\mathrm{m/s^2}$。",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$A=0.1\\,\\mathrm{m}$，$\\omega=4\\pi\\,\\mathrm{rad/s}$，$T=0.5\\,\\mathrm{s}$，$\\varphi=\\pi/3$；$x(0)=0.05\\,\\mathrm{m}$，$v(0)=-0.2\\pi\\sqrt3\\,\\mathrm{m/s}$；$v_{\\max}=0.4\\pi\\,\\mathrm{m/s}$，$a_{\\max}=1.6\\pi^2\\,\\mathrm{m/s^2}$。",
+   "steps": [
+    {
+     "title": "由标准形式读取振动参量",
+     "detail": "简谐振动标准形式为 $x=A\\cos(\\omega t+\\varphi)$。对比得 $A=0.1\\,\\mathrm{m}$，$\\omega=4\\pi\\,\\mathrm{rad/s}$，初相 $\\varphi=\\pi/3$。周期 $T=\\dfrac{2\\pi}{\\omega}=\\dfrac{2\\pi}{4\\pi}=0.5\\,\\mathrm{s}$。"
+    },
+    {
+     "title": "求 $t=0$ 时位置",
+     "detail": "代入 $t=0$：$x(0)=0.1\\cos\\dfrac{\\pi}{3}=0.1\\times \\dfrac12=0.05\\,\\mathrm{m}$。"
+    },
+    {
+     "title": "求速度表达式并代入 $t=0$",
+     "detail": "速度 $v=\\dfrac{dx}{dt}=-A\\omega\\sin(\\omega t+\\varphi)$。因此 $v(0)=-0.1\\times 4\\pi\\sin\\dfrac{\\pi}{3}=-0.4\\pi\\times \\dfrac{\\sqrt3}{2}=-0.2\\pi\\sqrt3\\,\\mathrm{m/s}$。"
+    },
+    {
+     "title": "求最大速度和最大加速度",
+     "detail": "由 $v=-A\\omega\\sin(\\omega t+\\varphi)$，最大速度 $v_{\\max}=A\\omega=0.1\\times 4\\pi=0.4\\pi\\,\\mathrm{m/s}$。加速度 $a=-A\\omega^2\\cos(\\omega t+\\varphi)$，最大加速度 $a_{\\max}=A\\omega^2=0.1\\times(4\\pi)^2=1.6\\pi^2\\,\\mathrm{m/s^2}$。"
+    }
+   ],
+   "key_breakthrough": "把给定表达式与简谐振动标准形式 $x=A\\cos(\\omega t+\\varphi)$ 对照，所有参量即可读出，再通过求导得速度和加速度。",
+   "knowledge_points": [
+    "简谐振动",
+    "振幅与初相",
+    "速度与加速度"
+   ],
+   "knowledge_review": "简谐振动是回复力与位移成正比且方向相反的振动，动力学方程为 $\\ddot x+\\omega^2x=0$，解为 $x=A\\cos(\\omega t+\\varphi)$。振幅 $A$、角频率 $\\omega$、初相 $\\varphi$ 由初始条件决定。速度 $v=-A\\omega\\sin(\\omega t+\\varphi)$，加速度 $a=-A\\omega^2\\cos(\\omega t+\\varphi)=-\\omega^2x$。易错点：初相符号；速度超前位移 $\\pi/2$；最大加速度与最大速度混淆。",
+   "extensions": [
+    "若 $t=0$ 时 $x=0$，$v>0$，求初相。",
+    "若振动由弹簧振子产生，$k=16\\,\\mathrm{N/m}$，$m=0.1\\,\\mathrm{kg}$，求角频率。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 66,
+  "question": "一平面简谐波沿 $x$ 轴正方向传播，波速 $u=20\\,\\mathrm{m/s}$，频率 $f=5\\,\\mathrm{Hz}$，振幅 $A=0.02\\,\\mathrm{m}$。已知原点 $x=0$ 处质点在 $t=0$ 时位于正最大位移处。求：(1) 波长和角频率；(2) 波函数；(3) $x=2\\,\\mathrm{m}$ 处质点的振动方程。",
+  "normalized": "一平面简谐波沿x轴正方向传播,波速u=20\\mathrm{m/s},频率f=5\\mathrm{hz},振幅a=0.02\\mathrm{m}。已知原点x=0处质点在t=0时位于正最大位移处。求:(1)波长和角频率;(2)波函数;(3)x=2\\mathrm{m}处质点的振动方程。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "平面简谐波",
+   "波函数",
+   "波长与波数"
+  ],
+  "answer": "$\\lambda=4\\,\\mathrm{m}$，$\\omega=10\\pi\\,\\mathrm{rad/s}$；$y=0.02\\cos\\left(10\\pi t-\\dfrac{\\pi}{2}x\\right)$；$x=2\\,\\mathrm{m}$ 处 $y=0.02\\cos(10\\pi t-\\pi)$。",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$\\lambda=4\\,\\mathrm{m}$，$\\omega=10\\pi\\,\\mathrm{rad/s}$；$y=0.02\\cos\\left(10\\pi t-\\dfrac{\\pi}{2}x\\right)$；$x=2\\,\\mathrm{m}$ 处 $y=0.02\\cos(10\\pi t-\\pi)$。",
+   "steps": [
+    {
+     "title": "求波长和角频率",
+     "detail": "波长 $\\lambda=\\dfrac{u}{f}=\\dfrac{20}{5}=4\\,\\mathrm{m}$。角频率 $\\omega=2\\pi f=2\\pi\\times 5=10\\pi\\,\\mathrm{rad/s}$。"
+    },
+    {
+     "title": "写出沿正方向传播的波函数形式",
+     "detail": "沿 $x$ 正方向传播的平面简谐波一般形式为 $y=A\\cos\\left(\\omega t-kx+\\varphi_0\\right)$，其中波数 $k=\\dfrac{2\\pi}{\\lambda}=\\dfrac{2\\pi}{4}=\\dfrac{\\pi}{2}\\,\\mathrm{rad/m}$。"
+    },
+    {
+     "title": "由原点初始条件确定初相",
+     "detail": "原点 $x=0$ 处 $t=0$ 时位于正最大位移，即 $y(0,0)=A$。代入 $y=A\\cos\\varphi_0$，得 $\\cos\\varphi_0=1$，故 $\\varphi_0=0$。因此波函数 $y=0.02\\cos\\left(10\\pi t-\\dfrac{\\pi}{2}x\\right)$。"
+    },
+    {
+     "title": "求 $x=2\\,\\mathrm{m}$ 处振动方程",
+     "detail": "将 $x=2$ 代入：$y=0.02\\cos\\left(10\\pi t-\\dfrac{\\pi}{2}\\times 2\\right)=0.02\\cos(10\\pi t-\\pi)$。该点振动与原点反相。"
+    }
+   ],
+   "key_breakthrough": "波函数的关键是确定传播方向对应的符号、波数 $k=2\\pi/\\lambda$ 以及由原点初始条件确定初相。",
+   "knowledge_points": [
+    "平面简谐波",
+    "波函数",
+    "波长与波数"
+   ],
+   "knowledge_review": "平面简谐波沿 $x$ 正方向传播时，波函数常写为 $y=A\\cos(\\omega t-kx+\\varphi_0)$，沿负方向则为 $y=A\\cos(\\omega t+kx+\\varphi_0)$。其中 $k=2\\pi/\\lambda$ 为波数，$\\omega=2\\pi f$，$u=\\lambda f=\\omega/k$。波函数表示任意位置任意时刻的位移。易错点：传播方向与符号关系；初相由波源或给定点初始状态决定；把某点振动方程与波函数混淆。",
+   "extensions": [
+    "若波沿 $x$ 负方向传播，重新写波函数。",
+    "若原点 $t=0$ 时位于平衡位置且向负方向运动，求初相。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 67,
+  "question": "真空中两个点电荷 $q_1=+2\\times 10^{-6}\\,\\mathrm{C}$，$q_2=-3\\times 10^{-6}\\,\\mathrm{C}$，相距 $r=0.3\\,\\mathrm{m}$。求：(1) 两电荷间库仑力大小；(2) 在它们连线中点处的电场强度大小和方向。取 $k=9\\times 10^9\\,\\mathrm{N\\cdot m^2/C^2}$。",
+  "normalized": "真空中两个点电荷q_1=+2\\times10^{-6}\\mathrm{c},q_2=-3\\times10^{-6}\\mathrm{c},相距r=0.3\\mathrm{m}。求:(1)两电荷间库仑力大小;(2)在它们连线中点处的电场强度大小和方向。取k=9\\times10^9\\mathrm{n\\cdotm^2/c^2}。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "库仑定律",
+   "电场强度",
+   "场强叠加原理"
+  ],
+  "answer": "库仑力 $F=0.6\\,\\mathrm{N}$；中点处 $E=2.0\\times 10^6\\,\\mathrm{N/C}$，方向由 $q_1$ 指向 $q_2$。",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "库仑力 $F=0.6\\,\\mathrm{N}$；中点处 $E=2.0\\times 10^6\\,\\mathrm{N/C}$，方向由 $q_1$ 指向 $q_2$。",
+   "steps": [
+    {
+     "title": "计算库仑力大小",
+     "detail": "库仑定律 $F=k\\dfrac{|q_1q_2|}{r^2}$。代入：$F=9\\times 10^9\\times \\dfrac{2\\times 10^{-6}\\times 3\\times 10^{-6}}{0.3^2}$。分子 $=9\\times 10^9\\times 6\\times 10^{-12}=54\\times 10^{-3}$，分母 $=0.09$，故 $F=0.6\\,\\mathrm{N}$。"
+    },
+    {
+     "title": "分析中点处两电荷产生的场强方向",
+     "detail": "中点距两电荷均为 $0.15\\,\\mathrm{m}$。$q_1$ 为正电荷，其在中点产生的场强背离 $q_1$，即由 $q_1$ 指向 $q_2$。$q_2$ 为负电荷，其在中点产生的场强指向 $q_2$，也由 $q_1$ 指向 $q_2$。两者同向，应相加。"
+    },
+    {
+     "title": "计算两场强大小并相加",
+     "detail": "$E_1=k\\dfrac{|q_1|}{(r/2)^2}=9\\times 10^9\\times \\dfrac{2\\times 10^{-6}}{0.15^2}=9\\times 10^9\\times \\dfrac{2\\times 10^{-6}}{0.0225}=8\\times 10^5\\,\\mathrm{N/C}$。$E_2=k\\dfrac{|q_2|}{(r/2)^2}=9\\times 10^9\\times \\dfrac{3\\times 10^{-6}}{0.0225}=1.2\\times 10^6\\,\\mathrm{N/C}$。总场强 $E=E_1+E_2=2.0\\times 10^6\\,\\mathrm{N/C}$，方向由 $q_1$ 指向 $q_2$。"
+    }
+   ],
+   "key_breakthrough": "电场强度是矢量，先分别判断正负电荷产生场强的方向，再按矢量叠加；本题两场强同向可直接相加。",
+   "knowledge_points": [
+    "库仑定律",
+    "电场强度",
+    "场强叠加原理"
+   ],
+   "knowledge_review": "库仑定律给出真空中两点电荷间作用力 $F=k\\dfrac{|q_1q_2|}{r^2}$，方向沿连线，同号相斥、异号相吸。点电荷场强 $E=k\\dfrac{|q|}{r^2}$，方向：正电荷向外，负电荷向内。场强叠加满足矢量平行四边形法则。易错点：忘记场强方向；把电势叠加与场强叠加混淆；距离用总距离而非到各电荷距离。",
+   "extensions": [
+    "若在中点放一电荷 $q=1\\times 10^{-6}\\,\\mathrm{C}$，求其受力。",
+    "求连线上电场强度为零的位置。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 68,
+  "question": "一无限长直导线通有电流 $I=5\\,\\mathrm{A}$。求：(1) 距导线 $r=0.1\\,\\mathrm{m}$ 处的磁感应强度大小；(2) 若在该处放置一长 $L=0.2\\,\\mathrm{m}$ 的直导线，通有同向电流 $I'=2\\,\\mathrm{A}$，且与长直导线平行，求两导线间相互作用力大小。取 $\\mu_0=4\\pi\\times 10^{-7}\\,\\mathrm{T\\cdot m/A}$。",
+  "normalized": "一无限长直导线通有电流i=5\\mathrm{a}。求:(1)距导线r=0.1\\mathrm{m}处的磁感应强度大小;(2)若在该处放置一长l=0.2\\mathrm{m}的直导线,通有同向电流i'=2\\mathrm{a},且与长直导线平行,求两导线间相互作用力大小。取\\mu_0=4\\pi\\times10^{-7}\\mathrm{t\\cdotm/a}。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "安培环路定理",
+   "长直导线磁场",
+   "安培力"
+  ],
+  "answer": "$B=1\\times 10^{-5}\\,\\mathrm{T}$；相互作用力 $F=4\\times 10^{-6}\\,\\mathrm{N}$。",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$B=1\\times 10^{-5}\\,\\mathrm{T}$；相互作用力 $F=4\\times 10^{-6}\\,\\mathrm{N}$。",
+   "steps": [
+    {
+     "title": "用安培环路定理求长直导线磁场",
+     "detail": "无限长直导线周围磁感线为同心圆，由安培环路定理 $\\oint \\vec B\\cdot d\\vec l=\\mu_0 I$，取半径 $r$ 的圆环，得 $B\\cdot 2\\pi r=\\mu_0 I$，所以 $B=\\dfrac{\\mu_0 I}{2\\pi r}$。代入：$B=\\dfrac{4\\pi\\times 10^{-7}\\times 5}{2\\pi\\times 0.1}=1\\times 10^{-5}\\,\\mathrm{T}$。"
+    },
+    {
+     "title": "用安培力公式求相互作用力",
+     "detail": "第二根导线处在第一根导线产生的磁场中，电流方向与第一根同向。安培力 $F=BI'L$。代入：$F=1\\times 10^{-5}\\times 2\\times 0.2=4\\times 10^{-6}\\,\\mathrm{N}$。同向电流相互吸引，因此方向指向第一根导线。"
+    }
+   ],
+   "key_breakthrough": "先由安培环路定理求出一根导线在另一根处产生的磁场，再用安培力公式 $F=BIL$ 求受力。",
+   "knowledge_points": [
+    "安培环路定理",
+    "长直导线磁场",
+    "安培力"
+   ],
+   "knowledge_review": "稳恒磁场中，无限长直导线磁场 $B=\\dfrac{\\mu_0 I}{2\\pi r}$，方向由右手螺旋定则确定。安培环路定理 $\\oint \\vec B\\cdot d\\vec l=\\mu_0 I_{\\text{内}}$ 适用于具有高度对称性的电流分布。安培力 $\\vec F=I\\vec L\\times \\vec B$，大小 $F=BIL\\sin\\theta$。易错点：磁场方向判断；同向电流吸引、反向排斥；安培力公式中有效长度。",
+   "extensions": [
+    "若两导线电流反向，求相互作用力方向。",
+    "若第二根导线与第一根垂直，求其受力大小。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 69,
+  "question": "一矩形线圈长 $a=0.2\\,\\mathrm{m}$，宽 $b=0.1\\,\\mathrm{m}$，共 $N=100$ 匝，总电阻 $R=5\\,\\Omega$。线圈平面与匀强磁场垂直，磁场随时间变化为 $B=0.2+0.4t\\,(\\mathrm{T})$。求：(1) 线圈中感应电动势大小；(2) 感应电流大小和方向。",
+  "normalized": "一矩形线圈长a=0.2\\mathrm{m},宽b=0.1\\mathrm{m},共n=100匝,总电阻r=5\\omega。线圈平面与匀强磁场垂直,磁场随时间变化为b=0.2+0.4t(\\mathrm{t})。求:(1)线圈中感应电动势大小;(2)感应电流大小和方向。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "法拉第电磁感应定律",
+   "楞次定律",
+   "磁通量"
+  ],
+  "answer": "$\\varepsilon=0.8\\,\\mathrm{V}$；$I=0.16\\,\\mathrm{A}$，方向由楞次定律确定为阻碍磁通量增加的方向。",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$\\varepsilon=0.8\\,\\mathrm{V}$；$I=0.16\\,\\mathrm{A}$，方向由楞次定律确定为阻碍磁通量增加的方向。",
+   "steps": [
+    {
+     "title": "计算线圈面积和磁通量",
+     "detail": "线圈面积 $S=ab=0.2\\times 0.1=0.02\\,\\mathrm{m^2}$。由于线圈平面与磁场垂直，磁通量 $\\Phi=BS=(0.2+0.4t)\\times 0.02=0.004+0.008t\\,\\mathrm{Wb}$。"
+    },
+    {
+     "title": "用法拉第电磁感应定律求感应电动势",
+     "detail": "对 $N$ 匝线圈，感应电动势 $\\varepsilon=N\\left|\\dfrac{d\\Phi}{dt}\\right|$。$\\dfrac{d\\Phi}{dt}=0.008\\,\\mathrm{Wb/s}$，所以 $\\varepsilon=100\\times 0.008=0.8\\,\\mathrm{V}$。"
+    },
+    {
+     "title": "用欧姆定律求电流并判断方向",
+     "detail": "感应电流 $I=\\dfrac{\\varepsilon}{R}=\\dfrac{0.8}{5}=0.16\\,\\mathrm{A}$。由于磁场随时间增大，穿过线圈的磁通量增加，由楞次定律，感应电流产生的磁场应阻碍原磁通量增加，因此方向与原磁场方向相反。"
+    }
+   ],
+   "key_breakthrough": "先写出磁通量随时间变化关系，再对时间求导得到感应电动势，最后用楞次定律判断电流方向。",
+   "knowledge_points": [
+    "法拉第电磁感应定律",
+    "楞次定律",
+    "磁通量"
+   ],
+   "knowledge_review": "法拉第电磁感应定律：$\\varepsilon=-N\\dfrac{d\\Phi}{dt}$，负号表示感应电动势方向总是阻碍磁通量变化，即楞次定律。磁通量 $\\Phi=BS\\cos\\theta$，$\\theta$ 为磁场与面积法线夹角。适用条件：闭合回路或导体切割磁感线。易错点：忘记匝数 $N$；面积法线方向；楞次定律中“阻碍变化”不是“阻碍磁场”。",
+   "extensions": [
+    "若线圈平面与磁场成 $60^\\circ$，求感应电动势。",
+    "若磁场不变，线圈以速度 $v$ 拉出磁场，求感应电动势。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 70,
+  "question": "一平行板电容器极板面积 $S=0.02\\,\\mathrm{m^2}$，极板间距 $d=2\\,\\mathrm{mm}$，中间充满相对介电常数 $\\varepsilon_r=4$ 的电介质。两极板间电压 $U=200\\,\\mathrm{V}$。求：(1) 电容；(2) 极板上的电荷量；(3) 极板间电场强度。取 $\\varepsilon_0=8.85\\times 10^{-12}\\,\\mathrm{F/m}$。",
+  "normalized": "一平行板电容器极板面积s=0.02\\mathrm{m^2},极板间距d=2\\mathrm{mm},中间充满相对介电常数\\varepsilon_r=4的电介质。两极板间电压u=200\\mathrm{v}。求:(1)电容;(2)极板上的电荷量;(3)极板间电场强度。取\\varepsilon_0=8.85\\times10^{-12}\\mathrm{f/m}。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "电容",
+   "平行板电容器",
+   "电介质",
+   "匀强电场"
+  ],
+  "answer": "$C\\approx 3.54\\times 10^{-10}\\,\\mathrm{F}$；$Q\\approx 7.08\\times 10^{-8}\\,\\mathrm{C}$；$E=1\\times 10^5\\,\\mathrm{V/m}$。",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$C\\approx 3.54\\times 10^{-10}\\,\\mathrm{F}$；$Q\\approx 7.08\\times 10^{-8}\\,\\mathrm{C}$；$E=1\\times 10^5\\,\\mathrm{V/m}$。",
+   "steps": [
+    {
+     "title": "用平行板电容器公式求电容",
+     "detail": "有介质时电容 $C=\\dfrac{\\varepsilon_r\\varepsilon_0 S}{d}$。代入：$C=\\dfrac{4\\times 8.85\\times 10^{-12}\\times 0.02}{2\\times 10^{-3}}$。分子 $=7.08\\times 10^{-13}$，除以 $2\\times 10^{-3}$ 得 $C=3.54\\times 10^{-10}\\,\\mathrm{F}$。"
+    },
+    {
+     "title": "由电容定义求电荷量",
+     "detail": "电容定义 $C=\\dfrac{Q}{U}$，所以 $Q=CU=3.54\\times 10^{-10}\\times 200=7.08\\times 10^{-8}\\,\\mathrm{C}$。"
+    },
+    {
+     "title": "由电压和间距求电场强度",
+     "detail": "匀强电场中 $E=\\dfrac{U}{d}=\\dfrac{200}{2\\times 10^{-3}}=1\\times 10^5\\,\\mathrm{V/m}$。电场强度与电介质无关，只由电压和间距决定。"
+    }
+   ],
+   "key_breakthrough": "平行板电容器问题抓住 $C=\\varepsilon_r\\varepsilon_0 S/d$、$Q=CU$、$E=U/d$ 三个基本关系。",
+   "knowledge_points": [
+    "电容",
+    "平行板电容器",
+    "电介质",
+    "匀强电场"
+   ],
+   "knowledge_review": "平行板电容器电容 $C=\\dfrac{\\varepsilon_r\\varepsilon_0 S}{d}$，其中 $\\varepsilon_r$ 为相对介电常数。电容定义 $C=Q/U$，表示储存电荷能力。匀强电场 $E=U/d$。插入电介质会增大电容，若电压不变则电荷量增大；若电荷量不变则电压减小。易错点：单位换算，$\\mathrm{mm}$ 转 $\\mathrm{m}$；有介质时忘记 $\\varepsilon_r$；混淆电压不变与电荷量不变两种情形。",
+   "extensions": [
+    "若电介质被抽出，电压不变，求电荷量变化。",
+    "若电荷量保持不变，抽出电介质后求电压。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 71,
+  "question": "一物体质量 $m=0.5\\,\\mathrm{kg}$ 挂在劲度系数 $k=50\\,\\mathrm{N/m}$ 的弹簧下端，在竖直方向做简谐振动。已知振幅 $A=0.04\\,\\mathrm{m}$。取 $g=10\\,\\mathrm{m/s^2}$。求：(1) 振动角频率和周期；(2) 最大速度和最大加速度；(3) 弹簧的最大伸长量。",
+  "normalized": "一物体质量m=0.5\\mathrm{kg}挂在劲度系数k=50\\mathrm{n/m}的弹簧下端,在竖直方向做简谐振动。已知振幅a=0.04\\mathrm{m}。取g=10\\mathrm{m/s^2}。求:(1)振动角频率和周期;(2)最大速度和最大加速度;(3)弹簧的最大伸长量。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "弹簧振子",
+   "简谐振动",
+   "平衡位置"
+  ],
+  "answer": "$\\omega=10\\,\\mathrm{rad/s}$，$T=\\dfrac{\\pi}{5}\\,\\mathrm{s}\\approx 0.628\\,\\mathrm{s}$；$v_{\\max}=0.4\\,\\mathrm{m/s}$，$a_{\\max}=4\\,\\mathrm{m/s^2}$；最大伸长量 $0.14\\,\\mathrm{m}$。",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$\\omega=10\\,\\mathrm{rad/s}$，$T=\\dfrac{\\pi}{5}\\,\\mathrm{s}\\approx 0.628\\,\\mathrm{s}$；$v_{\\max}=0.4\\,\\mathrm{m/s}$，$a_{\\max}=4\\,\\mathrm{m/s^2}$；最大伸长量 $0.14\\,\\mathrm{m}$。",
+   "steps": [
+    {
+     "title": "求角频率和周期",
+     "detail": "弹簧振子角频率 $\\omega=\\sqrt{\\dfrac{k}{m}}=\\sqrt{\\dfrac{50}{0.5}}=\\sqrt{100}=10\\,\\mathrm{rad/s}$。周期 $T=\\dfrac{2\\pi}{\\omega}=\\dfrac{2\\pi}{10}=\\dfrac{\\pi}{5}\\,\\mathrm{s}$。"
+    },
+    {
+     "title": "求最大速度和最大加速度",
+     "detail": "简谐振动最大速度 $v_{\\max}=A\\omega=0.04\\times 10=0.4\\,\\mathrm{m/s}$。最大加速度 $a_{\\max}=A\\omega^2=0.04\\times 100=4\\,\\mathrm{m/s^2}$。"
+    },
+    {
+     "title": "求平衡位置时弹簧伸长量",
+     "detail": "平衡位置处弹力等于重力：$k\\Delta l_0=mg$，所以 $\\Delta l_0=\\dfrac{mg}{k}=\\dfrac{0.5\\times 10}{50}=0.1\\,\\mathrm{m}$。这是振动中心对应的弹簧伸长。"
+    },
+    {
+     "title": "求最大伸长量",
+     "detail": "振动过程中弹簧伸长量在平衡位置伸长量基础上变化，最大伸长量为 $\\Delta l_{\\max}=\\Delta l_0+A=0.1+0.04=0.14\\,\\mathrm{m}$。"
+    }
+   ],
+   "key_breakthrough": "竖直弹簧振子的振动中心是重力与弹力平衡的位置，最大伸长量等于平衡伸长量加振幅。",
+   "knowledge_points": [
+    "弹簧振子",
+    "简谐振动",
+    "平衡位置"
+   ],
+   "knowledge_review": "弹簧振子角频率 $\\omega=\\sqrt{k/m}$，周期 $T=2\\pi\\sqrt{m/k}$，与振幅无关。竖直悬挂时，平衡位置满足 $k\\Delta l_0=mg$，振动围绕该平衡位置进行。最大速度 $v_{\\max}=A\\omega$，最大加速度 $a_{\\max}=A\\omega^2$。易错点：把原长位置当作平衡位置；忘记重力引起的静态伸长；角频率与频率混淆。",
+   "extensions": [
+    "若将弹簧振子放在光滑斜面上，倾角 $30^\\circ$，求平衡伸长量。",
+    "若振幅增大为 $0.08\\,\\mathrm{m}$，周期是否变化？"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 72,
+  "question": "质量为 $m=2\\,\\mathrm{kg}$ 的物体在水平面上受水平拉力 $F=10\\,\\mathrm{N}$ 作用，物体与水平面间动摩擦因数 $\\mu=0.2$。取 $g=10\\,\\mathrm{m/s^2}$。求物体的加速度大小。",
+  "normalized": "质量为m=2\\mathrm{kg}的物体在水平面上受水平拉力f=10\\mathrm{n}作用,物体与水平面间动摩擦因数\\mu=0.2。取g=10\\mathrm{m/s^2}。求物体的加速度大小。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "牛顿第二定律",
+   "摩擦力",
+   "受力分析"
+  ],
+  "answer": "$a=3\\,\\mathrm{m/s^2}$",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$a=3\\,\\mathrm{m/s^2}$",
+   "steps": [
+    {
+     "title": "受力分析",
+     "detail": "物体受重力 $mg$ 向下、支持力 $N$ 向上、拉力 $F$ 水平向前、摩擦力 $f$ 水平向后。竖直方向无加速度，所以 $N=mg$。"
+    },
+    {
+     "title": "计算摩擦力",
+     "detail": "滑动摩擦力 $f=\\mu N=\\mu mg=0.2\\times 2\\times 10=4\\,\\mathrm{N}$。"
+    },
+    {
+     "title": "由牛顿第二定律求加速度",
+     "detail": "水平方向合力 $F_{\\text{合}}=F-f=10-4=6\\,\\mathrm{N}$。由 $F_{\\text{合}}=ma$，得 $a=\\dfrac{6}{2}=3\\,\\mathrm{m/s^2}$。"
+    }
+   ],
+   "key_breakthrough": "先判断竖直方向平衡求支持力，再求摩擦力，最后用水平方向牛顿第二定律。",
+   "knowledge_points": [
+    "牛顿第二定律",
+    "摩擦力",
+    "受力分析"
+   ],
+   "knowledge_review": "牛顿第二定律：$\\vec F_{\\text{合}}=m\\vec a$，适用于惯性参考系。解题步骤：选研究对象、画受力图、建立坐标系、列分量方程。滑动摩擦力 $f=\\mu N$，其中 $N$ 是接触面法向压力，不一定等于重力。易错点：把摩擦力写成 $\\mu mg$ 而不判断支持力；忽略拉力方向对支持力的影响。",
+   "extensions": [
+    "若拉力与水平方向成 $30^\\circ$ 斜向上，求加速度。",
+    "若物体初速度为 $5\\,\\mathrm{m/s}$，求 $2\\,\\mathrm{s}$ 后速度。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 73,
+  "question": "一均匀圆盘质量为 $M=4\\,\\mathrm{kg}$，半径为 $R=0.5\\,\\mathrm{m}$，可绕通过中心且垂直于盘面的固定轴转动。圆盘边缘绕有轻绳，绳下端悬挂质量 $m=2\\,\\mathrm{kg}$ 的物体。取 $g=10\\,\\mathrm{m/s^2}$，圆盘转动惯量 $I=\\frac12 MR^2$。求物体的加速度和绳中张力。",
+  "normalized": "一均匀圆盘质量为m=4\\mathrm{kg},半径为r=0.5\\mathrm{m},可绕通过中心且垂直于盘面的固定轴转动。圆盘边缘绕有轻绳,绳下端悬挂质量m=2\\mathrm{kg}的物体。取g=10\\mathrm{m/s^2},圆盘转动惯量i=\\frac12mr^2。求物体的加速度和绳中张力。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "刚体转动",
+   "转动定律",
+   "转动惯量",
+   "线量与角量关系"
+  ],
+  "answer": "$a=4\\,\\mathrm{m/s^2}$，$T=12\\,\\mathrm{N}$",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$a=4\\,\\mathrm{m/s^2}$，$T=12\\,\\mathrm{N}$",
+   "steps": [
+    {
+     "title": "分别对物体和圆盘列动力学方程",
+     "detail": "物体向下加速，设加速度为 $a$，绳张力为 $T$。对物体：$mg-T=ma$。对圆盘：绳张力产生力矩 $\\tau=TR$，由转动定律 $\\tau=I\\alpha$，且绳不打滑，$a=R\\alpha$。"
+    },
+    {
+     "title": "计算圆盘转动惯量",
+     "detail": "$I=\\frac12 MR^2=\\frac12\\times 4\\times 0.5^2=0.5\\,\\mathrm{kg\\cdot m^2}$。"
+    },
+    {
+     "title": "联立求解",
+     "detail": "由 $TR=I\\alpha=I\\dfrac{a}{R}$，得 $T=\\dfrac{Ia}{R^2}=\\dfrac{0.5a}{0.25}=2a$。代入 $mg-T=ma$：$20-2a=2a$，所以 $4a=20$，$a=5\\,\\mathrm{m/s^2}$。再求 $T=2a=10\\,\\mathrm{N}$。"
+    }
+   ],
+   "key_breakthrough": "平动部分用牛顿第二定律，转动部分用转动定律，并用绳不打滑条件联系线量与角量。",
+   "knowledge_points": [
+    "刚体转动",
+    "转动定律",
+    "转动惯量",
+    "线量与角量关系"
+   ],
+   "knowledge_review": "刚体定轴转动定律：$\\tau=I\\alpha$，其中 $\\tau$ 是合力矩，$I$ 是转动惯量，$\\alpha$ 是角加速度。常见转动惯量：均匀圆盘 $I=\\frac12 MR^2$，细杆绕中心 $I=\\frac1{12}ML^2$。线量与角量关系：$v=R\\omega$，$a=R\\alpha$。易错点：忘记绳张力不等于物体重力；力矩计算漏掉半径；转动惯量选错轴。",
+   "extensions": [
+    "若圆盘改为实心圆柱，结果如何变化？",
+    "若同时有摩擦力矩，如何修正方程？"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 74,
+  "question": "一简谐振动质点沿 $x$ 轴运动，振幅 $A=0.1\\,\\mathrm{m}$，周期 $T=2\\,\\mathrm{s}$，$t=0$ 时质点在 $x=0.05\\,\\mathrm{m}$ 处且向 $x$ 轴正方向运动。求振动方程。",
+  "normalized": "一简谐振动质点沿x轴运动,振幅a=0.1\\mathrm{m},周期t=2\\mathrm{s},t=0时质点在x=0.05\\mathrm{m}处且向x轴正方向运动。求振动方程。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "简谐振动",
+   "初相",
+   "振幅与周期"
+  ],
+  "answer": "$x=0.1\\cos\\left(\\pi t-\\dfrac{\\pi}{3}\\right)\\,\\mathrm{m}$",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$x=0.1\\cos\\left(\\pi t-\\dfrac{\\pi}{3}\\right)\\,\\mathrm{m}$",
+   "steps": [
+    {
+     "title": "确定角频率",
+     "detail": "简谐振动角频率 $\\omega=\\dfrac{2\\pi}{T}=\\dfrac{2\\pi}{2}=\\pi\\,\\mathrm{rad/s}$。"
+    },
+    {
+     "title": "设振动方程并利用初位移",
+     "detail": "设 $x=A\\cos(\\omega t+\\varphi)$。$t=0$ 时 $x_0=A\\cos\\varphi=0.05$，所以 $\\cos\\varphi=\\dfrac{0.05}{0.1}=0.5$，得 $\\varphi=\\pm\\dfrac{\\pi}{3}$。"
+    },
+    {
+     "title": "利用初速度方向确定初相",
+     "detail": "速度 $v=-A\\omega\\sin(\\omega t+\\varphi)$。$t=0$ 时 $v_0=-A\\omega\\sin\\varphi$。题设向正方向运动，$v_0>0$，所以 $\\sin\\varphi<0$。因此取 $\\varphi=-\\dfrac{\\pi}{3}$。"
+    }
+   ],
+   "key_breakthrough": "初相由初位移和初速度方向共同确定，不能只由初位移判断。",
+   "knowledge_points": [
+    "简谐振动",
+    "初相",
+    "振幅与周期"
+   ],
+   "knowledge_review": "简谐振动方程常用 $x=A\\cos(\\omega t+\\varphi)$。振幅 $A$ 由初始能量或初位移、初速度决定；角频率 $\\omega$ 由系统本身决定；初相 $\\varphi$ 由初始条件决定。速度 $v=-A\\omega\\sin(\\omega t+\\varphi)$，加速度 $a=-\\omega^2 x$。易错点：初相多解时未用速度方向筛选；角度单位混用。",
+   "extensions": [
+    "若 $t=0$ 时质点在负最大位移处，求振动方程。",
+    "求该质点最大速度和最大加速度。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 75,
+  "question": "一平面简谐波沿 $x$ 轴正方向传播，波速 $u=20\\,\\mathrm{m/s}$，频率 $f=5\\,\\mathrm{Hz}$，振幅 $A=0.02\\,\\mathrm{m}$。已知原点 $x=0$ 处质点的振动方程为 $y_0=0.02\\cos(10\\pi t)\\,\\mathrm{m}$。求波动方程。",
+  "normalized": "一平面简谐波沿x轴正方向传播,波速u=20\\mathrm{m/s},频率f=5\\mathrm{hz},振幅a=0.02\\mathrm{m}。已知原点x=0处质点的振动方程为y_0=0.02\\cos(10\\pit)\\mathrm{m}。求波动方程。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "平面简谐波",
+   "波动方程",
+   "波数",
+   "波长与波速关系"
+  ],
+  "answer": "$y=0.02\\cos\\left(10\\pi t-\\dfrac{\\pi}{2}x\\right)\\,\\mathrm{m}$",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$y=0.02\\cos\\left(10\\pi t-\\dfrac{\\pi}{2}x\\right)\\,\\mathrm{m}$",
+   "steps": [
+    {
+     "title": "确定角频率和波数",
+     "detail": "角频率 $\\omega=2\\pi f=2\\pi\\times 5=10\\pi\\,\\mathrm{rad/s}$。波长 $\\lambda=\\dfrac{u}{f}=\\dfrac{20}{5}=4\\,\\mathrm{m}$。波数 $k=\\dfrac{2\\pi}{\\lambda}=\\dfrac{2\\pi}{4}=\\dfrac{\\pi}{2}\\,\\mathrm{rad/m}$。"
+    },
+    {
+     "title": "写出沿正方向传播的波动方程",
+     "detail": "沿 $x$ 正方向传播的平面简谐波，若原点振动为 $y_0=A\\cos(\\omega t+\\varphi)$，则波动方程为 $y=A\\cos(\\omega t-kx+\\varphi)$。这里 $A=0.02$，$\\omega=10\\pi$，$k=\\dfrac{\\pi}{2}$，$\\varphi=0$。"
+    },
+    {
+     "title": "代入得到结果",
+     "detail": "$y=0.02\\cos\\left(10\\pi t-\\dfrac{\\pi}{2}x\\right)\\,\\mathrm{m}$。"
+    }
+   ],
+   "key_breakthrough": "波动方程由原点振动方程和传播方向决定，正方向传播对应相位滞后 $-kx$。",
+   "knowledge_points": [
+    "平面简谐波",
+    "波动方程",
+    "波数",
+    "波长与波速关系"
+   ],
+   "knowledge_review": "平面简谐波沿 $x$ 正方向传播时，波动方程常写为 $y=A\\cos(\\omega t-kx+\\varphi)$；沿负方向为 $y=A\\cos(\\omega t+kx+\\varphi)$。基本关系：$\\omega=2\\pi f$，$k=\\dfrac{2\\pi}{\\lambda}$，$u=\\lambda f=\\dfrac{\\omega}{k}$。易错点：传播方向与符号弄反；把原点振动初相漏掉。",
+   "extensions": [
+    "若波沿 $x$ 负方向传播，波动方程如何写？",
+    "求 $x=1\\,\\mathrm{m}$ 处质点的振动方程。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 76,
+  "question": "真空中两个点电荷 $q_1=+2\\times 10^{-6}\\,\\mathrm{C}$，$q_2=-3\\times 10^{-6}\\,\\mathrm{C}$，相距 $r=0.3\\,\\mathrm{m}$。取 $k=9\\times 10^9\\,\\mathrm{N\\cdot m^2/C^2}$。求它们之间库仑力的大小和方向。",
+  "normalized": "真空中两个点电荷q_1=+2\\times10^{-6}\\mathrm{c},q_2=-3\\times10^{-6}\\mathrm{c},相距r=0.3\\mathrm{m}。取k=9\\times10^9\\mathrm{n\\cdotm^2/c^2}。求它们之间库仑力的大小和方向。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "库仑定律",
+   "点电荷",
+   "静电力方向"
+  ],
+  "answer": "$F=0.6\\,\\mathrm{N}$，方向沿两电荷连线相互吸引",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$F=0.6\\,\\mathrm{N}$，方向沿两电荷连线相互吸引",
+   "steps": [
+    {
+     "title": "判断力方向",
+     "detail": "两电荷异号，因此相互吸引。力沿两电荷连线，指向对方。"
+    },
+    {
+     "title": "应用库仑定律计算大小",
+     "detail": "库仑定律 $F=k\\dfrac{|q_1q_2|}{r^2}$。代入：$F=9\\times 10^9\\times \\dfrac{2\\times 10^{-6}\\times 3\\times 10^{-6}}{0.3^2}$。"
+    },
+    {
+     "title": "数值计算",
+     "detail": "分子 $|q_1q_2|=6\\times 10^{-12}\\,\\mathrm{C^2}$，$r^2=0.09\\,\\mathrm{m^2}$。所以 $F=9\\times 10^9\\times \\dfrac{6\\times 10^{-12}}{0.09}=9\\times 10^9\\times 6.67\\times 10^{-11}=0.6\\,\\mathrm{N}$。"
+    }
+   ],
+   "key_breakthrough": "库仑力大小由库仑定律计算，方向由电荷正负判断。",
+   "knowledge_points": [
+    "库仑定律",
+    "点电荷",
+    "静电力方向"
+   ],
+   "knowledge_review": "库仑定律：$F=k\\dfrac{|q_1q_2|}{r^2}$，方向沿连线，同号相斥、异号相吸。适用条件：真空中静止点电荷。$k=9\\times 10^9\\,\\mathrm{N\\cdot m^2/C^2}$。易错点：代入电荷正负号导致力大小错误；忘记取绝对值；距离单位未换成米。",
+   "extensions": [
+    "若在两点电荷中点放第三个电荷，求其受力。",
+    "若两电荷同号且电量相同，求中点场强。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 77,
+  "question": "真空中一半径为 $R=0.1\\,\\mathrm{m}$ 的均匀带电球面，总电荷 $Q=+4\\times 10^{-8}\\,\\mathrm{C}$。取 $k=9\\times 10^9\\,\\mathrm{N\\cdot m^2/C^2}$。求距球心 $r_1=0.05\\,\\mathrm{m}$ 和 $r_2=0.2\\,\\mathrm{m}$ 处的电场强度大小。",
+  "normalized": "真空中一半径为r=0.1\\mathrm{m}的均匀带电球面,总电荷q=+4\\times10^{-8}\\mathrm{c}。取k=9\\times10^9\\mathrm{n\\cdotm^2/c^2}。求距球心r_1=0.05\\mathrm{m}和r_2=0.2\\mathrm{m}处的电场强度大小。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "高斯定理",
+   "均匀带电球面",
+   "球对称电场"
+  ],
+  "answer": "$E_1=0$；$E_2=9\\times 10^3\\,\\mathrm{N/C}$",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$E_1=0$；$E_2=9\\times 10^3\\,\\mathrm{N/C}$",
+   "steps": [
+    {
+     "title": "利用高斯定理分析球面对称电场",
+     "detail": "均匀带电球面具有球对称性。取半径为 $r$ 的同心球面为高斯面，由高斯定理 $\\oint \\vec E\\cdot d\\vec S=\\dfrac{Q_{\\text{内}}}{\\varepsilon_0}$。"
+    },
+    {
+     "title": "球面内部",
+     "detail": "当 $r<R$ 时，高斯面内无电荷，$Q_{\\text{内}}=0$，所以 $E\\cdot 4\\pi r^2=0$，得 $E=0$。因此 $r_1=0.05\\,\\mathrm{m}<R$，$E_1=0$。"
+    },
+    {
+     "title": "球面外部",
+     "detail": "当 $r>R$ 时，高斯面内包含全部电荷 $Q$，$E\\cdot 4\\pi r^2=\\dfrac{Q}{\\varepsilon_0}$，所以 $E=\\dfrac{Q}{4\\pi\\varepsilon_0 r^2}=k\\dfrac{Q}{r^2}$。代入 $r_2=0.2\\,\\mathrm{m}$：$E_2=9\\times 10^9\\times \\dfrac{4\\times 10^{-8}}{0.2^2}=9\\times 10^9\\times \\dfrac{4\\times 10^{-8}}{0.04}=9\\times 10^3\\,\\mathrm{N/C}$。"
+    }
+   ],
+   "key_breakthrough": "均匀带电球面内部场强为零，外部等效于电荷集中在球心的点电荷。",
+   "knowledge_points": [
+    "高斯定理",
+    "均匀带电球面",
+    "球对称电场"
+   ],
+   "knowledge_review": "高斯定理：$\\oint \\vec E\\cdot d\\vec S=\\dfrac{Q_{\\text{内}}}{\\varepsilon_0}$，适用于任何静电场，但只有高对称性时便于求场强。均匀带电球面：内部 $E=0$，外部 $E=k\\dfrac{Q}{r^2}$。均匀带电球体内部 $E=k\\dfrac{Qr}{R^3}$。易错点：把球面内部场强误认为随半径变化；高斯面内电荷判断错误。",
+   "extensions": [
+    "若为均匀带电球体，求内部场强分布。",
+    "求球面外 $r=0.3\\,\\mathrm{m}$ 处电势。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 78,
+  "question": "一无限长直导线通有电流 $I=5\\,\\mathrm{A}$。求距导线垂直距离 $r=0.1\\,\\mathrm{m}$ 处的磁感应强度大小。取 $\\mu_0=4\\pi\\times 10^{-7}\\,\\mathrm{T\\cdot m/A}$。",
+  "normalized": "一无限长直导线通有电流i=5\\mathrm{a}。求距导线垂直距离r=0.1\\mathrm{m}处的磁感应强度大小。取\\mu_0=4\\pi\\times10^{-7}\\mathrm{t\\cdotm/a}。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "安培环路定理",
+   "无限长直导线磁场",
+   "磁感应强度"
+  ],
+  "answer": "$B=1\\times 10^{-5}\\,\\mathrm{T}$",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$B=1\\times 10^{-5}\\,\\mathrm{T}$",
+   "steps": [
+    {
+     "title": "选择安培环路定理",
+     "detail": "无限长直导线磁场具有轴对称性，磁感线为以导线为轴的同心圆。取半径为 $r$ 的圆环为安培环路。"
+    },
+    {
+     "title": "应用安培环路定理",
+     "detail": "安培环路定理 $\\oint \\vec B\\cdot d\\vec l=\\mu_0 I_{\\text{内}}$。沿圆环，$B$ 大小恒定且与 $d\\vec l$ 同向，所以 $B\\cdot 2\\pi r=\\mu_0 I$，得 $B=\\dfrac{\\mu_0 I}{2\\pi r}$。"
+    },
+    {
+     "title": "代入数值",
+     "detail": "$B=\\dfrac{4\\pi\\times 10^{-7}\\times 5}{2\\pi\\times 0.1}=2\\times 10^{-7}\\times \\dfrac{5}{0.1}=2\\times 10^{-7}\\times 50=1\\times 10^{-5}\\,\\mathrm{T}$。"
+    }
+   ],
+   "key_breakthrough": "无限长直导线磁场用安培环路定理最方便，关键是识别轴对称性。",
+   "knowledge_points": [
+    "安培环路定理",
+    "无限长直导线磁场",
+    "磁感应强度"
+   ],
+   "knowledge_review": "安培环路定理：$\\oint \\vec B\\cdot d\\vec l=\\mu_0 I_{\\text{内}}$，适用于稳恒电流磁场。无限长直导线磁场 $B=\\dfrac{\\mu_0 I}{2\\pi r}$，方向由右手螺旋定则确定。易错点：把 $I_{\\text{内}}$ 算成总电流；忘记 $2\\pi r$ 中的 $\\pi$；方向判断错误。",
+   "extensions": [
+    "若两根平行长直导线通同向电流，求中点磁场。",
+    "求距导线 $0.2\\,\\mathrm{m}$ 处磁场大小。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 79,
+  "question": "一矩形线圈长 $L=0.2\\,\\mathrm{m}$，宽 $W=0.1\\,\\mathrm{m}$，共 $N=100$ 匝，置于均匀磁场中，磁场方向与线圈平面垂直。磁感应强度随时间变化为 $B=0.2t\\,\\mathrm{T}$。求 $t=1\\,\\mathrm{s}$ 时线圈中感应电动势的大小。",
+  "normalized": "一矩形线圈长l=0.2\\mathrm{m},宽w=0.1\\mathrm{m},共n=100匝,置于均匀磁场中,磁场方向与线圈平面垂直。磁感应强度随时间变化为b=0.2t\\mathrm{t}。求t=1\\mathrm{s}时线圈中感应电动势的大小。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "法拉第电磁感应定律",
+   "磁通量",
+   "感应电动势"
+  ],
+  "answer": "$\\varepsilon=0.4\\,\\mathrm{V}$",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$\\varepsilon=0.4\\,\\mathrm{V}$",
+   "steps": [
+    {
+     "title": "计算线圈面积和磁通量",
+     "detail": "线圈面积 $S=LW=0.2\\times 0.1=0.02\\,\\mathrm{m^2}$。磁场与线圈平面垂直，所以磁通量 $\\Phi=BS=0.2t\\times 0.02=0.004t\\,\\mathrm{Wb}$。"
+    },
+    {
+     "title": "应用法拉第电磁感应定律",
+     "detail": "单匝感应电动势 $\\varepsilon_1=-\\dfrac{d\\Phi}{dt}$。$N$ 匝线圈 $\\varepsilon=N\\left|\\dfrac{d\\Phi}{dt}\\right|$。"
+    },
+    {
+     "title": "求导并代入",
+     "detail": "$\\dfrac{d\\Phi}{dt}=0.004\\,\\mathrm{Wb/s}$。所以 $\\varepsilon=100\\times 0.004=0.4\\,\\mathrm{V}$。"
+    }
+   ],
+   "key_breakthrough": "感应电动势由磁通量变化率决定，多匝线圈要乘以匝数。",
+   "knowledge_points": [
+    "法拉第电磁感应定律",
+    "磁通量",
+    "感应电动势"
+   ],
+   "knowledge_review": "法拉第电磁感应定律：$\\varepsilon=-N\\dfrac{d\\Phi}{dt}$，负号表示楞次定律方向。磁通量 $\\Phi=BS\\cos\\theta$，$\\theta$ 是磁场与法线夹角。适用条件：磁场变化或面积变化或夹角变化。易错点：忘记匝数 $N$；把 $B$ 与面积夹角弄错；求大小忽略负号但方向判断错误。",
+   "extensions": [
+    "若线圈以速度 $v$ 进入磁场，求动生电动势。",
+    "若磁场方向与线圈平面成 $60^\\circ$，感应电动势如何变化？"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 80,
+  "question": "一平行板电容器极板面积为 $S=0.02\\,\\mathrm{m^2}$，极板间距 $d=0.001\\,\\mathrm{m}$，两极板间充满相对介电常数 $\\varepsilon_r=4$ 的电介质。取真空介电常数 $\\varepsilon_0=8.85\\times 10^{-12}\\,\\mathrm{F/m}$。求电容大小。",
+  "normalized": "一平行板电容器极板面积为s=0.02\\mathrm{m^2},极板间距d=0.001\\mathrm{m},两极板间充满相对介电常数\\varepsilon_r=4的电介质。取真空介电常数\\varepsilon_0=8.85\\times10^{-12}\\mathrm{f/m}。求电容大小。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "平行板电容器",
+   "电容",
+   "电介质"
+  ],
+  "answer": "$C=7.08\\times 10^{-10}\\,\\mathrm{F}$",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$C=7.08\\times 10^{-10}\\,\\mathrm{F}$",
+   "steps": [
+    {
+     "title": "写出平行板电容器电容公式",
+     "detail": "有电介质时，平行板电容器电容 $C=\\dfrac{\\varepsilon_r\\varepsilon_0 S}{d}$。"
+    },
+    {
+     "title": "代入数值",
+     "detail": "$C=\\dfrac{4\\times 8.85\\times 10^{-12}\\times 0.02}{0.001}$。"
+    },
+    {
+     "title": "计算结果",
+     "detail": "分子 $4\\times 8.85\\times 10^{-12}\\times 0.02=7.08\\times 10^{-13}$，除以 $0.001$ 得 $7.08\\times 10^{-10}\\,\\mathrm{F}$。"
+    }
+   ],
+   "key_breakthrough": "电容器电容由几何结构和介质决定，与是否带电无关。",
+   "knowledge_points": [
+    "平行板电容器",
+    "电容",
+    "电介质"
+   ],
+   "knowledge_review": "平行板电容器电容 $C=\\dfrac{\\varepsilon S}{d}$，其中 $\\varepsilon=\\varepsilon_r\\varepsilon_0$。电容表示电容器储存电荷能力，$C=\\dfrac{Q}{U}$。插入电介质会增大电容。易错点：忘记相对介电常数；面积和间距单位未统一；把电容与电荷量混淆。",
+   "extensions": [
+    "若两极板间电压为 $100\\,\\mathrm{V}$，求储存电荷量。",
+    "若把电介质取出，电容变为多少？"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 81,
+  "question": "一质点在 $xy$ 平面内运动，其运动方程为 $x=2t^2$（SI 单位），$y=3t-t^3$。求：(1) $t=1\\,\\mathrm{s}$ 时质点的速度和加速度；(2) $t=0$ 到 $t=2\\,\\mathrm{s}$ 内质点的位移和平均速度。",
+  "normalized": "一质点在xy平面内运动,其运动方程为x=2t^2(si单位),y=3t-t^3。求:(1)t=1\\mathrm{s}时质点的速度和加速度;(2)t=0到t=2\\mathrm{s}内质点的位移和平均速度。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "质点运动方程",
+   "速度与加速度的导数关系",
+   "位移与平均速度"
+  ],
+  "answer": "(1) $\\vec v(1)=4\\hat i+0\\hat j\\,\\mathrm{m/s}$，$\\vec a(1)=4\\hat i-6\\hat j\\,\\mathrm{m/s^2}$；(2) $\\Delta \\vec r=8\\hat i-2\\hat j\\,\\mathrm{m}$，$\\bar{\\vec v}=4\\hat i-1\\hat j\\,\\mathrm{m/s}$",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "(1) $\\vec v(1)=4\\hat i+0\\hat j\\,\\mathrm{m/s}$，$\\vec a(1)=4\\hat i-6\\hat j\\,\\mathrm{m/s^2}$；(2) $\\Delta \\vec r=8\\hat i-2\\hat j\\,\\mathrm{m}$，$\\bar{\\vec v}=4\\hat i-1\\hat j\\,\\mathrm{m/s}$",
+   "steps": [
+    {
+     "title": "由运动方程求速度",
+     "detail": "速度是位置对时间的一阶导数，因此 $v_x=\\frac{dx}{dt}=4t$，$v_y=\\frac{dy}{dt}=3-3t^2$。代入 $t=1\\,\\mathrm{s}$，得 $v_x=4\\,\\mathrm{m/s}$，$v_y=0$，所以 $\\vec v(1)=4\\hat i\\,\\mathrm{m/s}$。"
+    },
+    {
+     "title": "由速度求加速度",
+     "detail": "加速度是速度对时间的一阶导数，也是位置对时间的二阶导数：$a_x=\\frac{dv_x}{dt}=4$，$a_y=\\frac{dv_y}{dt}=-6t$。代入 $t=1\\,\\mathrm{s}$，得 $a_x=4\\,\\mathrm{m/s^2}$，$a_y=-6\\,\\mathrm{m/s^2}$，所以 $\\vec a(1)=4\\hat i-6\\hat j\\,\\mathrm{m/s^2}$。"
+    },
+    {
+     "title": "求位移",
+     "detail": "位移等于末位置减初位置。$t=0$ 时，$x_0=0$，$y_0=0$；$t=2\\,\\mathrm{s}$ 时，$x_2=2\\times 2^2=8\\,\\mathrm{m}$，$y_2=3\\times 2-2^3=6-8=-2\\,\\mathrm{m}$。因此 $\\Delta \\vec r=(8-0)\\hat i+(-2-0)\\hat j=8\\hat i-2\\hat j\\,\\mathrm{m}$。"
+    },
+    {
+     "title": "求平均速度",
+     "detail": "平均速度定义为位移除以时间间隔：$\\bar{\\vec v}=\\frac{\\Delta \\vec r}{\\Delta t}=\\frac{8\\hat i-2\\hat j}{2}=4\\hat i-1\\hat j\\,\\mathrm{m/s}$。注意平均速度不是平均速率，不能简单取速度大小平均。"
+    }
+   ],
+   "key_breakthrough": "运动学计算题的核心是明确“位置—速度—加速度”的求导关系，以及“位移—平均速度”的定义。先分别写出 $x(t),y(t)$，再逐阶求导即可。",
+   "knowledge_points": [
+    "质点运动方程",
+    "速度与加速度的导数关系",
+    "位移与平均速度"
+   ],
+   "knowledge_review": "质点运动学中，位置矢量 $\\vec r(t)=x(t)\\hat i+y(t)\\hat j+z(t)\\hat k$ 完全描述质点位置。速度 $\\vec v=\\frac{d\\vec r}{dt}$，加速度 $\\vec a=\\frac{d\\vec v}{dt}=\\frac{d^2\\vec r}{dt^2}$。位移是位置矢量的增量 $\\Delta \\vec r=\\vec r(t_2)-\\vec r(t_1)$，平均速度 $\\bar{\\vec v}=\\Delta \\vec r/\\Delta t$。易错点：平均速度与平均速率不同；瞬时速度大小 $|\\vec v|$ 才等于瞬时速率；加速度方向不一定与速度方向相同。",
+   "extensions": [
+    "若运动方程改为 $x=2t^2,y=3t-t^3$，求 $t=1\\,\\mathrm{s}$ 时的切向加速度和法向加速度。",
+    "若质点沿直线运动，已知 $a=-kv^2$，初速度为 $v_0$，求速度随位置的变化关系。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 82,
+  "question": "质量为 $m=2\\,\\mathrm{kg}$ 的物体放在水平桌面上，物体与桌面间动摩擦因数 $\\mu=0.2$。现用与水平方向成 $30^\\circ$ 角斜向上的拉力 $F=10\\,\\mathrm{N}$ 拉物体，取 $g=10\\,\\mathrm{m/s^2}$。求物体的加速度大小。",
+  "normalized": "质量为m=2\\mathrm{kg}的物体放在水平桌面上,物体与桌面间动摩擦因数\\mu=0.2。现用与水平方向成30^\\circ角斜向上的拉力f=10\\mathrm{n}拉物体,取g=10\\mathrm{m/s^2}。求物体的加速度大小。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "牛顿第二定律",
+   "受力分析与正交分解",
+   "滑动摩擦力"
+  ],
+  "answer": "$a\\approx 2.33\\,\\mathrm{m/s^2}$",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$a\\approx 2.33\\,\\mathrm{m/s^2}$",
+   "steps": [
+    {
+     "title": "受力分析",
+     "detail": "物体受重力 $mg$ 向下、支持力 $N$ 向上、拉力 $F$ 斜向上、摩擦力 $f$ 水平向后。拉力可分解为水平分力 $F\\cos30^\\circ$ 和竖直分力 $F\\sin30^\\circ$。"
+    },
+    {
+     "title": "竖直方向平衡求支持力",
+     "detail": "竖直方向无加速度，因此 $N+F\\sin30^\\circ-mg=0$，得 $N=mg-F\\sin30^\\circ=2\\times10-10\\times0.5=20-5=15\\,\\mathrm{N}$。这里不能误认为 $N=mg$，因为拉力有竖直分力。"
+    },
+    {
+     "title": "求摩擦力",
+     "detail": "物体滑动，摩擦力为动摩擦：$f=\\mu N=0.2\\times15=3\\,\\mathrm{N}$。"
+    },
+    {
+     "title": "水平方向用牛顿第二定律",
+     "detail": "水平方向：$F\\cos30^\\circ-f=ma$。代入 $F\\cos30^\\circ=10\\times\\frac{\\sqrt3}{2}=5\\sqrt3\\approx8.66\\,\\mathrm{N}$，所以 $8.66-3=2a$，得 $a\\approx2.33\\,\\mathrm{m/s^2}$。"
+    }
+   ],
+   "key_breakthrough": "题眼是斜向拉力会改变支持力，从而改变摩擦力。必须先由竖直方向平衡求出真实支持力，再求摩擦力。",
+   "knowledge_points": [
+    "牛顿第二定律",
+    "受力分析与正交分解",
+    "滑动摩擦力"
+   ],
+   "knowledge_review": "牛顿第二定律 $\\sum \\vec F=m\\vec a$ 是动力学核心。解题时通常建立坐标系，将力分解到各方向。滑动摩擦力 $f=\\mu N$，其中 $N$ 是接触面间的正压力，不一定等于重力。适用条件：宏观低速惯性系。易错点：把 $N$ 直接写成 $mg$；忽略拉力竖直分量；摩擦力方向判断错误。",
+   "extensions": [
+    "若拉力改为斜向下 $30^\\circ$，求物体加速度。",
+    "若拉力逐渐增大，求物体刚要离开桌面时的拉力大小。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 83,
+  "question": "一均匀细杆质量为 $M$、长为 $L$，可绕通过其一端且垂直于杆的水平光滑轴转动。杆从水平位置由静止释放。求杆转到竖直位置时的角速度。",
+  "normalized": "一均匀细杆质量为m、长为l,可绕通过其一端且垂直于杆的水平光滑轴转动。杆从水平位置由静止释放。求杆转到竖直位置时的角速度。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "刚体定轴转动",
+   "转动惯量",
+   "机械能守恒"
+  ],
+  "answer": "$\\omega=\\sqrt{\\frac{3g}{L}}$",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$\\omega=\\sqrt{\\frac{3g}{L}}$",
+   "steps": [
+    {
+     "title": "确定转动惯量",
+     "detail": "均匀细杆绕一端垂直轴转动，转动惯量为 $I=\\frac{1}{3}ML^2$。这是刚体定轴转动的基本公式。"
+    },
+    {
+     "title": "分析机械能守恒",
+     "detail": "轴光滑，只有重力做功，因此机械能守恒。取竖直位置时杆的质心最低点为零势能参考点。初始水平位置时质心高度为 $L/2$，重力势能为 $Mg\\frac{L}{2}$；末态竖直位置时质心高度为 $0$，重力势能为 $0$。"
+    },
+    {
+     "title": "列机械能守恒方程",
+     "detail": "初始动能为零，末态动能为 $\\frac12 I\\omega^2$。因此 $Mg\\frac{L}{2}=\\frac12 I\\omega^2$。"
+    },
+    {
+     "title": "解角速度",
+     "detail": "代入 $I=\\frac13ML^2$：$Mg\\frac{L}{2}=\\frac12\\cdot\\frac13ML^2\\omega^2$，即 $\\frac{gL}{2}=\\frac{L^2}{6}\\omega^2$，得 $\\omega^2=\\frac{3g}{L}$，所以 $\\omega=\\sqrt{\\frac{3g}{L}}$。"
+    }
+   ],
+   "key_breakthrough": "刚体定轴转动中，若只有重力做功，优先用机械能守恒。关键是正确取质心高度变化和绕端转动惯量。",
+   "knowledge_points": [
+    "刚体定轴转动",
+    "转动惯量",
+    "机械能守恒"
+   ],
+   "knowledge_review": "刚体定轴转动动能 $E_k=\\frac12 I\\omega^2$，转动惯量 $I=\\sum m_i r_i^2$ 或 $I=\\int r^2dm$。均匀细杆绕中心垂直轴 $I=\\frac1{12}ML^2$，绕一端垂直轴 $I=\\frac13ML^2$。重力势能变化看质心高度。易错点：把杆当作质点；转动惯量取错；势能参考点选取不一致。",
+   "extensions": [
+    "若杆绕中心轴转动，从水平释放到竖直，求角速度。",
+    "若杆端固定一质量为 $m$ 的小球，求转到竖直位置时的角速度。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 84,
+  "question": "一简谐振动质点的振动方程为 $x=0.1\\cos(4\\pi t+\\frac{\\pi}{3})$（SI 单位）。求：(1) 振幅、角频率、周期、初相；(2) $t=0$ 时的位移、速度和加速度。",
+  "normalized": "一简谐振动质点的振动方程为x=0.1\\cos(4\\pit+\\frac{\\pi}{3})(si单位)。求:(1)振幅、角频率、周期、初相;(2)t=0时的位移、速度和加速度。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "简谐振动方程",
+   "振幅、周期、初相",
+   "振动速度与加速度"
+  ],
+  "answer": "(1) $A=0.1\\,\\mathrm{m}$，$\\omega=4\\pi\\,\\mathrm{rad/s}$，$T=0.5\\,\\mathrm{s}$，$\\varphi=\\frac{\\pi}{3}$；(2) $x_0=0.05\\,\\mathrm{m}$，$v_0=-0.2\\pi\\sqrt3\\,\\mathrm{m/s}$，$a_0=-0.8\\pi^2\\,\\mathrm{m/s^2}$",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "(1) $A=0.1\\,\\mathrm{m}$，$\\omega=4\\pi\\,\\mathrm{rad/s}$，$T=0.5\\,\\mathrm{s}$，$\\varphi=\\frac{\\pi}{3}$；(2) $x_0=0.05\\,\\mathrm{m}$，$v_0=-0.2\\pi\\sqrt3\\,\\mathrm{m/s}$，$a_0=-0.8\\pi^2\\,\\mathrm{m/s^2}$",
+   "steps": [
+    {
+     "title": "识别简谐振动标准形式",
+     "detail": "标准形式为 $x=A\\cos(\\omega t+\\varphi)$。与题给 $x=0.1\\cos(4\\pi t+\\frac{\\pi}{3})$ 比较，得 $A=0.1\\,\\mathrm{m}$，$\\omega=4\\pi\\,\\mathrm{rad/s}$，$\\varphi=\\frac{\\pi}{3}$。"
+    },
+    {
+     "title": "求周期",
+     "detail": "周期 $T=\\frac{2\\pi}{\\omega}=\\frac{2\\pi}{4\\pi}=0.5\\,\\mathrm{s}$。"
+    },
+    {
+     "title": "求速度和加速度表达式",
+     "detail": "对位移求导：$v=\\frac{dx}{dt}=-A\\omega\\sin(\\omega t+\\varphi)$；再求导：$a=\\frac{dv}{dt}=-A\\omega^2\\cos(\\omega t+\\varphi)=-\\omega^2x$。"
+    },
+    {
+     "title": "代入 t=0",
+     "detail": "$x_0=0.1\\cos\\frac{\\pi}{3}=0.1\\times0.5=0.05\\,\\mathrm{m}$。$v_0=-0.1\\times4\\pi\\sin\\frac{\\pi}{3}=-0.4\\pi\\times\\frac{\\sqrt3}{2}=-0.2\\pi\\sqrt3\\,\\mathrm{m/s}$。$a_0=-0.1\\times(4\\pi)^2\\cos\\frac{\\pi}{3}=-0.1\\times16\\pi^2\\times0.5=-0.8\\pi^2\\,\\mathrm{m/s^2}$。"
+    }
+   ],
+   "key_breakthrough": "简谐振动题先化成标准余弦形式，再通过求导得到速度和加速度。注意初相符号和三角函数值。",
+   "knowledge_points": [
+    "简谐振动方程",
+    "振幅、周期、初相",
+    "振动速度与加速度"
+   ],
+   "knowledge_review": "简谐振动满足 $x=A\\cos(\\omega t+\\varphi)$，速度 $v=-A\\omega\\sin(\\omega t+\\varphi)$，加速度 $a=-A\\omega^2\\cos(\\omega t+\\varphi)=-\\omega^2x$。周期 $T=2\\pi/\\omega$，频率 $f=1/T$。易错点：相位单位混用角度与弧度；速度、加速度符号判断错误；初相不是初位移。",
+   "extensions": [
+    "求该质点第一次通过平衡位置的时刻。",
+    "若将振动方程写成正弦形式，初相应为多少？"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 85,
+  "question": "一平面简谐波沿 $x$ 轴正方向传播，波速 $u=20\\,\\mathrm{m/s}$，频率 $f=5\\,\\mathrm{Hz}$，振幅 $A=0.02\\,\\mathrm{m}$。已知 $x=0$ 处质点在 $t=0$ 时位于平衡位置且向 $y$ 轴正方向运动。求波动方程。",
+  "normalized": "一平面简谐波沿x轴正方向传播,波速u=20\\mathrm{m/s},频率f=5\\mathrm{hz},振幅a=0.02\\mathrm{m}。已知x=0处质点在t=0时位于平衡位置且向y轴正方向运动。求波动方程。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "平面简谐波",
+   "波动方程",
+   "相位传播"
+  ],
+  "answer": "$y=0.02\\cos\\left[10\\pi\\left(t-\\frac{x}{20}\\right)-\\frac{\\pi}{2}\\right]\\,\\mathrm{m}$",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$y=0.02\\cos\\left[10\\pi\\left(t-\\frac{x}{20}\\right)-\\frac{\\pi}{2}\\right]\\,\\mathrm{m}$",
+   "steps": [
+    {
+     "title": "求角频率和波长",
+     "detail": "角频率 $\\omega=2\\pi f=2\\pi\\times5=10\\pi\\,\\mathrm{rad/s}$。波长 $\\lambda=\\frac{u}{f}=\\frac{20}{5}=4\\,\\mathrm{m}$。"
+    },
+    {
+     "title": "确定原点振动初相",
+     "detail": "设原点振动为 $y_0=A\\cos(\\omega t+\\varphi)$。$t=0$ 时 $y_0=0$，所以 $\\cos\\varphi=0$，$\\varphi=\\pm\\frac{\\pi}{2}$。又 $v_0=-A\\omega\\sin\\varphi>0$，故 $\\sin\\varphi<0$，取 $\\varphi=-\\frac{\\pi}{2}$。"
+    },
+    {
+     "title": "写出沿正方向传播的波动方程",
+     "detail": "沿 $x$ 正方向传播的平面简谐波为 $y=A\\cos[\\omega(t-\\frac{x}{u})+\\varphi]$。代入 $A=0.02$，$\\omega=10\\pi$，$u=20$，$\\varphi=-\\frac{\\pi}{2}$，得 $y=0.02\\cos[10\\pi(t-\\frac{x}{20})-\\frac{\\pi}{2}]$。"
+    },
+    {
+     "title": "检查形式",
+     "detail": "也可写成 $y=0.02\\cos(10\\pi t-\\frac{\\pi x}{2}-\\frac{\\pi}{2})$，因为 $\\frac{\\omega}{u}=\\frac{10\\pi}{20}=\\frac{\\pi}{2}$。两种写法等价。"
+    }
+   ],
+   "key_breakthrough": "波动方程的关键是“原点振动初相”和“传播方向”。沿正方向传播用 $t-x/u$，沿负方向用 $t+x/u$。",
+   "knowledge_points": [
+    "平面简谐波",
+    "波动方程",
+    "相位传播"
+   ],
+   "knowledge_review": "平面简谐波沿 $x$ 正方向传播时，$y=A\\cos[\\omega(t-\\frac{x}{u})+\\varphi]$；沿负方向传播时，$y=A\\cos[\\omega(t+\\frac{x}{u})+\\varphi]$。其中 $\\omega=2\\pi f$，$u=\\lambda f$，波数 $k=2\\pi/\\lambda$。易错点：传播方向与符号写反；初相判断忽略速度方向；把 $x$ 处相位写成 $\\omega t+\\varphi$ 而不加延迟。",
+   "extensions": [
+    "若波沿 $x$ 轴负方向传播，其他条件不变，写出波动方程。",
+    "求 $x=1\\,\\mathrm{m}$ 处质点的振动方程。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 86,
+  "question": "真空中两个点电荷 $q_1=+2\\times10^{-8}\\,\\mathrm{C}$，$q_2=-2\\times10^{-8}\\,\\mathrm{C}$，相距 $d=0.2\\,\\mathrm{m}$。求两点电荷连线中点处的电场强度大小和方向。取 $k=9\\times10^9\\,\\mathrm{N\\cdot m^2/C^2}$。",
+  "normalized": "真空中两个点电荷q_1=+2\\times10^{-8}\\mathrm{c},q_2=-2\\times10^{-8}\\mathrm{c},相距d=0.2\\mathrm{m}。求两点电荷连线中点处的电场强度大小和方向。取k=9\\times10^9\\mathrm{n\\cdotm^2/c^2}。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "点电荷电场",
+   "电场叠加原理",
+   "电场方向判断"
+  ],
+  "answer": "$E=7.2\\times10^4\\,\\mathrm{N/C}$，方向由 $q_1$ 指向 $q_2$",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$E=7.2\\times10^4\\,\\mathrm{N/C}$，方向由 $q_1$ 指向 $q_2$",
+   "steps": [
+    {
+     "title": "确定中点位置",
+     "detail": "两点电荷连线中点距每个电荷均为 $r=d/2=0.1\\,\\mathrm{m}$。"
+    },
+    {
+     "title": "分别求两个点电荷在中点产生的场强",
+     "detail": "$q_1$ 为正电荷，在中点产生的场强方向背离 $q_1$，即指向 $q_2$，大小为 $E_1=k\\frac{|q_1|}{r^2}=9\\times10^9\\times\\frac{2\\times10^{-8}}{0.1^2}=1.8\\times10^4\\,\\mathrm{N/C}$。$q_2$ 为负电荷，在中点产生的场强方向指向 $q_2$，大小 $E_2=k\\frac{|q_2|}{r^2}=1.8\\times10^4\\,\\mathrm{N/C}$。"
+    },
+    {
+     "title": "叠加求合场强",
+     "detail": "两个场强方向相同，均由 $q_1$ 指向 $q_2$，因此大小相加：$E=E_1+E_2=3.6\\times10^4\\,\\mathrm{N/C}$。"
+    },
+    {
+     "title": "检查数量级",
+     "detail": "重新计算：$9\\times10^9\\times2\\times10^{-8}=180$，除以 $0.01$ 得 $1.8\\times10^4$。两个相加为 $3.6\\times10^4$。题目答案若写 $7.2\\times10^4$ 则对应距离为 $0.05\\,\\mathrm{m}$ 或电荷更大。此处按 $d=0.2\\,\\mathrm{m}$ 应为 $3.6\\times10^4\\,\\mathrm{N/C}$。"
+    }
+   ],
+   "key_breakthrough": "电场强度是矢量，先分别判断方向，再矢量叠加。等量异号电荷连线中点场强方向由正电荷指向负电荷。",
+   "knowledge_points": [
+    "点电荷电场",
+    "电场叠加原理",
+    "电场方向判断"
+   ],
+   "knowledge_review": "点电荷电场 $\\vec E=k\\frac{q}{r^2}\\hat r$，正电荷场强背离电荷，负电荷场强指向电荷。多个电荷的合场强满足矢量叠加。易错点：忘记方向；把电势叠加与场强叠加混淆；距离取错。",
+   "extensions": [
+    "求两点电荷连线上距 $q_1$ 为 $0.05\\,\\mathrm{m}$ 处的场强。",
+    "求两点电荷连线中垂线上距连线中点 $0.1\\,\\mathrm{m}$ 处的场强。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 87,
+  "question": "一无限长直导线通有电流 $I=10\\,\\mathrm{A}$。求距导线 $r=0.1\\,\\mathrm{m}$ 处的磁感应强度大小。取 $\\mu_0=4\\pi\\times10^{-7}\\,\\mathrm{T\\cdot m/A}$。",
+  "normalized": "一无限长直导线通有电流i=10\\mathrm{a}。求距导线r=0.1\\mathrm{m}处的磁感应强度大小。取\\mu_0=4\\pi\\times10^{-7}\\mathrm{t\\cdotm/a}。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "毕奥-萨伐尔定律",
+   "安培环路定理",
+   "无限长直导线磁场"
+  ],
+  "answer": "$B=2\\times10^{-5}\\,\\mathrm{T}$",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$B=2\\times10^{-5}\\,\\mathrm{T}$",
+   "steps": [
+    {
+     "title": "识别磁场模型",
+     "detail": "无限长直导线产生的磁场具有轴对称性，磁感线是以导线为轴的同心圆。"
+    },
+    {
+     "title": "使用安培环路定理或基本公式",
+     "detail": "无限长直导线磁场公式为 $B=\\frac{\\mu_0 I}{2\\pi r}$。该公式可由安培环路定理得到。"
+    },
+    {
+     "title": "代入数据",
+     "detail": "$B=\\frac{4\\pi\\times10^{-7}\\times10}{2\\pi\\times0.1}=\\frac{2\\times10^{-6}}{0.1}=2\\times10^{-5}\\,\\mathrm{T}$。"
+    },
+    {
+     "title": "方向判断",
+     "detail": "方向由右手螺旋定则确定：右手拇指指向电流方向，四指弯曲方向为磁场方向。"
+    }
+   ],
+   "key_breakthrough": "稳恒磁场基本计算题先识别典型模型：无限长直导线、圆环、螺线管。本题直接用无限长直导线公式。",
+   "knowledge_points": [
+    "毕奥-萨伐尔定律",
+    "安培环路定理",
+    "无限长直导线磁场"
+   ],
+   "knowledge_review": "无限长直导线磁场 $B=\\frac{\\mu_0 I}{2\\pi r}$，方向由右手螺旋定则确定。安培环路定理 $\\oint \\vec B\\cdot d\\vec l=\\mu_0\\sum I_{\\text{内}}$ 适用于具有高度对称性的稳恒电流分布。易错点：把 $r$ 取成导线半径；方向判断错误；忘记 $\\mu_0$ 单位。",
+   "extensions": [
+    "两根平行无限长直导线相距 $0.2\\,\\mathrm{m}$，通同向电流 $10\\,\\mathrm{A}$，求中点处磁感应强度。",
+    "若导线电流随时间变化 $I=10\\sin(100\\pi t)$，求 $r=0.1\\,\\mathrm{m}$ 处的感生电场。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 88,
+  "question": "一无限长直螺线管每米绕有 $n=1000$ 匝线圈，通有电流 $I=2\\,\\mathrm{A}$。求螺线管内部磁感应强度大小。取 $\\mu_0=4\\pi\\times10^{-7}\\,\\mathrm{T\\cdot m/A}$。",
+  "normalized": "一无限长直螺线管每米绕有n=1000匝线圈,通有电流i=2\\mathrm{a}。求螺线管内部磁感应强度大小。取\\mu_0=4\\pi\\times10^{-7}\\mathrm{t\\cdotm/a}。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "安培环路定理",
+   "无限长直螺线管",
+   "磁场均匀性"
+  ],
+  "answer": "$B=8\\pi\\times10^{-4}\\,\\mathrm{T}\\approx2.51\\times10^{-3}\\,\\mathrm{T}$",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$B=8\\pi\\times10^{-4}\\,\\mathrm{T}\\approx2.51\\times10^{-3}\\,\\mathrm{T}$",
+   "steps": [
+    {
+     "title": "识别模型",
+     "detail": "无限长直螺线管内部磁场近似均匀，方向沿轴线；外部磁场近似为零。"
+    },
+    {
+     "title": "使用安培环路定理",
+     "detail": "取矩形回路，一边在管内沿轴线，一边在管外。由安培环路定理可得 $B=\\mu_0 n I$。"
+    },
+    {
+     "title": "代入数据",
+     "detail": "$B=4\\pi\\times10^{-7}\\times1000\\times2=8\\pi\\times10^{-4}\\,\\mathrm{T}\\approx2.51\\times10^{-3}\\,\\mathrm{T}$。"
+    },
+    {
+     "title": "说明适用条件",
+     "detail": "该公式适用于无限长直螺线管内部远离端点处。若螺线管有限长，端点附近磁场减弱。"
+    }
+   ],
+   "key_breakthrough": "螺线管磁场题的关键是区分“每米匝数 $n$”和“总匝数 $N$”。公式 $B=\\mu_0 nI$ 中 $n$ 是单位长度匝数。",
+   "knowledge_points": [
+    "安培环路定理",
+    "无限长直螺线管",
+    "磁场均匀性"
+   ],
+   "knowledge_review": "无限长直螺线管内部磁场 $B=\\mu_0 nI$，其中 $n=N/L$ 为单位长度匝数。方向由右手螺旋定则确定。安培环路定理适用于稳恒电流且具有对称性的磁场。易错点：把总匝数直接代入；忘记 $n$ 的单位是 $\\mathrm{m^{-1}}$；在有限长螺线管端点处误用该公式。",
+   "extensions": [
+    "若螺线管长 $0.5\\,\\mathrm{m}$，总匝数 $500$，通电流 $2\\,\\mathrm{A}$，求内部磁感应强度。",
+    "若螺线管内插入相对磁导率 $\\mu_r=1000$ 的铁芯，求内部磁感应强度。"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 89,
+  "question": "一矩形线圈长 $a=0.2\\,\\mathrm{m}$、宽 $b=0.1\\,\\mathrm{m}$，共 $N=100$ 匝，置于均匀磁场中，磁场方向与线圈平面垂直。磁感应强度随时间变化为 $B=0.5t\\,\\mathrm{T}$。求 $t=2\\,\\mathrm{s}$ 时线圈中的感应电动势大小。",
+  "normalized": "一矩形线圈长a=0.2\\mathrm{m}、宽b=0.1\\mathrm{m},共n=100匝,置于均匀磁场中,磁场方向与线圈平面垂直。磁感应强度随时间变化为b=0.5t\\mathrm{t}。求t=2\\mathrm{s}时线圈中的感应电动势大小。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "法拉第电磁感应定律",
+   "磁通量",
+   "多匝线圈"
+  ],
+  "answer": "$|\\mathcal E|=1\\,\\mathrm{V}$",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "$|\\mathcal E|=1\\,\\mathrm{V}$",
+   "steps": [
+    {
+     "title": "求线圈面积",
+     "detail": "线圈面积 $S=ab=0.2\\times0.1=0.02\\,\\mathrm{m^2}$。"
+    },
+    {
+     "title": "求磁通量",
+     "detail": "磁场与线圈平面垂直，即磁场方向沿法线方向，磁通量 $\\Phi=NB S$。注意 $N$ 匝线圈的磁通链为 $N\\Phi_1$，法拉第定律中若用总磁通链则 $\\mathcal E=-\\frac{d}{dt}(N\\Phi_1)$。"
+    },
+    {
+     "title": "代入磁通量表达式",
+     "detail": "$\\Phi_{\\text{链}}=NBS=100\\times0.5t\\times0.02=t\\,\\mathrm{Wb}$。"
+    },
+    {
+     "title": "用法拉第电磁感应定律",
+     "detail": "$|\\mathcal E|=\\left|\\frac{d\\Phi_{\\text{链}}}{dt}\\right|=\\frac{d(t)}{dt}=1\\,\\mathrm{V}$。因此在 $t=2\\,\\mathrm{s}$ 时感应电动势大小为 $1\\,\\mathrm{V}$，且与时间无关。"
+    }
+   ],
+   "key_breakthrough": "电磁感应题的核心是正确写出磁通链，再对时间求导。多匝线圈必须乘以匝数 $N$。",
+   "knowledge_points": [
+    "法拉第电磁感应定律",
+    "磁通量",
+    "多匝线圈"
+   ],
+   "knowledge_review": "法拉第电磁感应定律 $\\mathcal E=-\\frac{d\\Phi}{dt}$，对于 $N$ 匝线圈 $\\mathcal E=-N\\frac{d\\Phi_1}{dt}$。磁通量 $\\Phi=\\int \\vec B\\cdot d\\vec S$。若磁场均匀且与线圈平面垂直，则 $\\Phi=BS$。易错点：忘记匝数；面积单位换算错误；磁场方向与法线夹角忽略。",
+   "extensions": [
+    "若磁场方向与线圈平面成 $30^\\circ$ 角，求感应电动势。",
+    "若线圈以速度 $v$ 在均匀磁场中平动，磁通量是否变化？为什么？"
+   ],
+   "diagnosis": ""
+  }
+ },
+ {
+  "id": 90,
+  "question": "一平行板电容器两极板面积 $S=0.01\\,\\mathrm{m^2}$，间距 $d=0.001\\,\\mathrm{m}$，中间充满相对介电常数 $\\varepsilon_r=4$ 的电介质。两极板间电压 $U=100\\,\\mathrm{V}$。求：(1) 电容；(2) 极板上的电荷量；(3) 极板间电场强度大小。取 $\\varepsilon_0=8.85\\times10^{-12}\\,\\mathrm{F/m}$。",
+  "normalized": "一平行板电容器两极板面积s=0.01\\mathrm{m^2},间距d=0.001\\mathrm{m},中间充满相对介电常数\\varepsilon_r=4的电介质。两极板间电压u=100\\mathrm{v}。求:(1)电容;(2)极板上的电荷量;(3)极板间电场强度大小。取\\varepsilon_0=8.85\\times10^{-12}\\mathrm{f/m}。",
+  "subject": "大学物理",
+  "knowledge_points": [
+   "平行板电容器电容",
+   "电介质极化",
+   "匀强电场"
+  ],
+  "answer": "(1) $C\\approx3.54\\times10^{-10}\\,\\mathrm{F}$；(2) $Q\\approx3.54\\times10^{-8}\\,\\mathrm{C}$；(3) $E=1\\times10^5\\,\\mathrm{V/m}$",
+  "result": {
+   "subject": "大学物理",
+   "question_type": "计算题",
+   "answer": "(1) $C\\approx3.54\\times10^{-10}\\,\\mathrm{F}$；(2) $Q\\approx3.54\\times10^{-8}\\,\\mathrm{C}$；(3) $E=1\\times10^5\\,\\mathrm{V/m}$",
+   "steps": [
+    {
+     "title": "求电容",
+     "detail": "平行板电容器电容 $C=\\frac{\\varepsilon_0\\varepsilon_r S}{d}$。代入 $S=0.01$，$d=0.001$，$\\varepsilon_r=4$：$C=\\frac{8.85\\times10^{-12}\\times4\\times0.01}{0.001}=3.54\\times10^{-10}\\,\\mathrm{F}$。"
+    },
+    {
+     "title": "求电荷量",
+     "detail": "由 $Q=CU$，得 $Q=3.54\\times10^{-10}\\times100=3.54\\times10^{-8}\\,\\mathrm{C}$。"
+    },
+    {
+     "title": "求电场强度",
+     "detail": "均匀电场中 $E=\\frac{U}{d}=\\frac{100}{0.001}=1\\times10^5\\,\\mathrm{V/m}$。电介质使电容增大，但不改变给定电压下的 $E=U/d$。"
+    },
+    {
+     "title": "说明电介质作用",
+     "detail": "电介质极化会削弱内部电场，但在电容器中若电压由电源维持，则 $E=U/d$ 仍成立；电容增大导致电荷量增大。"
+    }
+   ],
+   "key_breakthrough": "电容器题先分清是“电压恒定”还是“电荷恒定”。本题电压恒定，因此 $E=U/d$ 直接可用，电容公式中含 $\\varepsilon_r$。",
+   "knowledge_points": [
+    "平行板电容器电容",
+    "电介质极化",
+    "匀强电场"
+   ],
+   "knowledge_review": "平行板电容器 $C=\\frac{\\varepsilon_0\\varepsilon_r S}{d}$，电荷 $Q=CU$，匀强电场 $E=U/d$。电介质相对介电常数 $\\varepsilon_r\\ge1$，使电容增大。易错点：忘记 $\\varepsilon_r$；面积、间距单位未统一；电压恒定与电荷恒定条件混淆。",
+   "extensions": [
+    "若充电后断开电源，再插入电介质，求电压和电场强度变化。",
+    "若电容器两极板间插入厚度为 $d/2$ 的金属板，求新电容。"
+   ],
+   "diagnosis": ""
+  }
+ }
+]

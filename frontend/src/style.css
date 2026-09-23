@@ -1,0 +1,400 @@
+:root {
+  --el-color-primary: #35507a;
+  --el-color-primary-light-3: #5f74a0;
+  --el-color-primary-light-5: #8b9cc0;
+  --el-color-primary-light-7: #bcc7dd;
+  --el-color-primary-light-8: #d3dbec;
+  --el-color-primary-light-9: #e9edf5;
+  --el-color-primary-dark-2: #2a4062;
+  --zy-bg: #f7f8fa;
+  --zy-ink: #1f2733;
+  --zy-muted: #6b7686;
+  --zy-line: #e5e8ee;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #app {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--zy-bg);
+  color: var(--zy-ink);
+  font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 24px 20px 60px;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid var(--zy-line);
+  border-radius: 10px;
+  padding: 22px 26px;
+}
+
+.muted { color: var(--zy-muted); font-size: 13px; }
+
+.section-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title::before {
+  content: "";
+  width: 4px;
+  height: 15px;
+  border-radius: 2px;
+  background: var(--el-color-primary);
+  display: inline-block;
+}
+
+.katex { font-size: 1.05em; }
+
+/* 图片自适应，防止溢出 */
+img { max-width: 100%; }
+
+/* ---------------- 移动端响应式 ---------------- */
+@media (max-width: 768px) {
+  .page { padding: 10px 10px 48px; }
+  .card { padding: 16px 14px; border-radius: 8px; }
+  .section-title { font-size: 14px; }
+  .muted { font-size: 12px; }
+
+  /* 表格/代码块/公式横向滚动，避免撑破布局 */
+  .zy-code, .CodeMirror, .el-table { max-width: 100%; overflow-x: auto; }
+
+  /* 错题本等列表卡片在窄屏收紧 */
+  .el-drawer { width: 100% !important; max-width: 100vw; }
+  .el-dialog { width: 94% !important; }
+}
+
+@media (max-width: 480px) {
+  .page { padding: 8px 6px 40px; }
+  .card { padding: 14px 12px; }
+  body { font-size: 14px; }
+}
+
+/* ---------------- 错题本导出打印（PrintExport） ---------------- */
+@media print {
+  @page { size: A4; margin: 14mm 13mm; }
+
+  /* 打印时只保留打印文档，隐藏应用本体与其它弹层 */
+  body.zy-printing > *:not(.pe-overlay) { display: none !important; }
+
+  .pe-overlay {
+    position: static !important;
+    overflow: visible !important;
+    background: #fff !important;
+    z-index: auto !important;
+  }
+  .pe-toolbar { display: none !important; }
+  .pe-paper {
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .pe-title { font-size: 20px; }
+
+  /* 分页控制：科目标题不落单、一题不拆页、公式块不断裂、长代码允许跨页续排 */
+  .pe-subject { break-after: avoid; page-break-after: avoid; }
+  .pe-item { break-inside: avoid; page-break-inside: avoid; }
+  .pe-q, .pe-answer, .pe-diagnosis, .pe-step, .pe-label, .pe-attempt { break-inside: avoid; page-break-inside: avoid; }
+  .pe-fu { break-inside: avoid; page-break-inside: avoid; }
+  .katex-display { break-inside: avoid; page-break-inside: avoid; }
+  .zy-code { break-inside: auto; page-break-inside: auto; }
+
+  /* 黑白打印优化：底色转白，靠边框区分区域 */
+  .pe-answer { background: #fff !important; border-color: #999 !important; }
+  .pe-diagnosis { background: #fff !important; border-color: #999 !important; }
+  .pe-chip { background: #fff !important; }
+  .pe-status { border-color: #999 !important; color: #444 !important; }
+  .pe-blank { border-color: #bbb !important; }
+
+  /* 速查表打印 */
+  .zpr-gt { break-after: avoid; page-break-after: avoid; }
+  .zpr-fx, .zpr-code { break-inside: avoid; page-break-inside: avoid; }
+  .zr-table { break-inside: avoid; page-break-inside: avoid; }
+}
+
+/* ---------------- 考前速查（Reference） ---------------- */
+/* 说明：内容由内联渲染组件生成，故样式统一放在全局，避免 scoped 属性不生效 */
+
+.zr-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.zr-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.zr-chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0 4px; }
+.zr-chip {
+  border: 1px solid #d3dbec;
+  background: #f6f8fc;
+  color: #35507a;
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.zr-chip:hover { border-color: #8b9cc0; background: #eef2f9; }
+.zr-chip.active { background: #35507a; border-color: #35507a; color: #fff; font-weight: 600; }
+.zr-chip-n { margin-left: 6px; font-size: 11.5px; opacity: 0.75; }
+
+.zr-group { margin-top: 16px; }
+.zr-group-t {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #35507a;
+  padding-left: 9px;
+  border-left: 4px solid #35507a;
+  margin-bottom: 8px;
+}
+
+/* 公式卡片 */
+.zr-fx {
+  border: 1px solid #e5e8ee;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  background: #fdfdfe;
+}
+.zr-name { font-size: 13.5px; font-weight: 600; color: #1f2733; }
+.zr-formula { margin: 6px 0 2px; overflow-x: auto; }
+.zr-note { font-size: 12.5px; line-height: 1.7; color: #6b7686; margin-top: 4px; }
+
+/* 代码卡片 */
+.zr-code-card {
+  border: 1px solid #e5e8ee;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: 12px;
+  background: #fdfdfe;
+}
+.zr-code-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.zr-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.zr-tag {
+  font-size: 11.5px;
+  color: #35507a;
+  border: 1px solid #d3dbec;
+  background: #f2f5fa;
+  border-radius: 999px;
+  padding: 0 8px;
+  line-height: 19px;
+}
+.zr-meta { font-size: 12.5px; line-height: 1.7; color: #4a5568; margin-top: 2px; }
+.zr-k { display: inline-block; min-width: 42px; color: #35507a; font-weight: 600; }
+.zr-code { margin-top: 8px; }
+.zr-code-ops { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.zr-btn {
+  border: 1px solid #d3dbec;
+  background: #f6f8fc;
+  color: #35507a;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.zr-btn:hover { border-color: #8b9cc0; background: #eef2f9; }
+
+/* 速查表 */
+.zr-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  margin-bottom: 8px;
+}
+.zr-table th,
+.zr-table td {
+  border: 1px solid #e5e8ee;
+  padding: 6px 9px;
+  text-align: left;
+  line-height: 1.6;
+}
+.zr-table th { background: #f2f5fa; color: #35507a; font-weight: 600; }
+.zr-table tr:nth-child(even) td { background: #fafbfd; }
+
+/* ---- 打印预览容器（与错题本导出共用同一套打印规则） ---- */
+.pe-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  background: #eceef1;
+  overflow-y: auto;
+}
+.pe-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 18px;
+  background: #1f2733;
+}
+.pe-tip { font-size: 13px; color: #c8d0dc; }
+.pe-actions { display: flex; gap: 10px; flex-shrink: 0; }
+.pe-btn {
+  border: 1px solid #55617a;
+  background: transparent;
+  color: #e7ebf2;
+  border-radius: 6px;
+  padding: 7px 16px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.pe-btn:hover { border-color: #8b9cc0; }
+.pe-btn-primary { background: #35507a; border-color: #35507a; color: #fff; font-weight: 600; }
+.pe-btn-primary:hover { background: #2a4062; }
+.pe-paper {
+  width: min(860px, 100%);
+  margin: 22px auto 60px;
+  background: #fff;
+  box-shadow: 0 2px 14px rgba(31, 39, 51, 0.12);
+  padding: 40px 48px;
+}
+.pe-head { border-bottom: 2px solid #35507a; padding-bottom: 14px; margin-bottom: 8px; }
+.pe-title { font-size: 24px; font-weight: 800; color: #1f2733; letter-spacing: 2px; }
+.pe-sub { margin-top: 8px; font-size: 12.5px; color: #6b7686; }
+.pe-subject {
+  font-size: 16px;
+  font-weight: 700;
+  color: #35507a;
+  margin: 26px 0 4px;
+  padding-left: 9px;
+  border-left: 4px solid #35507a;
+}
+
+/* 打印预览内的速查内容 */
+.zpr-gt {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #35507a;
+  margin: 14px 0 6px;
+}
+.zpr-fx {
+  border-bottom: 1px solid #eef0f4;
+  padding: 8px 0 10px;
+}
+.zpr-code {
+  border-bottom: 1px solid #eef0f4;
+  padding: 8px 0 12px;
+}
+.zpr-code-name { font-size: 13.5px; font-weight: 600; color: #1f2733; }
+.zpr-meta { font-size: 12px; line-height: 1.7; color: #4a5568; }
+
+@media (max-width: 768px) {
+  .zr-tools { width: 100%; }
+  .pe-paper { padding: 20px 14px; }
+  .zr-table { font-size: 11.5px; }
+  .zr-table th, .zr-table td { padding: 4px 6px; }
+}
+
+/* ---------------- 正文字号三档（「我的 → 偏好设置」里切换） ---------------- */
+.zy-font-sm .math-text, .zy-font-sm .md-text { font-size: 13px; }
+.zy-font-md .math-text, .zy-font-md .md-text { font-size: 14px; }
+.zy-font-lg .math-text, .zy-font-lg .md-text { font-size: 15.6px; }
+.zy-font-sm .q-box, .zy-font-sm .answer-box { font-size: 13px; }
+.zy-font-lg .q-box, .zy-font-lg .answer-box { font-size: 15.6px; }
+
+/* ---------------- 拍题框选裁剪（首页与拍题页共用） ---------------- */
+.capture__crop {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  flex: none;
+  line-height: 0;
+  cursor: crosshair;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--surface-unit);
+}
+.capture__crop-img {
+  display: block;
+  max-width: 100%;
+  max-height: 340px;
+  width: auto;
+  height: auto;
+  pointer-events: none;
+}
+.capture__crop-box {
+  position: absolute;
+  border: 1.5px dashed var(--primary-line);
+  background: rgba(53, 80, 122, 0.10);
+  box-shadow: 0 0 0 9999px rgba(4, 6, 10, 0.35);
+  pointer-events: none;
+  z-index: 2;
+}
+.capture__crop-hint {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: rgba(4, 6, 10, 0.62);
+  color: #fff;
+  font-size: var(--fs-label);
+  line-height: 1.4;
+  pointer-events: none;
+  z-index: 2;
+}
+.capture__crop.is-selecting .capture__crop-hint {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .capture__crop-img { max-height: 280px; }
+}
+
+
+/* 多行 MathText 容器：保留换行（LaTeX 文本节点由外层 white-space 控制） */
+.hwd__pre, .clsd__pre, .wb__pre, .comm__pre, .chat__pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ==========================================================================
+   桌面端（≥1024px）内容宽度策略
+   ---------------------------------------------------------------------------
+   桌面端已让出左侧 232px 导航，页面不应再按移动端单列宽度（640/880/1080）收窄；
+   阅读与表单型页面仍保留可读宽度，避免长行排版。
+   ========================================================================== */
+@media (min-width: 1024px) {
+  .zy-container.zy-page {
+    max-width: none !important;
+  }
+  .zy-page.about,
+  .zy-page.help,
+  .zy-page.mine,
+  .zy-page.practice,
+  .zy-page.chat {
+    max-width: var(--col-wide) !important;
+  }
+}

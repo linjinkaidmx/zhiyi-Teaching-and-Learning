@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>知一 2.0 · 桌面端界面方案样图</title>
+<style>
+  /* ===== 设计 token（与 frontend/src/styles 对齐）===== */
+  :root{
+    --bg:#f2f4f9; --surface:#ffffff; --surface-2:#fafbfe; --unit:#eef1f8;
+    --line:rgba(20,30,60,.10); --line-soft:rgba(20,30,60,.06);
+    --t1:#141a26; --t2:#3a445a; --t3:#5d6880; --t4:#7c869b; --t5:#a3abbd;
+    --primary:#6f57f0; --primary-hover:#7e68f7; --cta:#5b47d6;
+    --soft1:rgba(124,92,255,.14); --soft2:rgba(124,92,255,.09); --soft3:rgba(124,92,255,.06);
+    --ptext:#5b47d6; --success:#46b26f; --success-soft:rgba(70,178,111,.14);
+    --warn:#e0a33c; --warn-soft:rgba(224,163,60,.16); --error:#e0605c;
+    --r-sm:9px; --r-md:14px; --r-lg:18px; --r-xl:22px; --pill:999px;
+    --sh-sub:0 1px 2px rgba(20,30,60,.05), 0 8px 22px -10px rgba(20,30,60,.14);
+    --sh-el:0 2px 5px rgba(20,30,60,.06), 0 16px 36px -14px rgba(20,30,60,.18);
+    --sh-hero:0 2px 6px rgba(20,30,60,.06), 0 22px 50px -18px rgba(60,50,160,.28);
+    --font:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
+    --mono:'SF Mono',ui-monospace,'JetBrains Mono',Consolas,Menlo,monospace;
+    --zoom:.64;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#e8ebf2;font-family:var(--font);color:var(--t1);-webkit-font-smoothing:antialiased;padding:28px 0 80px}
+
+  /* ===== 文档外壳 ===== */
+  .doc-head{max-width:1180px;margin:0 auto 30px;padding:0 24px}
+  .doc-head h1{font-size:26px;letter-spacing:-.4px;margin-bottom:8px}
+  .doc-head p{color:var(--t3);font-size:14px;line-height:1.75}
+  .doc-head .tags{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+  .tag{font-size:12px;padding:5px 11px;border-radius:var(--pill);background:#fff;color:var(--t2);border:1px solid var(--line)}
+  .tag.on{background:var(--soft1);color:var(--ptext);border-color:rgba(124,92,255,.28)}
+  .spec{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;margin-top:20px}
+  .spec-i{background:#fff;border:1px solid var(--line);border-radius:var(--r-md);padding:13px 15px}
+  .spec-i b{display:block;font-size:13px;color:var(--ptext);margin-bottom:5px;letter-spacing:.1px}
+  .spec-i span{font-size:12.5px;color:var(--t3);line-height:1.72}
+  .zoombar{max-width:1180px;margin:0 auto 14px;padding:0 24px;display:flex;align-items:center;gap:10px}
+  .zoombar button{font:inherit;font-size:12.5px;padding:7px 14px;border-radius:var(--pill);border:1px solid var(--line);background:#fff;color:var(--t2);cursor:pointer}
+  .zoombar button.on{background:var(--primary);border-color:var(--primary);color:#fff}
+  .zoombar span{font-size:12.5px;color:var(--t4)}
+
+  /* ===== 画板 ===== */
+  .board-wrap{width:1440px;height:calc(900px * var(--zoom));margin:0 auto 34px;position:relative}
+  .board-label{position:absolute;left:0;top:-26px;font-size:13px;color:var(--t3);font-weight:600;letter-spacing:.2px}
+  .board-label b{color:var(--primary);font-weight:700;margin-right:8px}
+  .board{width:1440px;height:900px;background:var(--bg);border-radius:20px;overflow:hidden;box-shadow:var(--sh-el);transform:scale(var(--zoom));transform-origin:top left;position:relative;display:flex}
+
+  /* ===== 侧边导航 ===== */
+  .side{width:232px;flex:0 0 232px;background:var(--surface);border-right:1px solid var(--line-soft);display:flex;flex-direction:column;padding:16px 12px}
+  .brand{display:flex;align-items:center;gap:10px;padding:6px 10px 18px}
+  .brand-ic{width:32px;height:32px;border-radius:10px;background:linear-gradient(140deg,#7e68f7,#5b47d6);display:grid;place-items:center;box-shadow:0 6px 14px -6px rgba(91,71,214,.7)}
+  .brand-name{font-size:16px;font-weight:700;letter-spacing:-.2px}
+  .brand-sub{font-size:11px;color:var(--t4);margin-top:1px}
+  .nav-group{font-size:11px;color:var(--t5);padding:14px 12px 7px;letter-spacing:.6px}
+  .nav-item{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:var(--r-sm);color:var(--t2);font-size:13.5px;margin-bottom:2px;position:relative}
+  .nav-item svg{width:18px;height:18px;flex:0 0 18px;opacity:.85}
+  .nav-item.on{background:var(--soft1);color:var(--ptext);font-weight:600}
+  .nav-item.on svg{opacity:1}
+  .nav-item.on::before{content:"";position:absolute;left:-12px;top:9px;bottom:9px;width:3px;border-radius:0 3px 3px 0;background:var(--primary)}
+  .nav-badge{margin-left:auto;font-size:11px;background:var(--error);color:#fff;border-radius:var(--pill);padding:1px 7px;font-weight:600}
+  .nav-count{margin-left:auto;font-size:11px;color:var(--t4);background:var(--unit);border-radius:var(--pill);padding:1px 8px}
+  .side-foot{margin-top:auto;padding-top:12px;border-top:1px solid var(--line-soft)}
+  .me{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r-sm);background:var(--surface-2)}
+  .me-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(140deg,#8fb7f5,#6f57f0);display:grid;place-items:center;color:#fff;font-size:13px;font-weight:700}
+  .me-n{font-size:13px;font-weight:600}
+  .me-r{font-size:11px;color:var(--t4)}
+
+  /* ===== 顶栏 ===== */
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .top{height:58px;flex:0 0 58px;background:rgba(255,255,255,.78);backdrop-filter:blur(10px);border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:16px;padding:0 22px}
+  .crumb{font-size:13px;color:var(--t3);display:flex;align-items:center;gap:7px}
+  .crumb b{color:var(--t1);font-weight:600;font-size:14.5px}
+  .gsearch{flex:1;max-width:520px;height:38px;border-radius:var(--pill);background:var(--unit);display:flex;align-items:center;gap:10px;padding:0 8px 0 14px;margin:0 auto;color:var(--t4);font-size:13px}
+  .gsearch .k{margin-left:auto;font-size:11px;color:var(--t4);background:#fff;border:1px solid var(--line);border-radius:6px;padding:2px 7px}
+  .gsearch .cam{width:28px;height:28px;border-radius:50%;background:var(--primary);display:grid;place-items:center}
+  .tbtn{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:var(--t3);position:relative}
+  .tbtn .dot{position:absolute;right:7px;top:7px;width:7px;height:7px;border-radius:50%;background:var(--error);border:1.5px solid #fff}
+  .av{width:32px;height:32px;border-radius:50%;background:linear-gradient(140deg,#8fb7f5,#6f57f0);display:grid;place-items:center;color:#fff;font-size:12.5px;font-weight:700}
+  .body{flex:1;display:flex;min-height:0;overflow:hidden}
+
+  /* ===== 通用件 ===== */
+  .card{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r-lg);box-shadow:var(--sh-sub)}
+  .chip{font-size:11.5px;padding:3px 9px;border-radius:var(--pill);background:var(--unit);color:var(--t3)}
+  .chip.p{background:var(--soft1);color:var(--ptext)}
+  .chip.s{background:var(--success-soft);color:#2f8a54}
+  .chip.w{background:var(--warn-soft);color:#a97620}
+  .bar{height:6px;border-radius:var(--pill);background:var(--unit);overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:var(--pill);background:linear-gradient(90deg,#7e68f7,#5b47d6)}
+  .btn{font-size:13px;font-weight:600;padding:9px 16px;border-radius:var(--r-sm);background:var(--cta);color:#fff;display:inline-flex;align-items:center;gap:7px}
+  .btn.ghost{background:#fff;color:var(--t2);border:1px solid var(--line)}
+  .btn.soft{background:var(--soft1);color:var(--ptext)}
+  .btn.sm{font-size:12px;padding:6px 12px}
+  .lbl{font-size:11.5px;color:var(--t4);letter-spacing:.3px}
+  .h2{font-size:17px;font-weight:700;letter-spacing:-.2px}
+  .h3{font-size:14.5px;font-weight:650}
+  .p{font-size:13.5px;color:var(--t2);line-height:1.72}
+  .p2{font-size:12.5px;color:var(--t3);line-height:1.66}
+  .tex{font-family:var(--mono);font-size:13px;color:var(--t1);font-style:italic}
+  .tex .op{font-style:normal;color:var(--t3)}
+  .code{background:#1b2130;border-radius:var(--r-md);padding:13px 15px;font-family:var(--mono);font-size:12.5px;line-height:1.75;color:#dfe5f2}
+  .code .k{color:#c4a6ff}.code .f{color:#7dd3a8}.code .s{color:#f0b37e}.code .c{color:#6f7d99}
+
+  /* ===== 首页工作台 ===== */
+  .home{padding:20px 22px 22px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+  .hero{position:relative;border-radius:var(--r-xl);overflow:hidden;background:linear-gradient(120deg,#e8effc 0%,#f3f0fd 55%,#fdf3ec 100%);padding:19px 24px;display:flex;align-items:center;gap:22px;box-shadow:var(--sh-hero)}
+  .hero::after{content:"";position:absolute;right:-60px;top:-90px;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(124,92,255,.22),transparent 66%)}
+  .hero-txt{position:relative;z-index:1;flex:1}
+  .hero-txt h1{font-size:23px;letter-spacing:-.5px;margin-bottom:7px}
+  .hero-txt p{font-size:13.5px;color:var(--t3)}
+  .hero-metrics{display:flex;gap:24px;margin-top:13px}
+  .hm b{font-size:22px;font-weight:700;letter-spacing:-.5px}
+  .hm span{display:block;font-size:11.5px;color:var(--t4);margin-top:2px}
+  .hero-cta{position:relative;z-index:1;display:flex;flex-direction:column;gap:9px;align-items:stretch;min-width:172px}
+  .scene{position:absolute;right:150px;bottom:0;width:300px;height:150px;opacity:.9;pointer-events:none}
+
+  .quad{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .qcard{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r-lg);padding:15px 16px 13px;box-shadow:var(--sh-sub);display:flex;flex-direction:column;gap:9px;position:relative;overflow:hidden}
+  .qcard::after{content:"";position:absolute;right:-26px;top:-26px;width:96px;height:96px;border-radius:50%;background:var(--soft3)}
+  .qic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--soft2);position:relative;z-index:1}
+  .qcard h3{font-size:15px;font-weight:650;letter-spacing:-.2px}
+  .qcard p{font-size:12px;color:var(--t4);line-height:1.6;position:relative;z-index:1}
+  .qgo{font-size:12.5px;color:var(--ptext);font-weight:600;margin-top:auto;position:relative;z-index:1}
+
+  .home-cols{display:flex;gap:18px;flex:1;min-height:0}
+  .col-main{flex:1;display:flex;flex-direction:column;gap:16px;min-width:0}
+  .col-side{width:308px;flex:0 0 308px;display:flex;flex-direction:column;gap:14px}
+  .blk{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r-lg);box-shadow:var(--sh-sub);overflow:hidden}
+  .blk-h{display:flex;align-items:center;gap:10px;padding:14px 17px;border-bottom:1px solid var(--line-soft)}
+  .blk-h .more{margin-left:auto;font-size:12px;color:var(--t4)}
+  table{width:100%;border-collapse:collapse}
+  th{font-size:11.5px;color:var(--t4);font-weight:500;text-align:left;padding:9px 17px;background:var(--surface-2);border-bottom:1px solid var(--line-soft)}
+  td{font-size:13px;padding:10px 17px;border-bottom:1px solid var(--line-soft);color:var(--t2)}
+  tr:last-child td{border-bottom:0}
+  td b{color:var(--t1);font-weight:600}
+  .tagcell{display:flex;align-items:center;gap:8px}
+  .rec{display:flex;gap:12px;padding:10px 17px;border-bottom:1px solid var(--line-soft);align-items:center}
+  .rec:last-child{border-bottom:0}
+  .rec-ic{width:30px;height:30px;border-radius:9px;background:var(--soft2);display:grid;place-items:center;flex:0 0 30px}
+  .rec-t{flex:1;min-width:0}
+  .rec-t b{font-size:13px;font-weight:600;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rec-t span{font-size:11.5px;color:var(--t4)}
+  .rec-time{font-size:11.5px;color:var(--t5)}
+
+  .scard{background:var(--surface);border:1px solid var(--line-soft);border-radius:var(--r-lg);box-shadow:var(--sh-sub);padding:15px 16px}
+  .exam{background:linear-gradient(140deg,#fff5e8,#fdf0f6);}
+  .exam .lbl{color:#a97620}
+  .cd{font-size:27px;font-weight:700;letter-spacing:-1px;color:#8a5b12;margin:4px 0 2px}
+  .cd span{font-size:13px;font-weight:600;color:#b98430;margin-left:3px}
+  .week{display:flex;gap:6px;margin-top:11px}
+  .wd{flex:1;text-align:center}
+  .wd i{display:block;height:30px;border-radius:9px;background:var(--unit);margin-bottom:5px;position:relative}
+  .wd i.on{background:linear-gradient(180deg,#8b78f8,#5b47d6)}
+  .wd i.on::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:12px;font-style:normal}
+  .wd span{font-size:10px;color:var(--t5)}
+  .ring{display:flex;align-items:center;gap:14px}
+  .quick{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:11px}
+  .qk{display:flex;align-items:center;gap:8px;padding:10px 11px;border-radius:var(--r-md);background:var(--surface-2);border:1px solid var(--line-soft);font-size:12.5px;color:var(--t2)}
+  .qk svg{width:16px;height:16px;opacity:.8}
+
+  /* ===== 排版细节修正（防止窄列换行/挤压）===== */
+  .btn,.chip,.nav-item,.qk,.qgo,td .btn{white-space:nowrap}
+  .hm b,.hm span{white-space:nowrap}
+  .hm{min-width:0}
+  table.fixed{table-layout:fixed}
+  td,th{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  td.wrap{white-space:normal}
+</style>
+</head>
+<body>
+
+<div class="doc-head">
+  <h1>知一 2.0 · 桌面端界面方案（样图）</h1>
+  <p>桌面前端与移动端<b>分形态设计</b>：移动端延续现有单列卡片流；桌面端改为「左侧导航 + 顶部工具条 + 多栏工作台」，把宽屏真正用起来（并排、双栏、主从、表格化），不再是手机界面横向拉宽。<br />配色、圆角、字号、间距全部沿用现有 Design Token，确保视觉同源。</p>
+  <div class="tags">
+    <span class="tag on">左侧竖向导航</span><span class="tag on">多栏工作台</span><span class="tag on">主从双栏</span>
+    <span class="tag on">全局搜题框</span><span class="tag">保留动态背景（限定在 Hero 区）</span><span class="tag">表格化信息</span>
+  </div>
+  <div class="spec">
+    <div class="spec-i"><b>导航重做</b><span>移动端顶部横向 Tab → 桌面左侧竖向导航（按「学习 / 巩固 / 教学与工具」分组，常驻可见、带待办角标），顶部只留一条工具栏承载面包屑、全局搜题（Ctrl K）、通知与账号。</span></div>
+    <div class="spec-i"><b>首页工作台</b><span>移动端单列卡片流 → 三栏：四大功能卡 + 「今日复习任务」表格 + 「最近学习记录」｜右栏放考试倒计时、打卡、周目标、快捷工具。把原本要靠滑动才能看到的信息变成一屏可读。</span></div>
+    <div class="spec-i"><b>搜题分栏</b><span>移动端上下单列 → 左右分栏：左侧常驻「输入 + 识别结果（可直接改）」，右侧是解析区，顶部切成 AI 讲解 / 追问 / 换个讲法 / 举一反三，底部追问输入框常驻，边看边问不用来回滚动。</span></div>
+    <div class="spec-i"><b>错题本主从</b><span>移动端「列表 → 抽屉弹层」→ 左侧筛选与列表常驻、右侧详情原地展开，切换题目零跳转；右栏补掌握度环、知识点、操作组、同知识点其他错题。</span></div>
+    <div class="spec-i"><b>班级三栏</b><span>移动端单页 Tab 切换 → 班级 / 作业列表 / 批改详情三栏并置；学生提交改为表格（得分、AI 评价、逐份操作一目了然），班级报告与批量操作并排放在下方。</span></div>
+    <div class="spec-i"><b>测试双栏</b><span>答题页 → 居中试卷（题干 + 选项/填空）＋ 右侧答题卡（题号网格标记已答/未答/当前、交卷倒计时、题型分布、一键提交），支持键盘切题。</span></div>
+    <div class="spec-i"><b>移动端不动</b><span>本次只新增桌面形态：移动端继续用现有单列布局与底部/顶部导航；两套布局共用同一套 Design Token 与组件，动态背景在桌面端收敛到 Hero 区，避免全屏动效干扰长时间阅读。</span></div>
+  </div>
+</div>
+
+<div class="zoombar">
+  <span>缩放</span>
+  <button id="z64" class="on" onclick="setZoom(.64)">适应宽度 64%</button>
+  <button id="z100" onclick="setZoom(1)">原始尺寸 100%</button>
+  <span>· 5 张画板：首页工作台 / 拍照搜题 / 错题本 / 班级作业 / 限时测试</span>
+</div>
+
+<!-- ============ 画板 1：首页工作台 ============ -->
+<div class="board-wrap"><div class="board-label"><b>01</b>首页 · 桌面工作台（左导航 + 三栏：功能卡 / 数据表格 / 信息栏）</div>
+<div class="board">
+  <aside class="side">
+    <div class="brand">
+      <div class="brand-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M6 7v13M18 7v13M9 12h6M9 16h3"/></svg></div>
+      <div><div class="brand-name">知一学习</div><div class="brand-sub">计算机 · 全学科</div></div>
+    </div>
+    <div class="nav-group">学习</div>
+    <div class="nav-item on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 10.5 12 4l8 6.5V20H4z"/><path d="M9.5 20v-5h5v5"/></svg>工作台</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="2.5" y="6.5" width="19" height="14" rx="3"/><circle cx="12" cy="13.5" r="3.6"/><path d="M8.5 6.5 10 4h4l1.5 2.5"/></svg>拍照搜题</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 12c0 4.1-3.8 7.4-8.5 7.4-1 0-2-.15-2.9-.42L4.5 20.5l1.3-3.6A7.1 7.1 0 0 1 3.5 12C3.5 7.9 7.3 4.6 12 4.6s8.5 3.3 8.5 7.4Z"/></svg>AI 讲题对话</div>
+    <div class="nav-group">巩固</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 4.5h11l3 3v12H5z"/><path d="M8.5 12h7M8.5 15.5h4.5"/></svg>错题学习<span class="nav-count">12</span></div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 12.5 9 6l5 6.5"/><path d="M9 6v14"/><path d="M15 17.5 20 11"/></svg>自测练习<span class="nav-badge">3</span></div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>学习数据</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4.5l3 1.8"/></svg>学习记录</div>
+    <div class="nav-group">教学与工具</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 8.5 12 4l9 4.5-9 4.5z"/><path d="M7 11v4.5c0 1.1 2.2 2 5 2s5-.9 5-2V11"/></svg>班级课堂<span class="nav-count">2</span></div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>课程表</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 3.5h9l3.5 3.5v13.5H6z"/><path d="M9 9.5h6M9 13h6M9 16.5h3"/></svg>考试安排</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M14.5 3.5 6 13h5l-1.5 7.5L18 11h-5z"/></svg>学习工具</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21"/></svg>题库秒答</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 16v-4M12 8.2h.01"/></svg>帮助与反馈</div>
+    <div class="side-foot">
+      <div class="me"><div class="me-av">同</div><div><div class="me-n">同学你好</div><div class="me-r">已同步 · 连续 7 天</div></div></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="top">
+      <div class="crumb">学习 <span style="color:var(--t5)">/</span> <b>工作台</b></div>
+      <div class="gsearch">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21"/></svg>
+        搜题目、知识点、公式（也可直接粘贴截图）
+        <span class="k">Ctrl K</span>
+        <span class="cam"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="2.5" y="6.5" width="19" height="14" rx="3"/><circle cx="12" cy="13.5" r="3.4"/></svg></span>
+      </div>
+      <div class="tbtn"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 10a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5h-15S6 14 6 10Z"/><path d="M10.5 18.5a2 2 0 0 0 3 0"/></svg><span class="dot"></span></div>
+      <div class="av">同</div>
+    </div>
+
+    <div class="body">
+      <div class="home">
+        <div class="hero">
+          <svg class="scene" viewBox="0 0 300 150" fill="none">
+            <path d="M0 96h300v54H0z" fill="#cfe4f6" opacity=".55"/>
+            <path d="M0 96h300" stroke="#a9cbe8" stroke-width="1.5" stroke-dasharray="9 7"/>
+            <path d="M22 108h70M120 116h58M210 106h64" stroke="#9fc6e6" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="7 6"/>
+            <g transform="translate(58 74)"><path d="M0 12 22 12 15 22 7 22Z" fill="#e8a06a"/><path d="M11 0v12" stroke="#b4763f" stroke-width="2"/><path d="M11 1 25 5l-14 4z" fill="#f2c98a"/></g>
+            <g transform="translate(196 80) scale(.7)"><path d="M0 12 22 12 15 22 7 22Z" fill="#d98f5c"/><path d="M11 0v12" stroke="#a96c36" stroke-width="2"/><path d="M11 1 25 5l-14 4z" fill="#f2c98a"/></g>
+            <circle cx="258" cy="34" r="17" fill="#fbe6b8" opacity=".85"/>
+          </svg>
+          <div class="hero-txt">
+            <h1>下午好，同学</h1>
+            <p>今天有 3 道错题到了复习时间，先从最薄弱的知识点开始。</p>
+            <div class="hero-metrics">
+              <div class="hm"><b>3</b><span>待复习</span></div>
+              <div class="hm"><b>7</b><span>连续打卡</span></div>
+              <div class="hm"><b>12</b><span>本周新增错题</span></div>
+              <div class="hm"><b>68%</b><span>掌握度</span></div>
+            </div>
+          </div>
+          <div class="hero-cta">
+            <div class="btn" style="justify-content:center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round"><rect x="2.5" y="6.5" width="19" height="14" rx="3"/><circle cx="12" cy="13.5" r="3.4"/></svg>
+              拍照搜题
+            </div>
+            <div class="btn ghost" style="justify-content:center">输入题目文字</div>
+          </div>
+        </div>
+
+        <div class="quad">
+          <div class="qcard">
+            <div class="qic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#5b47d6" stroke-width="1.7" stroke-linecap="round"><rect x="2.5" y="6.5" width="19" height="14" rx="3"/><circle cx="12" cy="13.5" r="3.4"/><path d="M8.5 6.5 10 4h4l1.5 2.5"/></svg></div>
+            <h3>拍照搜题</h3><p>拍照 / 传图 / 粘贴截图，AI 逐步讲解</p><div class="qgo">开始 →</div>
+          </div>
+          <div class="qcard">
+            <div class="qic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#5b47d6" stroke-width="1.7" stroke-linecap="round"><path d="M5 4.5h11l3 3v12H5z"/><path d="M8.5 12h7M8.5 15.5h4.5"/></svg></div>
+            <h3>错题学习</h3><p>按遗忘曲线复习，连续答对 2 次掌握</p><div class="qgo">去复习 →</div>
+          </div>
+          <div class="qcard">
+            <div class="qic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#5b47d6" stroke-width="1.7" stroke-linecap="round"><path d="M20.5 12c0 4.1-3.8 7.4-8.5 7.4-1 0-2-.15-2.9-.42L4.5 20.5l1.3-3.6A7.1 7.1 0 0 1 3.5 12C3.5 7.9 7.3 4.6 12 4.6s8.5 3.3 8.5 7.4Z"/></svg></div>
+            <h3>AI 讲题对话</h3><p>追问、换个讲法，直到真正听懂</p><div class="qgo">继续对话 →</div>
+          </div>
+          <div class="qcard">
+            <div class="qic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#5b47d6" stroke-width="1.7" stroke-linecap="round"><path d="M14.5 3.5 6 13h5l-1.5 7.5L18 11h-5z"/></svg></div>
+            <h3>学习工具</h3><p>代码判题、算法演示、考前速查</p><div class="qgo">打开工具箱 →</div>
+          </div>
+        </div>
+
+        <div class="blk">
+          <div class="blk-h"><span class="h3">今日复习任务</span><span class="chip p">SRS 智能排期</span><span class="more">查看全部 12 道 →</span></div>
+          <table class="fixed">
+            <thead><tr><th style="width:36%">题目</th><th style="width:11%">来源</th><th style="width:15%">知识点</th><th style="width:14%">掌握度</th><th style="width:11%">到期</th><th style="width:118px"></th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="wrap"><b>用主定理求 T(n)=2T(n/2)+O(n)</b></td><td>班级作业</td><td><span class="chip">算法分析</span></td>
+                <td><div class="bar" style="width:74px"><i style="width:50%"></i></div></td>
+                <td><span class="chip w">今天</span></td>
+                <td><span class="btn soft sm">开始复习</span></td>
+              </tr>
+              <tr>
+                <td class="wrap"><b>快速排序平均时间复杂度推导</b></td><td>拍照搜题</td><td><span class="chip">排序</span></td>
+                <td><div class="bar" style="width:74px"><i style="width:50%"></i></div></td>
+                <td><span class="chip w">今天</span></td>
+                <td><span class="btn soft sm">开始复习</span></td>
+              </tr>
+              <tr>
+                <td class="wrap"><b>栈与队列的区别（简答）</b></td><td>班级作业</td><td><span class="chip">线性表</span></td>
+                <td><div class="bar" style="width:74px"><i style="width:0%"></i></div></td>
+                <td><span class="chip">明天</span></td>
+                <td><span class="btn ghost sm">稍后提醒</span></td>
+              </tr>
+              <tr>
+                <td class="wrap"><b>二阶常系数齐次微分方程通解</b></td><td>拍照搜题</td><td><span class="chip">高数</span></td>
+                <td><div class="bar" style="width:74px"><i style="width:100%"></i></div></td>
+                <td><span class="chip s">已掌握</span></td>
+                <td><span class="btn ghost sm">查看解析</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="blk">
+          <div class="blk-h"><span class="h3">最近学习记录</span><span class="more">全部记录 →</span></div>
+          <div class="rec">
+            <div class="rec-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5b47d6" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h11M4 18h7"/></svg></div>
+            <div class="rec-t"><b>用主定理求递归式时间复杂度，并给出 Python 实现</b><span>完成讲解 · 6 个步骤 · 1 次追问</span></div>
+            <div class="rec-time">12 分钟前</div>
+          </div>
+          <div class="rec">
+            <div class="rec-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5b47d6" stroke-width="1.8" stroke-linecap="round"><path d="M5 4.5h11l3 3v12H5z"/><path d="M8.5 12h7"/></svg></div>
+            <div class="rec-t"><b>错题自测：排序与查找（8 题）</b><span>正确 6 / 8 · 正确率 75%</span></div>
+            <div class="rec-time">1 小时前</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="home-side" style="width:308px;flex:0 0 308px;display:flex;flex-direction:column;gap:14px;padding:22px 24px 24px 0">
+        <div class="scard exam">
+          <div class="lbl">最近一场考试</div>
+          <div class="cd">12<span>天后</span></div>
+          <div class="p2" style="margin-bottom:10px">《数据结构》期末 · 09-30 14:00</div>
+          <div class="bar"><i style="width:63%"></i></div>
+          <div class="lbl" style="margin-top:7px">复习进度 63% · 已覆盖 8/13 章</div>
+        </div>
+        <div class="scard">
+          <div style="display:flex;align-items:center;gap:8px"><span class="h3">连续打卡</span><span class="chip s">7 天</span><span class="lbl" style="margin-left:auto">9 月</span></div>
+          <div class="week">
+            <div class="wd"><i class="on"></i><span>一</span></div>
+            <div class="wd"><i class="on"></i><span>二</span></div>
+            <div class="wd"><i class="on"></i><span>三</span></div>
+            <div class="wd"><i class="on"></i><span>四</span></div>
+            <div class="wd"><i class="on"></i><span>五</span></div>
+            <div class="wd"><i class="on"></i><span>六</span></div>
+            <div class="wd"><i style="background:var(--soft1)"></i><span>日</span></div>
+          </div>
+        </div>
+        <div class="scard">
+          <div class="h3" style="margin-bottom:12px">本周目标</div>
+          <div class="ring">
+            <svg width="74" height="74" viewBox="0 0 74 74">
+              <circle cx="37" cy="37" r="30" fill="none" stroke="#eef1f8" stroke-width="9"/>
+              <circle cx="37" cy="37" r="30" fill="none" stroke="#6f57f0" stroke-width="9" stroke-linecap="round" stroke-dasharray="188" stroke-dashoffset="58" transform="rotate(-90 37 37)"/>
+              <text x="37" y="42" text-anchor="middle" font-size="17" font-weight="700" fill="#141a26">69%</text>
+            </svg>
+            <div><div class="p2">已完成 <b style="color:var(--t1)">11 / 16</b> 项</div><div class="lbl" style="margin-top:5px">再完成 5 项达成周目标</div></div>
+          </div>
+        </div>
+        <div class="scard">
+          <div class="h3" style="margin-bottom:3px">快捷工具</div>
+          <div class="quick">
+            <div class="qk"><svg viewBox="0 0 24 24" fill="none" stroke="#5b47d6" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21"/></svg>题库秒答</div>
+            <div class="qk"><svg viewBox="0 0 24 24" fill="none" stroke="#5b47d6" stroke-width="1.8" stroke-linecap="round"><path d="M4 19V9M10 19V5M16 19v-7"/></svg>算法演示</div>
+            <div class="qk"><svg viewBox="0 0 24 24" fill="none" stroke="#5b47d6" stroke-width="1.8" stroke-linecap="round"><path d="M6 3.5h9l3.5 3.5v13.5H6z"/></svg>考前速查</div>
+            <div class="qk"><svg viewBox="0 0 24 24" fill="none" stroke="#5b47d6" stroke-width="1.8" stroke-linecap="round"><path d="M4 8.5 12 4l9 4.5-9 4.5z"/><path d="M7 11v4.5c0 1.1 2.2 2 5 2s5-.9 5-2V11"/></svg>模拟考试</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============ 画板 2：拍照搜题（左右分栏）============ -->
+<div class="board-wrap"><div class="board-label"><b>02</b>拍照搜题 · 左右分栏（左：题目输入与编辑 / 右：解析、追问、换个讲法）</div>
+<div class="board">
+  <aside class="side">
+    <div class="brand">
+      <div class="brand-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M6 7v13M18 7v13M9 12h6M9 16h3"/></svg></div>
+      <div><div class="brand-name">知一学习</div><div class="brand-sub">计算机 · 全学科</div></div>
+    </div>
+    <div class="nav-group">学习</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 10.5 12 4l8 6.5V20H4z"/></svg>工作台</div>
+    <div class="nav-item on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="2.5" y="6.5" width="19" height="14" rx="3"/><circle cx="12" cy="13.5" r="3.6"/></svg>拍照搜题</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M20.5 12c0 4.1-3.8 7.4-8.5 7.4-1 0-2-.15-2.9-.42L4.5 20.5l1.3-3.6A7.1 7.1 0 0 1 3.5 12C3.5 7.9 7.3 4.6 12 4.6s8.5 3.3 8.5 7.4Z"/></svg>AI 讲题对话</div>
+    <div class="nav-group">巩固</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 4.5h11l3 3v12H5z"/></svg>错题学习<span class="nav-count">12</span></div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 12.5 9 6l5 6.5"/></svg>自测练习<span class="nav-badge">3</span></div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>学习数据</div>
+    <div class="nav-group">教学与工具</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 8.5 12 4l9 4.5-9 4.5z"/></svg>班级课堂<span class="nav-count">2</span></div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18"/></svg>课程表</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M14.5 3.5 6 13h5l-1.5 7.5L18 11h-5z"/></svg>学习工具</div>
+    <div class="side-foot"><div class="me"><div class="me-av">同</div><div><div class="me-n">同学你好</div><div class="me-r">已同步 · 连续 7 天</div></div></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="top">
+      <div class="crumb">学习 <span style="color:var(--t5)">/</span> <b>拍照搜题</b></div>
+      <div class="gsearch">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21"/></svg>
+        搜题目、知识点、公式（也可直接粘贴截图）<span class="k">Ctrl K</span>
+        <span class="cam"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="2.5" y="6.5" width="19" height="14" rx="3"/><circle cx="12" cy="13.5" r="3.4"/></svg></span>
+      </div>
+      <div class="tbtn"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 10a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5h-15S6 14 6 10Z"/><path d="M10.5 18.5a2 2 0 0 0 3 0"/></svg><span class="dot"></span></div>
+      <div class="av">同</div>
+    </div>
+
+    <div class="body">
+      <!-- 左：输入区 -->
+      <div style="width:496px;flex:0 0 496px;border-right:1px solid var(--line-soft);padding:20px;display:flex;flex-direction:column;gap:14px;overflow:hidden;background:var(--surface-2)">
+        <div style="display:flex;align-items:center;gap:9px">
+          <span class="h2">题目输入</span><span class="chip">支持 9 张 / 多题拆分</span>
+        </div>
+        <div style="display:flex;gap:7px">
+          <span class="chip p">拍照 / 相册</span><span class="chip">粘贴截图</span><span class="chip">直接输入文字</span><span class="chip">题库秒答</span>
+        </div>
+        <div class="card" style="border-style:dashed;border-width:1.5px;border-color:rgba(124,92,255,.32);padding:22px;display:grid;place-items:center;text-align:center;background:#fff">
+          <div style="width:46px;height:46px;border-radius:14px;background:var(--soft1);display:grid;place-items:center;margin-bottom:11px">
+            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#5b47d6" stroke-width="1.7" stroke-linecap="round"><rect x="2.5" y="6.5" width="19" height="14" rx="3"/><circle cx="12" cy="13.5" r="3.6"/><path d="M8.5 6.5 10 4h4l1.5 2.5"/></svg>
+          </div>
+          <div class="h3">把题目图片拖到这里</div>
+          <div class="p2" style="margin-top:5px">也可以点击选择、Ctrl+V 粘贴截图；多题可一次上传 9 张，逐题拆分讲解</div>
+          <div style="display:flex;gap:8px;margin-top:14px"><span class="btn sm">选择图片</span><span class="btn ghost sm">拍照</span></div>
+        </div>
+        <div>
+          <div class="lbl" style="margin-bottom:7px">已上传（2）· 可拖拽框选题区</div>
+          <div style="display:flex;gap:9px">
+            <div style="width:88px;height:66px;border-radius:var(--r-md);background:linear-gradient(140deg,#e7eefb,#f6f2fd);border:1px solid var(--line);position:relative">
+              <span style="position:absolute;left:5px;top:5px;font-size:10px;background:rgba(20,30,60,.6);color:#fff;border-radius:5px;padding:1px 5px">第 1 页</span>
+              <span style="position:absolute;right:5px;top:5px;color:#fff;background:var(--primary);width:15px;height:15px;border-radius:50%;display:grid;place-items:center;font-size:11px">✓</span>
+            </div>
+            <div style="width:88px;height:66px;border-radius:var(--r-md);background:linear-gradient(140deg,#f3eee7,#fdf6f0);border:1px solid var(--line);position:relative">
+              <span style="position:absolute;left:5px;top:5px;font-size:10px;background:rgba(20,30,60,.6);color:#fff;border-radius:5px;padding:1px 5px">第 2 页</span>
+            </div>
+            <div style="width:88px;height:66px;border-radius:var(--r-md);border:1.5px dashed rgba(124,92,255,.3);display:grid;place-items:center;color:var(--ptext);font-size:20px">＋</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;min-height:0">
+          <div class="lbl" style="margin-bottom:7px;display:flex;align-items:center;gap:7px">识别结果（可编辑）<span class="chip s">已识别 2 题</span></div>
+          <div class="card" style="padding:13px;display:flex;flex-direction:column;gap:9px;margin-bottom:14px">
+            <div style="font-size:13px;line-height:1.7;color:var(--t1)"><span class="chip p" style="margin-right:6px">1</span>用主定理求 <span class="tex">T(n) <span class="op">=</span> 2T(n/2) <span class="op">+</span> O(n)</span> 的时间复杂度，并写出推导过程。</div>
+            <div style="font-size:13px;line-height:1.7;color:var(--t1)"><span class="chip p" style="margin-right:6px">2</span>给出该算法的 Python 实现，并说明为什么它是稳定排序。</div>
+            <div class="lbl" style="margin-top:4px">识别可能有误？直接在此修改后再讲解。</div>
+          </div>
+          <div class="blk" style="flex:1;overflow:hidden">
+            <div class="blk-h"><span class="h3">最近搜过</span><span class="more">全部记录 →</span></div>
+            <div class="rec"><div class="rec-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5b47d6" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h11"/></svg></div>
+              <div class="rec-t"><b>快速排序平均时间复杂度推导</b><span>算法分析 · 6 步讲解</span></div><div class="rec-time">今天 10:24</div></div>
+            <div class="rec"><div class="rec-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5b47d6" stroke-width="1.8" stroke-linecap="round"><path d="M5 4.5h11l3 3v12H5z"/></svg></div>
+              <div class="rec-t"><b>栈与队列的区别（简答）</b><span>线性表 · 已存入错题本</span></div><div class="rec-time">昨天 21:05</div></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:9px">
+          <span class="btn" style="flex:1;justify-content:center">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M14.5 3.5 6 13h5l-1.5 7.5L18 11h-5z"/></svg>
+            开始讲解（2 题）
+          </span>
+          <span class="btn ghost">仅保存</span>
+        </div>
+      </div>
+
+      <!-- 右：解析区 -->
+      <div style="flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg)">
+        <div style="display:flex;align-items:center;gap:8px;padding:13px 22px;border-bottom:1px solid var(--line-soft);background:var(--surface)">
+          <span class="chip p">题目 1 / 2</span>
+          <span class="h3" style="margin-left:2px">用主定理求 T(n)=2T(n/2)+O(n)</span>
+          <span class="chip s" style="margin-left:auto">识别置信度高</span>
+          <span class="btn ghost sm">存入错题本</span>
+          <span class="btn ghost sm">导出 PDF</span>
+        </div>
+        <div style="flex:1;overflow:hidden;padding:20px 22px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;gap:7px">
+            <span class="chip p">AI 讲解</span><span class="chip">追问老师</span><span class="chip">换个讲法</span><span class="chip">举一反三</span><span class="chip">知识点回顾</span>
+          </div>
+          <div class="card" style="padding:17px 19px">
+            <div class="lbl" style="margin-bottom:9px">答案</div>
+            <div class="p">该算法的时间复杂度为 <span class="tex">Θ(n log n)</span>。由主定理第二类情形：<span class="tex">a <span class="op">=</span> 2, b <span class="op">=</span> 2</span>，比较 <span class="tex">f(n) <span class="op">=</span> O(n)</span> 与 <span class="tex">n<sup>log<sub>b</sub>a</sup> <span class="op">=</span> n</span>，两者同阶，故 <span class="tex">T(n) <span class="op">=</span> Θ(n log n)</span>。</div>
+          </div>
+          <div class="card" style="padding:17px 19px;flex:1;overflow:hidden">
+            <div class="lbl" style="margin-bottom:11px">解题步骤</div>
+            <div style="display:flex;gap:11px;margin-bottom:13px">
+              <span style="width:21px;height:21px;border-radius:50%;background:var(--soft1);color:var(--ptext);display:grid;place-items:center;font-size:11.5px;font-weight:700;flex:0 0 21px">1</span>
+              <div><div class="t-h3" style="font-size:13.5px;font-weight:650;margin-bottom:3px">写出递归式与三个参数</div>
+              <div class="p2">递归式 <span class="tex">T(n) <span class="op">=</span> 2T(n/2) <span class="op">+</span> O(n)</span>，因此 <span class="tex">a <span class="op">=</span> 2</span>（子问题个数）、<span class="tex">b <span class="op">=</span> 2</span>（规模缩减比）、<span class="tex">f(n) <span class="op">=</span> O(n)</span>。</div></div>
+            </div>
+            <div style="display:flex;gap:11px;margin-bottom:13px">
+              <span style="width:21px;height:21px;border-radius:50%;background:var(--soft1);color:var(--ptext);display:grid;place-items:center;font-size:11.5px;font-weight:700;flex:0 0 21px">2</span>
+              <div><div style="font-size:13.5px;font-weight:650;margin-bottom:3px">计算 <span class="tex">n<sup>log<sub>b</sub>a</sup></span> 并与 <span class="tex">f(n)</span> 比较</div>
+              <div class="p2"><span class="tex">n<sup>log<sub>2</sub>2</sup> <span class="op">=</span> n</span>，与 <span class="tex">f(n) <span class="op">=</span> O(n)</span> 同阶 → 属于主定理第二类情形，答案为 <span class="tex">Θ(n<sup>log<sub>b</sub>a</sup> · log n)</span>。</div></div>
+            </div>
+            <div style="display:flex;gap:11px">
+              <span style="width:21px;height:21px;border-radius:50%;background:var(--soft1);color:var(--ptext);display:grid;place-items:center;font-size:11.5px;font-weight:700;flex:0 0 21px">3</span>
+              <div style="flex:1"><div style="font-size:13.5px;font-weight:650;margin-bottom:5px">Python 实现（可在线运行）</div>
+              <div class="code"><span class="c"># 归并排序：T(n) = 2T(n/2) + O(n)</span><br><span class="k">def</span> <span class="f">merge_sort</span>(a):<br>&nbsp;&nbsp;<span class="k">if</span> len(a) &lt;= <span class="s">1</span>: <span class="k">return</span> a<br>&nbsp;&nbsp;m = len(a) // <span class="s">2</span><br>&nbsp;&nbsp;<span class="k">return</span> merge(merge_sort(a[:m]), merge_sort(a[m:]))</div>
+              <div style="display:flex;gap:8px;margin-top:9px"><span class="btn soft sm">运行代码</span><span class="btn ghost sm">复杂度分析</span><span class="btn ghost sm">查看完整实现</span></div></div>
+            </div>
+          </div>
+        </div>
+        <div style="padding:13px 22px 18px;background:var(--surface);border-top:1px solid var(--line-soft);display:flex;gap:10px;align-items:center">
+          <div style="flex:1;height:42px;border-radius:var(--r-sm);background:var(--unit);display:flex;align-items:center;padding:0 14px;color:var(--t4);font-size:13px">追问：为什么这里不能用主定理第一类情形？</div>
+          <span class="btn">发送追问</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============ 画板 3：错题本（主从双栏）============ -->
+<div class="board-wrap"><div class="board-label"><b>03</b>错题学习 · 主从双栏（左：筛选与列表常驻 / 右：详情原地展开，不再用抽屉）</div>
+<div class="board">
+  <aside class="side">
+    <div class="brand">
+      <div class="brand-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M6 7v13M18 7v13M9 12h6M9 16h3"/></svg></div>
+      <div><div class="brand-name">知一学习</div><div class="brand-sub">计算机 · 全学科</div></div>
+    </div>
+    <div class="nav-group">学习</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 10.5 12 4l8 6.5V20H4z"/></svg>工作台</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="2.5" y="6.5" width="19" height="14" rx="3"/><circle cx="12" cy="13.5" r="3.6"/></svg>拍照搜题</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M20.5 12c0 4.1-3.8 7.4-8.5 7.4-1 0-2-.15-2.9-.42L4.5 20.5l1.3-3.6A7.1 7.1 0 0 1 3.5 12C3.5 7.9 7.3 4.6 12 4.6s8.5 3.3 8.5 7.4Z"/></svg>AI 讲题对话</div>
+    <div class="nav-group">巩固</div>
+    <div class="nav-item on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 4.5h11l3 3v12H5z"/><path d="M8.5 12h7M8.5 15.5h4.5"/></svg>错题学习<span class="nav-count">12</span></div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 12.5 9 6l5 6.5"/><path d="M9 6v14"/></svg>自测练习<span class="nav-badge">3</span></div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>学习数据</div>
+    <div class="nav-group">教学与工具</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 8.5 12 4l9 4.5-9 4.5z"/></svg>班级课堂<span class="nav-count">2</span></div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/></svg>课程表</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M14.5 3.5 6 13h5l-1.5 7.5L18 11h-5z"/></svg>学习工具</div>
+    <div class="side-foot"><div class="me"><div class="me-av">同</div><div><div class="me-n">同学你好</div><div class="me-r">已同步 · 连续 7 天</div></div></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="top">
+      <div class="crumb">巩固 <span style="color:var(--t5)">/</span> <b>错题学习</b></div>
+      <div class="gsearch">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21"/></svg>
+        在错题与笔记中搜索<span class="k">Ctrl K</span>
+        <span class="cam"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="2.5" y="6.5" width="19" height="14" rx="3"/><circle cx="12" cy="13.5" r="3.4"/></svg></span>
+      </div>
+      <div class="tbtn"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 10a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5h-15S6 14 6 10Z"/><path d="M10.5 18.5a2 2 0 0 0 3 0"/></svg><span class="dot"></span></div>
+      <div class="av">同</div>
+    </div>
+
+    <div class="body">
+      <!-- 左：列表 -->
+      <div style="width:372px;flex:0 0 372px;border-right:1px solid var(--line-soft);background:var(--surface);display:flex;flex-direction:column;overflow:hidden">
+        <div style="padding:16px 16px 12px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:9px">
+            <span class="h2">错题 12</span><span class="chip w">待复习 3</span><span class="chip s">已掌握 5</span>
+            <span class="btn sm" style="margin-left:auto">＋ 添加</span>
+          </div>
+          <div style="height:36px;border-radius:var(--r-sm);background:var(--unit);display:flex;align-items:center;gap:8px;padding:0 12px;color:var(--t4);font-size:12.5px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21"/></svg>搜索题干或知识点
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="chip p">全部 12</span><span class="chip">待复习 3</span><span class="chip">复习中 4</span><span class="chip">已掌握 5</span><span class="chip">笔记 2</span>
+          </div>
+          <div style="display:flex;gap:6px">
+            <span class="chip">全部课程</span><span class="chip">数据结构</span><span class="chip">高数</span><span class="chip">操作系统</span>
+          </div>
+        </div>
+        <div style="flex:1;overflow:hidden;border-top:1px solid var(--line-soft)">
+          <div style="padding:14px 16px;background:var(--soft2);border-left:3px solid var(--primary)">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px">
+              <span class="chip w">待复习</span><span class="chip">算法分析</span><span class="lbl" style="margin-left:auto">今天到期</span>
+            </div>
+            <div style="font-size:13.5px;font-weight:600;line-height:1.55">用主定理求 <span class="tex">T(n) <span class="op">=</span> 2T(n/2) <span class="op">+</span> O(n)</span> 的时间复杂度</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:8px"><div class="bar" style="flex:1"><i style="width:50%"></i></div><span class="lbl">1 / 2</span></div>
+          </div>
+          <div style="padding:14px 16px;border-bottom:1px solid var(--line-soft)">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px"><span class="chip w">待复习</span><span class="chip">排序</span><span class="lbl" style="margin-left:auto">今天到期</span></div>
+            <div style="font-size:13.5px;font-weight:600;line-height:1.55">快速排序平均时间复杂度推导</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:8px"><div class="bar" style="flex:1"><i style="width:50%"></i></div><span class="lbl">1 / 2</span></div>
+          </div>
+          <div style="padding:14px 16px;border-bottom:1px solid var(--line-soft)">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px"><span class="chip">复习中</span><span class="chip">线性表</span><span class="lbl" style="margin-left:auto">明天</span></div>
+            <div style="font-size:13.5px;font-weight:600;line-height:1.55">栈与队列的区别（简答）</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:8px"><div class="bar" style="flex:1"><i style="width:0%"></i></div><span class="lbl">0 / 2</span></div>
+          </div>
+          <div style="padding:14px 16px;border-bottom:1px solid var(--line-soft)">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px"><span class="chip s">已掌握</span><span class="chip">高数</span><span class="lbl" style="margin-left:auto">09-28 复习</span></div>
+            <div style="font-size:13.5px;font-weight:600;line-height:1.55">二阶常系数齐次微分方程通解</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:8px"><div class="bar" style="flex:1"><i style="width:100%"></i></div><span class="lbl">2 / 2</span></div>
+          </div>
+          <div style="padding:14px 16px;border-bottom:1px solid var(--line-soft)">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px"><span class="chip p">笔记</span><span class="chip">知识点</span><span class="lbl" style="margin-left:auto">班级笔记</span></div>
+            <div style="font-size:13.5px;font-weight:600;line-height:1.55">主定理速记：三类情形的判定条件</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右：详情 -->
+      <div style="flex:1;min-width:0;background:var(--bg);overflow:hidden;display:flex;flex-direction:column">
+        <div style="padding:17px 24px;background:var(--surface);border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:11px">
+          <span class="h2">用主定理求 <span class="tex">T(n) <span class="op">=</span> 2T(n/2) <span class="op">+</span> O(n)</span> 的时间复杂度</span>
+          <span class="chip w" style="margin-left:auto">待复习</span><span class="chip">算法分析</span><span class="chip">数据结构</span>
+        </div>
+        <div style="flex:1;padding:20px 24px;display:flex;gap:18px;overflow:hidden">
+          <div style="flex:1;display:flex;flex-direction:column;gap:14px;min-width:0">
+            <div class="card" style="padding:17px 19px">
+              <div class="lbl" style="margin-bottom:9px">题目</div>
+              <div class="p">已知归并排序的递归式 <span class="tex">T(n) <span class="op">=</span> 2T(n/2) <span class="op">+</span> O(n)</span>，请用主定理求其时间复杂度，并说明属于哪一类情形。</div>
+            </div>
+            <div class="card" style="padding:17px 19px;border-left:3px solid var(--warn)">
+              <div class="lbl" style="margin-bottom:9px">我的作答（批改后自动存档）</div>
+              <div class="p2">由主定理：a=2, b=2，所以 <span class="tex">n<sup>log<sub>b</sub>a</sup> <span class="op">=</span> n</span>，与 f(n) 同阶，所以是第二类，答案是 O(n log n)。</div>
+              <div style="display:flex;gap:7px;margin-top:10px"><span class="chip w">结论对</span><span class="chip">推导略简</span></div>
+            </div>
+            <div class="card" style="padding:17px 19px">
+              <div class="lbl" style="margin-bottom:11px">解析 · 3 步</div>
+              <div style="display:flex;gap:11px;margin-bottom:12px">
+                <span style="width:20px;height:20px;border-radius:50%;background:var(--soft1);color:var(--ptext);display:grid;place-items:center;font-size:11px;font-weight:700;flex:0 0 20px">1</span>
+                <div class="p2">读出三个参数：子问题个数 <span class="tex">a <span class="op">=</span> 2</span>、规模缩减比 <span class="tex">b <span class="op">=</span> 2</span>、额外代价 <span class="tex">f(n) <span class="op">=</span> O(n)</span>。</div>
+              </div>
+              <div style="display:flex;gap:11px;margin-bottom:12px">
+                <span style="width:20px;height:20px;border-radius:50%;background:var(--soft1);color:var(--ptext);display:grid;place-items:center;font-size:11px;font-weight:700;flex:0 0 20px">2</span>
+                <div class="p2">计算 <span class="tex">n<sup>log<sub>b</sub>a</sup> <span class="op">=</span> n<sup>1</sup> <span class="op">=</span> n</span>，与 <span class="tex">f(n) <span class="op">=</span> Θ(n)</span> 同阶 → 第二类情形。</div>
+              </div>
+              <div style="display:flex;gap:11px">
+                <span style="width:20px;height:20px;border-radius:50%;background:var(--soft1);color:var(--ptext);display:grid;place-items:center;font-size:11px;font-weight:700;flex:0 0 20px">3</span>
+                <div><div class="p2" style="margin-bottom:7px">代入第二类公式，得到紧确界 <span class="tex">T(n) <span class="op">=</span> Θ(n log n)</span>。</div>
+                <div class="code"><span class="c"># 第二类：f(n) = Θ(n^(log_b a))</span><br>T(n) = Θ(n^(log_b a) · log n) = <span class="f">Θ(n log n)</span></div></div>
+              </div>
+            </div>
+            <div class="blk">
+              <div class="blk-h"><span class="h3">同知识点的其他错题</span><span class="chip">主定理</span><span class="more">按知识点复习 →</span></div>
+              <div class="rec"><div class="rec-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5b47d6" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h11"/></svg></div>
+                <div class="rec-t"><b>主定理三类情形的判定条件对比</b><span>复习中 · 1 / 2</span></div>
+                <span class="btn ghost sm">复习</span></div>
+              <div class="rec"><div class="rec-ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5b47d6" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h11"/></svg></div>
+                <div class="rec-t"><b>递推式展开法与主定理的适用边界</b><span>待复习 · 今天</span></div>
+                <span class="btn soft sm">复习</span></div>
+            </div>
+          </div>
+          <div style="width:250px;flex:0 0 250px;display:flex;flex-direction:column;gap:14px">
+            <div class="scard">
+              <div class="h3" style="margin-bottom:11px">掌握度</div>
+              <div style="display:flex;align-items:center;gap:12px">
+                <svg width="62" height="62" viewBox="0 0 62 62">
+                  <circle cx="31" cy="31" r="25" fill="none" stroke="#eef1f8" stroke-width="8"/>
+                  <circle cx="31" cy="31" r="25" fill="none" stroke="#e0a33c" stroke-width="8" stroke-linecap="round" stroke-dasharray="157" stroke-dashoffset="78" transform="rotate(-90 31 31)"/>
+                  <text x="31" y="36" text-anchor="middle" font-size="14" font-weight="700" fill="#141a26">50%</text>
+                </svg>
+                <div class="p2">连续答对 <b style="color:var(--t1)">1 / 2</b> 次即掌握<br /><span class="lbl">已复习 1 次 · 下次今天</span></div>
+              </div>
+            </div>
+            <div class="scard">
+              <div class="h3" style="margin-bottom:10px">知识点</div>
+              <div style="display:flex;gap:7px;flex-wrap:wrap"><span class="chip p">主定理</span><span class="chip p">递归式求解</span><span class="chip">复杂度分析</span><span class="chip">分治法</span></div>
+            </div>
+            <div class="scard" style="display:flex;flex-direction:column;gap:8px">
+              <div class="h3" style="margin-bottom:3px">操作</div>
+              <span class="btn" style="justify-content:center">开始复习（重做原题）</span>
+              <span class="btn soft" style="justify-content:center">追问我没懂的地方</span>
+              <span class="btn ghost" style="justify-content:center">换个讲法再讲一遍</span>
+              <div style="display:flex;gap:8px">
+                <span class="btn ghost sm" style="flex:1;justify-content:center">编辑</span>
+                <span class="btn ghost sm" style="flex:1;justify-content:center">打印</span>
+                <span class="btn ghost sm" style="flex:1;justify-content:center">分享</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============ 画板 4：班级作业批改（三栏）============ -->
+<div class="board-wrap"><div class="board-label"><b>04</b>班级课堂（教师视角）· 三栏（班级 / 作业列表 / 批改详情与班级报告）</div>
+<div class="board">
+  <aside class="side">
+    <div class="brand">
+      <div class="brand-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M6 7v13M18 7v13M9 12h6M9 16h3"/></svg></div>
+      <div><div class="brand-name">知一学习</div><div class="brand-sub">教师 · 王老师</div></div>
+    </div>
+    <div class="nav-group">教学</div>
+    <div class="nav-item on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 8.5 12 4l9 4.5-9 4.5z"/><path d="M7 11v4.5c0 1.1 2.2 2 5 2s5-.9 5-2V11"/></svg>我的班级<span class="nav-count">2</span></div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 4.5h11l3 3v12H5z"/><path d="M8.5 12h7"/></svg>作业与批改<span class="nav-badge">5</span></div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 12.5 9 6l5 6.5"/><path d="M9 6v14"/></svg>测试与排名</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>班级学情</div>
+    <div class="nav-group">备课</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>发布笔记 / 知识点</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21"/></svg>题库检索</div>
+    <div class="nav-group">我的</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/></svg>课程表</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M14.5 3.5 6 13h5l-1.5 7.5L18 11h-5z"/></svg>学习工具</div>
+    <div class="side-foot"><div class="me"><div class="me-av" style="background:linear-gradient(140deg,#f5b98f,#e0925c)">王</div><div><div class="me-n">王老师</div><div class="me-r">已认证 · 计算机学院</div></div></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="top">
+      <div class="crumb">教学 <span style="color:var(--t5)">/</span> <b>班级课堂</b> <span style="color:var(--t5)">/</span> 数据结构 2024 级</div>
+      <div class="gsearch" style="max-width:420px">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5 21 21"/></svg>搜索学生、作业、笔记<span class="k">Ctrl K</span>
+      </div>
+      <span class="btn sm">＋ 布置作业</span>
+      <div class="tbtn"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 10a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5h-15S6 14 6 10Z"/></svg><span class="dot"></span></div>
+      <div class="av" style="background:linear-gradient(140deg,#f5b98f,#e0925c)">王</div>
+    </div>
+
+    <div class="body">
+      <!-- 第一栏：班级 -->
+      <div style="width:168px;flex:0 0 168px;background:var(--surface);border-right:1px solid var(--line-soft);display:flex;flex-direction:column;overflow:hidden">
+        <div style="padding:14px;display:flex;align-items:center;gap:8px"><span class="h3">我的班级</span><span class="btn ghost sm" style="margin-left:auto;padding:4px 9px">＋</span></div>
+        <div style="padding:0 10px 10px;display:flex;flex-direction:column;gap:2px">
+          <div style="padding:10px 11px;border-radius:var(--r-sm);background:var(--soft1)">
+            <div style="font-size:13px;font-weight:650;color:var(--ptext)">数据结构 2024 级</div>
+            <div class="lbl" style="margin-top:3px">38 人 · 5 份待批</div>
+          </div>
+          <div style="padding:10px 11px;border-radius:var(--r-sm)">
+            <div style="font-size:13px;font-weight:600;color:var(--t2)">操作系统 2024 级</div>
+            <div class="lbl" style="margin-top:3px">41 人 · 无待办</div>
+          </div>
+        </div>
+        <div style="padding:10px 14px;border-top:1px solid var(--line-soft)">
+          <div class="lbl">班级码</div>
+          <div style="font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:2px;color:var(--ptext);margin-top:4px">3CA5E6</div>
+        </div>
+        <div style="margin-top:auto;padding:12px 14px;border-top:1px solid var(--line-soft)">
+          <div class="p2">已同步 · 2 分钟前</div>
+        </div>
+      </div>
+
+      <!-- 第二栏：作业列表 -->
+      <div style="width:288px;flex:0 0 288px;background:var(--surface-2);border-right:1px solid var(--line-soft);display:flex;flex-direction:column;overflow:hidden">
+        <div style="display:flex;gap:4px;padding:12px 12px 10px;border-bottom:1px solid var(--line-soft);background:var(--surface)">
+          <span class="chip">群聊</span><span class="chip p">作业 3</span><span class="chip">笔记 4</span><span class="chip">测试 2</span><span class="chip">成员 38</span>
+        </div>
+        <div style="flex:1;overflow:hidden;padding:12px;display:flex;flex-direction:column;gap:9px">
+          <div class="card" style="padding:13px 14px;border-color:rgba(124,92,255,.32);box-shadow:0 0 0 2px var(--soft1)">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px"><span class="chip p">待批改 5</span><span class="lbl" style="margin-left:auto">今天 08:30</span></div>
+            <div class="h3">主定理与递推式</div>
+            <div class="p2" style="margin-top:5px">已交 33 / 38 · 已批 28</div>
+            <div class="bar" style="margin-top:9px"><i style="width:85%"></i></div>
+          </div>
+          <div class="card" style="padding:13px 14px">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px"><span class="chip s">已批完</span><span class="lbl" style="margin-left:auto">昨天</span></div>
+            <div class="h3">线性表编程练习</div>
+            <div class="p2" style="margin-top:5px">已交 36 / 38 · 平均 82.4 分</div>
+            <div class="bar" style="margin-top:9px"><i style="width:100%;background:linear-gradient(90deg,#6ecf96,#46b26f)"></i></div>
+          </div>
+          <div class="card" style="padding:13px 14px">
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px"><span class="chip">进行中</span><span class="lbl" style="margin-left:auto">09-25 截止</span></div>
+            <div class="h3">栈与队列的应用（含图）</div>
+            <div class="p2" style="margin-top:5px">已交 12 / 38 · 未批改</div>
+            <div class="bar" style="margin-top:9px"><i style="width:32%"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 第三栏：详情 -->
+      <div style="flex:1;min-width:0;background:var(--bg);overflow:hidden;padding:20px 22px;display:flex;flex-direction:column;gap:15px">
+        <div class="card" style="padding:16px 18px">
+          <div style="display:flex;align-items:center;gap:9px;margin-bottom:11px">
+            <span class="h2">主定理与递推式</span><span class="chip">限时 09-25 23:59</span>
+            <span class="btn sm" style="margin-left:auto">一键批改剩余 5 份</span><span class="btn ghost sm">生成班级报告</span><span class="btn ghost sm">发到班级群</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+            <div class="scard" style="padding:12px 14px"><div class="lbl">已提交</div><div style="font-size:21px;font-weight:700;margin-top:3px">33<span style="font-size:12px;color:var(--t4)">/38</span></div></div>
+            <div class="scard" style="padding:12px 14px"><div class="lbl">已批改</div><div style="font-size:21px;font-weight:700;margin-top:3px">28</div></div>
+            <div class="scard" style="padding:12px 14px"><div class="lbl">班级平均</div><div style="font-size:21px;font-weight:700;margin-top:3px;color:var(--success)">86.2</div></div>
+            <div class="scard" style="padding:12px 14px"><div class="lbl">需重点关注</div><div style="font-size:21px;font-weight:700;margin-top:3px;color:var(--warn)">4</div></div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:15px;flex:1;min-height:0">
+          <div class="card" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+            <div class="blk-h"><span class="h3">学生提交（33）</span><span class="chip p">按得分排序</span><span class="more">只看待批 5 →</span></div>
+            <table class="fixed">
+              <thead><tr><th style="width:92px">学生</th><th style="width:106px">提交时间</th><th style="width:80px">得分</th><th>AI 评价</th><th style="width:118px"></th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><b>林同学</b></td><td>今天 09:12</td>
+                  <td><span class="chip s">100</span></td>
+                  <td class="p2">推导完整，结论建议写紧确界</td>
+                  <td><span class="btn ghost sm">重新批改</span></td>
+                </tr>
+                <tr>
+                  <td><b>赵同学</b></td><td>今天 09:20</td>
+                  <td><span class="chip s">92</span></td>
+                  <td class="p2">参数读对，第二类情形判断正确</td>
+                  <td><span class="btn ghost sm">重新批改</span></td>
+                </tr>
+                <tr>
+                  <td><b>陈同学</b></td><td>今天 09:41</td>
+                  <td><span class="chip w">68</span></td>
+                  <td class="p2">把第二类误判为第一类，需补充比较步骤</td>
+                  <td><span class="btn ghost sm">发反馈</span></td>
+                </tr>
+                <tr>
+                  <td><b>吴同学</b></td><td>今天 10:02</td>
+                  <td><span class="chip">待批</span></td>
+                  <td class="p2">已提交 2 张图片</td>
+                  <td><span class="btn sm">AI 批改</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div style="display:flex;gap:15px">
+            <div class="scard" style="flex:1.35">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:11px"><span class="h3">班级报告</span><span class="lbl" style="margin-left:auto">已生成</span></div>
+              <div class="p2" style="line-height:1.8">本次作业整体完成度好。<b style="color:var(--t1)">主定理第二类情形</b>掌握率 89%，但 4 名同学在「先判断属于哪一类」这一步直接跳步，建议下次课用 5 分钟回顾三类情形的判定条件。</div>
+              <div style="margin-top:11px;display:flex;flex-direction:column;gap:7px">
+                <div style="display:flex;align-items:center;gap:8px"><span class="lbl" style="width:56px">第二类</span><div class="bar" style="flex:1"><i style="width:89%"></i></div><span class="lbl">89%</span></div>
+                <div style="display:flex;align-items:center;gap:8px"><span class="lbl" style="width:56px">第一类</span><div class="bar" style="flex:1"><i style="width:64%"></i></div><span class="lbl">64%</span></div>
+                <div style="display:flex;align-items:center;gap:8px"><span class="lbl" style="width:56px">递推式</span><div class="bar" style="flex:1"><i style="width:93%"></i></div><span class="lbl">93%</span></div>
+              </div>
+            </div>
+            <div class="scard" style="flex:1">
+              <div class="h3" style="margin-bottom:10px">批量操作</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <span class="btn soft" style="justify-content:center">批改全部待批（5 份）</span>
+                <span class="btn ghost" style="justify-content:center">给未交学生发提醒（5 人）</span>
+                <span class="btn ghost" style="justify-content:center">导出成绩表（CSV）</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============ 画板 5：限时测试答题 ============ -->
+<div class="board-wrap"><div class="board-label"><b>05</b>班级限时测试（学生答题）· 居中试卷 + 右侧答题卡（题号网格、倒计时、一键提交）</div>
+<div class="board">
+  <aside class="side">
+    <div class="brand">
+      <div class="brand-ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M6 7v13M18 7v13M9 12h6M9 16h3"/></svg></div>
+      <div><div class="brand-name">知一学习</div><div class="brand-sub">计算机 · 全学科</div></div>
+    </div>
+    <div class="nav-group">学习</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 10.5 12 4l8 6.5V20H4z"/></svg>工作台</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="2.5" y="6.5" width="19" height="14" rx="3"/><circle cx="12" cy="13.5" r="3.6"/></svg>拍照搜题</div>
+    <div class="nav-group">巩固</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 4.5h11l3 3v12H5z"/></svg>错题学习<span class="nav-count">12</span></div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 12.5 9 6l5 6.5"/></svg>自测练习<span class="nav-badge">3</span></div>
+    <div class="nav-group">教学与工具</div>
+    <div class="nav-item on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 8.5 12 4l9 4.5-9 4.5z"/><path d="M7 11v4.5c0 1.1 2.2 2 5 2s5-.9 5-2V11"/></svg>班级课堂<span class="nav-count">2</span></div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/></svg>课程表</div>
+    <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M14.5 3.5 6 13h5l-1.5 7.5L18 11h-5z"/></svg>学习工具</div>
+    <div class="side-foot"><div class="me"><div class="me-av">同</div><div><div class="me-n">同学你好</div><div class="me-r">数据结构 2024 级</div></div></div></div>
+  </aside>
+
+  <div class="main">
+    <div class="top" style="background:linear-gradient(90deg,#fff7ee,#f7f4ff)">
+      <div class="crumb"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v4.5l3 1.8"/></svg> <b>限时测试 · 主定理与复杂度</b> <span class="chip">共 20 题 · 满分 100</span></div>
+      <div style="margin:0 auto;display:flex;align-items:center;gap:10px">
+        <span class="lbl">剩余时间</span>
+        <span style="font-family:var(--mono);font-size:22px;font-weight:700;color:#a97620;letter-spacing:1px">18:42</span>
+      </div>
+      <span class="chip s">已答 14 / 20</span>
+      <span class="btn">一键提交</span>
+    </div>
+
+    <div class="body" style="background:var(--bg)">
+      <!-- 试卷 -->
+      <div style="flex:1;min-width:0;overflow:hidden;padding:22px 26px">
+        <div class="card" style="padding:22px 24px">
+          <div style="display:flex;align-items:center;gap:9px;margin-bottom:14px">
+            <span style="width:24px;height:24px;border-radius:8px;background:var(--soft1);color:var(--ptext);display:grid;place-items:center;font-size:12px;font-weight:700">7</span>
+            <span class="chip p">单选题</span><span class="lbl">5 分</span>
+            <span class="lbl" style="margin-left:auto">第 7 / 20 题</span>
+          </div>
+          <div style="font-size:15.5px;line-height:1.85;margin-bottom:18px">归并排序在最坏情况下的时间复杂度是？</div>
+          <div style="display:flex;flex-direction:column;gap:9px">
+            <div class="card" style="padding:13px 15px;border-color:rgba(124,92,255,.4);box-shadow:0 0 0 2px var(--soft1);display:flex;align-items:center;gap:12px">
+              <span style="width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700">A</span>
+              <span class="tex" style="font-style:normal">O(n log n)</span>
+              <span class="chip p" style="margin-left:auto">已选</span>
+            </div>
+            <div class="card" style="padding:13px 15px;display:flex;align-items:center;gap:12px">
+              <span style="width:24px;height:24px;border-radius:50%;background:var(--unit);color:var(--t3);display:grid;place-items:center;font-size:12px;font-weight:700">B</span>
+              <span class="tex" style="font-style:normal">O(n<sup>2</sup>)</span>
+            </div>
+            <div class="card" style="padding:13px 15px;display:flex;align-items:center;gap:12px">
+              <span style="width:24px;height:24px;border-radius:50%;background:var(--unit);color:var(--t3);display:grid;place-items:center;font-size:12px;font-weight:700">C</span>
+              <span class="tex" style="font-style:normal">O(n)</span>
+            </div>
+            <div class="card" style="padding:13px 15px;display:flex;align-items:center;gap:12px">
+              <span style="width:24px;height:24px;border-radius:50%;background:var(--unit);color:var(--t3);display:grid;place-items:center;font-size:12px;font-weight:700">D</span>
+              <span class="tex" style="font-style:normal">O(log n)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="padding:22px 24px;margin-top:16px">
+          <div style="display:flex;align-items:center;gap:9px;margin-bottom:14px">
+            <span style="width:24px;height:24px;border-radius:8px;background:var(--soft1);color:var(--ptext);display:grid;place-items:center;font-size:12px;font-weight:700">8</span>
+            <span class="chip">填空题</span><span class="lbl">5 分</span><span class="lbl" style="margin-left:auto">第 8 / 20 题</span>
+          </div>
+          <div style="font-size:15.5px;line-height:1.85;margin-bottom:16px">主定理中，当 <span class="tex">a <span class="op">=</span> 2, b <span class="op">=</span> 2</span> 时，<span class="tex">n<sup>log<sub>b</sub>a</sup> <span class="op">=</span></span> ____________</div>
+          <div style="height:46px;border-radius:var(--r-sm);border:1.5px solid rgba(124,92,255,.4);background:#fff;display:flex;align-items:center;padding:0 15px;box-shadow:0 0 0 3px var(--soft2)">
+            <span class="tex" style="font-style:normal">n</span><span style="width:1.5px;height:19px;background:var(--primary);margin-left:1px"></span>
+            <span class="lbl" style="margin-left:auto">判分按精确匹配（自动去空格）</span>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:18px">
+          <span class="btn ghost">上一题</span>
+          <span class="btn">下一题</span>
+          <span class="lbl" style="margin-left:auto;align-self:center">键盘：← → 切题 · 1-4 选择选项</span>
+        </div>
+      </div>
+
+      <!-- 答题卡 -->
+      <div style="width:296px;flex:0 0 296px;background:var(--surface);border-left:1px solid var(--line-soft);padding:18px;display:flex;flex-direction:column;gap:15px;overflow:hidden">
+        <div class="scard" style="background:linear-gradient(140deg,#fff7ec,#fdf1f7);border-color:rgba(224,163,60,.24)">
+          <div class="lbl" style="color:#a97620">交卷倒计时</div>
+          <div style="font-family:var(--mono);font-size:26px;font-weight:700;color:#8a5b12;letter-spacing:1px;margin-top:3px">18:42</div>
+          <div class="lbl" style="margin-top:6px">到时自动交卷，已作答部分计分</div>
+        </div>
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:11px"><span class="h3">答题卡</span><span class="lbl" style="margin-left:auto">已答 14 / 20</span></div>
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:7px">
+            <span style="height:30px;border-radius:8px;background:linear-gradient(180deg,#8b78f8,#5b47d6);color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center">1</span>
+            <span style="height:30px;border-radius:8px;background:linear-gradient(180deg,#8b78f8,#5b47d6);color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center">2</span>
+            <span style="height:30px;border-radius:8px;background:linear-gradient(180deg,#8b78f8,#5b47d6);color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center">3</span>
+            <span style="height:30px;border-radius:8px;background:var(--soft1);color:var(--ptext);font-size:12px;font-weight:600;display:grid;place-items:center">4</span>
+            <span style="height:30px;border-radius:8px;background:linear-gradient(180deg,#8b78f8,#5b47d6);color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center">5</span>
+            <span style="height:30px;border-radius:8px;background:linear-gradient(180deg,#8b78f8,#5b47d6);color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center">6</span>
+            <span style="height:30px;border-radius:8px;background:var(--primary);color:#fff;font-size:12px;font-weight:700;display:grid;place-items:center;box-shadow:0 0 0 3px var(--soft1)">7</span>
+            <span style="height:30px;border-radius:8px;background:linear-gradient(180deg,#8b78f8,#5b47d6);color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center">8</span>
+            <span style="height:30px;border-radius:8px;background:var(--soft1);color:var(--ptext);font-size:12px;font-weight:600;display:grid;place-items:center">9</span>
+            <span style="height:30px;border-radius:8px;background:linear-gradient(180deg,#8b78f8,#5b47d6);color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center">10</span>
+            <span style="height:30px;border-radius:8px;background:var(--unit);color:var(--t4);font-size:12px;font-weight:600;display:grid;place-items:center">11</span>
+            <span style="height:30px;border-radius:8px;background:linear-gradient(180deg,#8b78f8,#5b47d6);color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center">12</span>
+            <span style="height:30px;border-radius:8px;background:var(--unit);color:var(--t4);font-size:12px;font-weight:600;display:grid;place-items:center">13</span>
+            <span style="height:30px;border-radius:8px;background:linear-gradient(180deg,#8b78f8,#5b47d6);color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center">14</span>
+            <span style="height:30px;border-radius:8px;background:linear-gradient(180deg,#8b78f8,#5b47d6);color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center">15</span>
+            <span style="height:30px;border-radius:8px;background:var(--unit);color:var(--t4);font-size:12px;font-weight:600;display:grid;place-items:center">16</span>
+            <span style="height:30px;border-radius:8px;background:linear-gradient(180deg,#8b78f8,#5b47d6);color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center">17</span>
+            <span style="height:30px;border-radius:8px;background:var(--unit);color:var(--t4);font-size:12px;font-weight:600;display:grid;place-items:center">18</span>
+            <span style="height:30px;border-radius:8px;background:var(--unit);color:var(--t4);font-size:12px;font-weight:600;display:grid;place-items:center">19</span>
+            <span style="height:30px;border-radius:8px;background:linear-gradient(180deg,#8b78f8,#5b47d6);color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center">20</span>
+          </div>
+          <div style="display:flex;gap:12px;margin-top:12px">
+            <span class="lbl" style="display:flex;align-items:center;gap:5px"><i style="width:11px;height:11px;border-radius:3px;background:#6f57f0;display:inline-block"></i>已答 14</span>
+            <span class="lbl" style="display:flex;align-items:center;gap:5px"><i style="width:11px;height:11px;border-radius:3px;background:#eef1f8;display:inline-block"></i>未答 6</span>
+            <span class="lbl" style="display:flex;align-items:center;gap:5px"><i style="width:11px;height:11px;border-radius:3px;background:rgba(124,92,255,.14);display:inline-block"></i>当前</span>
+          </div>
+        </div>
+        <div class="scard">
+          <div style="display:flex;align-items:center;gap:8px"><span class="h3">题型分布</span><span class="lbl" style="margin-left:auto">满分 100</span></div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:11px">
+            <div style="display:flex;align-items:center;gap:8px"><span class="lbl" style="width:64px">单选 12</span><div class="bar" style="flex:1"><i style="width:60%"></i></div><span class="lbl">60 分</span></div>
+            <div style="display:flex;align-items:center;gap:8px"><span class="lbl" style="width:64px">填空 8</span><div class="bar" style="flex:1"><i style="width:40%"></i></div><span class="lbl">40 分</span></div>
+          </div>
+        </div>
+        <div style="margin-top:auto;display:flex;flex-direction:column;gap:9px">
+          <span class="btn" style="justify-content:center;padding:12px">一键提交（还有 6 题未作答）</span>
+          <div class="lbl" style="text-align:center">每人仅一次机会 · 提交后不可修改</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+
+<script>
+function setZoom(z){
+  document.documentElement.style.setProperty('--zoom', z);
+  document.getElementById('z64').classList.toggle('on', z !== 1);
+  document.getElementById('z100').classList.toggle('on', z === 1);
+}
+</script>
+</body>
+</html>

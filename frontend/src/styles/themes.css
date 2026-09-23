@@ -1,0 +1,131 @@
+/* ==========================================================================
+   知一 V1 · 主题：深色（默认）+ 浅色（完整主题，非反色）
+   切换方式：<html data-theme="dark|light">
+   浅色下同样保留「背景 → 普通模块 → 重点模块 → 主模块」四级表面关系。
+   ========================================================================== */
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+
+  --glass: rgba(23, 27, 40, 0.62);
+  --art-camera: #6fa0ee;
+  --art-book: #9c90f0;
+  --art-chat: #e0a55c;
+  --art-chat-star: #f2cc7e;
+  --art-pencil: #9aa0f5;
+  --art-ruler: #8a93f0;
+}
+
+html[data-theme='light'] {
+  color-scheme: light;
+
+  --background: #f2f4f9;
+  --background-elevated: #eaedf5;
+
+  --surface-1: #ffffff;
+  --surface-1-top: #ffffff;
+  --surface-2: #ffffff;
+  --surface-2-top: #ffffff;
+  --surface-3: #ffffff;
+  --surface-3-top: #ffffff;
+  --surface-unit: #eef1f8;
+  --surface-recess: rgba(20, 30, 60, 0.03);
+  --surface-hover: rgba(20, 30, 60, 0.04);
+
+  --grad-surface: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+  --grad-elevated: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+  --grad-hero: linear-gradient(180deg, #ffffff 0%, #fafbff 100%);
+  --hero-surface: radial-gradient(120% 105% at 0% 0%, var(--accent-glow) 0%, transparent 58%),
+    var(--grad-hero);
+
+  --border-subtle: 0.5px solid rgba(20, 30, 60, 0.1);
+  --border-default: 0.5px solid rgba(20, 30, 60, 0.12);
+  --border-strong: 0.5px solid rgba(20, 30, 60, 0.14);
+  --border-top-subtle: 0.5px solid rgba(20, 30, 60, 0.14);
+  --border-top-default: 0.5px solid rgba(20, 30, 60, 0.16);
+  --border-top-strong: 0.5px solid rgba(20, 30, 60, 0.18);
+  --border-dashed: 0.5px dashed rgba(20, 30, 60, 0.2);
+  --border-divider: 0.5px solid rgba(20, 30, 60, 0.08);
+  --border-divider-soft: 0.5px solid rgba(20, 30, 60, 0.06);
+
+  --text-primary: #141a26;
+  --text-secondary: #3a445a;
+  --text-tertiary: #5d6880;
+  --text-quaternary: #6b7689;
+  --text-muted: #7c869b;
+  --text-disabled: #a3abbd;
+
+  --primary-soft-1: rgba(124, 92, 255, 0.14);
+  --primary-soft-2: rgba(124, 92, 255, 0.1);
+  --primary-soft-3: rgba(124, 92, 255, 0.07);
+  --primary-text: #5b47d6;
+  --primary-text-soft: #6a55e4;
+  --primary-text-strong: #4b39b8;
+  --primary-line: rgba(124, 92, 255, 0.45);
+  --primary-bar: rgba(124, 92, 255, 0.6);
+  --accent-glow: rgba(124, 92, 255, 0.1);
+  --accent-glow-soft: rgba(124, 92, 255, 0.05);
+  --accent-glow-shadow: rgba(124, 92, 255, 0.18);
+
+  --shadow-subtle: 0 1px 2px rgba(20, 30, 60, 0.06), 0 8px 22px -10px rgba(20, 30, 60, 0.14);
+  --shadow-elevated: 0 2px 5px rgba(20, 30, 60, 0.07), 0 14px 34px -14px rgba(20, 30, 60, 0.18);
+  --shadow-hero: 0 2px 6px rgba(20, 30, 60, 0.08), 0 20px 48px -18px rgba(20, 30, 60, 0.22),
+    0 24px 56px -24px var(--accent-glow-shadow);
+  --shadow-primary: 0 6px 18px -6px rgba(111, 87, 240, 0.4);
+  --shadow-cta: 0 6px 16px -8px rgba(91, 71, 214, 0.42);
+  --shadow-modal: 0 24px 64px -16px rgba(20, 30, 60, 0.28);
+
+  --highlight-1: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --highlight-2: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  --highlight-3: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --highlight-recess: inset 0 1px 6px rgba(20, 30, 60, 0.06);
+
+  --ai-idle-glow: rgba(124, 92, 255, 0.1);
+  --ai-working-glow: rgba(124, 92, 255, 0.3);
+  --ai-streaming-glow: rgba(124, 92, 255, 0.22);
+  --ai-completed-glow: rgba(70, 178, 111, 0.24);
+  --ai-idle-ring: rgba(20, 30, 60, 0.14);
+  --ai-working-ring: rgba(124, 92, 255, 0.42);
+  --ai-streaming-ring: rgba(124, 92, 255, 0.3);
+  --ai-completed-ring: rgba(70, 178, 111, 0.36);
+
+  /* 首页玻璃卡 + 四大卡双色图案（样图定稿色，深色模式自动换亮色版） */
+  --glass: rgba(255, 255, 255, 0.72);
+  --art-camera: #2f6bc9;
+  --art-book: #5b4fc8;
+  --art-chat: #c9803a;
+  --art-chat-star: #e9b558;
+  --art-pencil: #5a5fd6;
+  --art-ruler: #4a55d0;
+}
+
+/* ---------------- 表面工具类（组件统一使用，禁止自定义颜色） ---------------- */
+.surface-standard {
+  background: var(--grad-surface);
+  border: var(--border-subtle);
+  border-top: var(--border-top-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--highlight-1), var(--shadow-subtle);
+}
+
+.surface-elevated {
+  background: var(--grad-elevated);
+  border: var(--border-default);
+  border-top: var(--border-top-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--highlight-2), var(--shadow-elevated);
+}
+
+.surface-hero {
+  background: var(--hero-surface);
+  border: var(--border-strong);
+  border-top: var(--border-top-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--highlight-3), var(--shadow-hero);
+}
+
+.surface-plain {
+  background: none;
+  border: none;
+  box-shadow: none;
+}

@@ -1,0 +1,315 @@
+/* ==========================================================================
+   知一 V1 · Base：重置、排版、布局骨架、动效降级
+   ---------------------------------------------------------------------------
+   注意（P1 阶段的加载策略）：
+   本文件含全局 body 样式，会改变现有线上页面观感，因此 P1 阶段只在
+   Design System 自检页（?ds=1）里加载；P2 页面迁移完成后转入全局引入。
+   ========================================================================== */
+
+.zy-scope {
+  box-sizing: border-box;
+}
+
+.zy-scope *,
+.zy-scope *::before,
+.zy-scope *::after {
+  box-sizing: border-box;
+}
+
+html[data-theme] body {
+  margin: 0;
+  /* 主题背景必须落到 body：否则内容不满一屏或移动端 overscroll 时会露出旧样式表的浅色底 */
+  background: var(--background);
+  color: var(--text-primary);
+}
+
+/* 以下规则限定在 .zy-scope 容器内，避免影响尚未迁移的旧页面 */
+.zy-scope {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: var(--lh-relaxed);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.zy-scope h1,
+.zy-scope h2,
+.zy-scope h3,
+.zy-scope h4,
+.zy-scope p,
+.zy-scope figure {
+  margin: 0;
+}
+
+.zy-scope ul,
+.zy-scope ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.zy-scope a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.zy-scope button,
+.zy-scope input,
+.zy-scope textarea,
+.zy-scope select {
+  font: inherit;
+  color: inherit;
+}
+
+.zy-scope img,
+.zy-scope svg {
+  display: block;
+  max-width: 100%;
+}
+
+.zy-scope ::selection {
+  background: var(--primary-soft-1);
+  color: var(--text-primary);
+}
+
+.zy-scope :focus-visible {
+  outline: 2px solid var(--primary-line);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.zy-scope * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(140, 165, 220, 0.24) transparent;
+}
+.zy-scope *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.zy-scope *::-webkit-scrollbar-thumb {
+  background: rgba(140, 165, 220, 0.2);
+  border-radius: var(--radius-pill);
+}
+.zy-scope *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---------------- 排版工具类 ---------------- */
+.t-display {
+  font-size: var(--fs-display);
+  line-height: var(--lh-tight);
+  font-weight: var(--fw-medium);
+  letter-spacing: -0.3px;
+  color: var(--text-primary);
+}
+.t-h1 {
+  font-size: var(--fs-h1);
+  line-height: var(--lh-tight);
+  font-weight: var(--fw-medium);
+  letter-spacing: -0.2px;
+}
+.t-h2 {
+  font-size: var(--fs-h2);
+  line-height: var(--lh-title);
+  font-weight: var(--fw-medium);
+}
+.t-h3 {
+  font-size: var(--fs-h3);
+  line-height: var(--lh-title);
+  font-weight: var(--fw-medium);
+}
+.t-body {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--text-secondary);
+}
+.t-body-2 {
+  font-size: var(--fs-body-2);
+  line-height: var(--lh-relaxed);
+  color: var(--text-tertiary);
+}
+.t-caption {
+  font-size: var(--fs-caption);
+  line-height: var(--lh-relaxed);
+  color: var(--text-quaternary);
+}
+.t-label {
+  font-size: var(--fs-label);
+  line-height: 1.5;
+  letter-spacing: 0.2px;
+  color: var(--text-muted);
+}
+.t-code {
+  font-family: var(--font-mono);
+  font-size: var(--fs-code);
+}
+.t-metric {
+  font-size: var(--fs-metric);
+  font-weight: var(--fw-medium);
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+.t-metric-unit {
+  font-size: var(--fs-body-2);
+  font-weight: var(--fw-regular);
+  color: var(--text-tertiary);
+}
+.t-brand {
+  color: var(--primary-text);
+}
+.t-muted {
+  color: var(--text-muted);
+}
+.t-strong {
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+}
+
+/* ---------------- 布局 ---------------- */
+.zy-container {
+  width: 100%;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 var(--container-pad);
+}
+.zy-content {
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+.zy-page {
+  padding: var(--sp-6) 0 var(--sp-16);
+}
+/* 子页面「← 返回更多」入口：靠在标题上方，row / column 两种 head 布局都适用 */
+.zy-back {
+  display: inline-flex;
+  align-self: flex-start;
+  margin-bottom: 6px;
+}
+.zy-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.zy-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.zy-spread {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+.zy-grow {
+  flex: 1;
+  min-width: 0;
+}
+.zy-divider {
+  height: 0;
+  border-top: var(--border-divider-soft);
+  margin: var(--sp-4) 0;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------------- 骨架屏 ---------------- */
+.skeleton {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  background-size: 200% 100%;
+  animation: zy-shimmer 1.4s var(--ease) infinite;
+}
+@keyframes zy-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ---------------- AI 相关动效 ---------------- */
+@keyframes zy-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes zy-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(0.86);
+  }
+}
+@keyframes zy-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px var(--ai-idle-glow);
+  }
+  50% {
+    box-shadow: 0 0 0 5px var(--ai-working-glow);
+  }
+}
+@keyframes zy-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ---------------- 移动端底座（<768px）----------------
+   容器左右 40px 是桌面值，手机上会吃掉 21% 宽度（375px 屏只剩 295px），
+   这是「桌面卡片被缩小塞进手机」观感的物理来源，故在此统一收紧。
+   仅覆盖变量与页面节奏，不改任何组件的桌面样式。 */
+@media (max-width: 767px) {
+  :root {
+    --container-pad: 16px;
+  }
+  /* 注意：.zy-page 的基础规则是 padding 简写（左右为 0），
+     这里必须把左右一起写上，否则会沿用基础规则的 0 导致内容贴边。 */
+  .zy-page {
+    padding: 16px var(--container-pad) 28px;
+  }
+}
+
+/* ---------------- 断点约定 ----------------
+   Desktop  ≥1025px：顶部导航，内容 1440 容器
+   Tablet   768–1024px：顶部导航，单列堆叠
+   Mobile   <768px：底部五项导航，重组内容顺序
+----------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .zy-scope *,
+  .zy-scope *::before,
+  .zy-scope *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

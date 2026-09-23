@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>知一 · 首页改版样图（2×2 大卡 + 干净海洋背景）</title>
+<style>
+  :root{
+    --bg:#e8ebf2; --surface:#fff; --line:rgba(20,30,60,.1);
+    --t1:#141a26; --t2:#3a445a; --t3:#5d6880; --t4:#7c869b; --t5:#a3abbd;
+    --primary:#6f57f0; --soft:rgba(124,92,255,.1);
+    /* 卡片图案配色（取自 themes.css 的 --art-*） */
+    --art-camera:#6fa0ee; --art-book:#9c90f0; --art-chat:#e0a55c; --art-chat-star:#f2cc7e;
+    --art-pencil:#9aa0f5; --art-ruler:#8a93f0;
+    --font:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+    --mono:'SF Mono',ui-monospace,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);font-family:var(--font);color:var(--t1);padding:30px 0 70px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+  h1{font-size:25px;letter-spacing:-.4px;margin-bottom:8px}
+  .lead{font-size:13.5px;color:var(--t3);line-height:1.75}
+  .lead b{color:var(--t1)}
+  .sec{margin-top:32px}
+  .sec-h{display:flex;align-items:baseline;gap:10px;margin-bottom:14px}
+  .sec-h h2{font-size:16px;letter-spacing:-.2px}
+  .sec-h span{font-size:12.5px;color:var(--t4)}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 1px 2px rgba(20,30,60,.04),0 12px 30px -16px rgba(20,30,60,.18)}
+  .row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+  .note{font-size:12.5px;color:var(--t4);line-height:1.8;margin-top:14px}
+  .tag{display:inline-block;font-size:11.5px;color:var(--t4);background:rgba(20,30,60,.05);border-radius:999px;padding:2px 9px;margin-bottom:10px}
+  .tag.on{color:var(--primary);background:var(--soft)}
+
+  /* ---------- 手机画板 ---------- */
+  .phone-w{width:390px;flex:none}
+  .phone{width:390px;height:844px;border-radius:30px;overflow:hidden;position:relative;background:#f7faff;box-shadow:0 18px 44px -22px rgba(20,30,60,.42);border:1px solid rgba(20,30,60,.08)}
+  .phone__cap{font-size:12px;color:var(--t4);text-align:center;margin-top:10px}
+  .phone--scaled{transform-origin:top left}
+
+  /* ---------- 新背景：干净海洋 ---------- */
+  .sea{position:absolute;inset:0;background:linear-gradient(180deg,#f8fbff 0%,#eef5fd 34%,#e3eefb 57%,#d5e6f8 76%,#c7dcf4 100%)}
+  .sea__line{position:absolute;height:1.5px;border-radius:2px;background:rgba(147,190,228,.6)}
+  .sea__line--1{left:8%;width:30%;top:66%}
+  .sea__line--2{left:56%;width:26%;top:75%}
+  .sea__line--3{left:22%;width:40%;top:86%}
+  .sea__boat{position:absolute;left:31%;top:70.5%;width:60px;height:32px}
+
+  /* ---------- 顶栏 ---------- */
+  .nav{position:absolute;left:0;right:0;top:0;height:48px;display:flex;align-items:center;gap:14px;padding:0 16px}
+  .nav__brand{display:flex;align-items:center;gap:7px}
+  .nav__mark{width:22px;height:22px;border-radius:7px;background:linear-gradient(140deg,#7e68f7,#5b47d6);display:grid;place-items:center;color:#fff}
+  .nav__mark svg{width:12px;height:12px}
+  .nav__name{font-size:15px;font-weight:600;color:var(--t1)}
+  .nav__tab{font-size:15px;color:var(--t4)}
+  .nav__tab.on{color:var(--t1);font-weight:500}
+
+  /* ---------- 首页内容 ---------- */
+  .home{position:absolute;left:0;right:0;top:48px;bottom:0;padding:14px 16px 0}
+
+  /* 四卡：4×1（现状） */
+  .cards{display:grid;gap:10px}
+  .cards--4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .cards--2{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .card{display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid rgba(20,30,60,.07);border-radius:18px;background:rgba(255,255,255,.78);backdrop-filter:blur(8px)}
+  .cards--4 .card{padding:12px 4px;gap:7px;min-height:86px}
+  .cards--2 .card{padding:22px 12px 18px;gap:12px;min-height:118px}
+  .card__art{display:block}
+  .cards--4 .card__art{width:34px;height:34px}
+  .cards--2 .card__art{width:46px;height:46px}
+  .card__name{color:var(--t2)}
+  .cards--4 .card__name{font-size:12px}
+  .cards--2 .card__name{font-size:13.5px;font-weight:500;color:var(--t1)}
+
+  /* 次入口（保持横滑两页） */
+  .quick{margin-top:12px;border-radius:18px;border:1px solid rgba(20,30,60,.07);background:rgba(255,255,255,.78);backdrop-filter:blur(8px);padding:14px 12px;position:relative;overflow:hidden}
+  .quick__track{display:flex;gap:8px}
+  .quick__ico{display:flex;flex-direction:column;align-items:center;gap:7px;font-size:11px;color:var(--t3);flex:0 0 62px}
+  .quick__ico svg{width:22px;height:22px;color:#5d6880}
+  .quick__dots{display:flex;gap:5px;justify-content:center;margin-top:10px}
+  .quick__dot{width:5px;height:5px;border-radius:50%;background:rgba(20,30,60,.16)}
+  .quick__dot.on{background:var(--primary)}
+
+  /* 信息位 */
+  .info{margin-top:12px;display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:18px;border:1px solid rgba(20,30,60,.07);background:rgba(255,255,255,.78);backdrop-filter:blur(8px)}
+  .info__ico{width:36px;height:36px;border-radius:12px;background:rgba(74,122,99,.14);flex:none;display:grid;place-items:center;font-size:15px}
+  .info__t{font-size:13.5px;font-weight:600;color:var(--t1)}
+  .info__s{font-size:11.5px;color:var(--t4);margin-top:2px}
+  .info__go{margin-left:auto;font-size:12.5px;color:var(--primary);white-space:nowrap}
+
+  /* 首屏底线提示 */
+  .fold{position:absolute;left:0;right:0;top:844px;border-top:1.5px dashed rgba(224,96,92,.5)}
+  .fold__lb{position:absolute;right:10px;top:6px;font-size:11px;color:#e0605c}
+
+  /* ---------- 桌面画板 ---------- */
+  .desk{width:1440px;height:900px;border-radius:20px;overflow:hidden;position:relative;background:#f2f4f9;border:1px solid rgba(20,30,60,.1);box-shadow:0 18px 44px -22px rgba(20,30,60,.42);flex:none}
+  .desk .sea{background:linear-gradient(180deg,#f8fbff 0%,#eff5fd 40%,#e2eefb 100%)}
+  .desk__side{position:absolute;left:0;top:0;bottom:0;width:232px;background:#fff;border-right:1px solid rgba(20,30,60,.07);padding:16px 12px}
+  .desk__side-brand{display:flex;align-items:center;gap:10px;padding:6px 10px 18px}
+  .desk__side-nm{font-size:15px;font-weight:600}
+  .desk__side-sub{font-size:11px;color:var(--t5)}
+  .desk__nav-g{font-size:11px;color:var(--t5);padding:14px 12px 7px;letter-spacing:.06em}
+  .desk__nav-i{display:flex;align-items:center;gap:11px;padding:8px 12px;border-radius:9px;font-size:13.5px;color:var(--t2)}
+  .desk__nav-i.on{background:var(--soft);color:var(--primary);font-weight:600}
+  .desk__nav-i svg{width:18px;height:18px;opacity:.85}
+  .desk__main{position:absolute;left:232px;right:0;top:0;bottom:0;padding:20px 24px}
+  .desk__top{display:flex;align-items:center;gap:14px;height:38px;margin-bottom:16px}
+  .desk__crumb{font-size:14.5px;font-weight:600}
+  .desk__crumb span{color:var(--t4);font-weight:400;font-size:13px;margin-right:6px}
+  .desk__search{margin-left:auto;width:360px;height:38px;border-radius:999px;background:rgba(255,255,255,.72);border:1px solid rgba(20,30,60,.07);display:flex;align-items:center;gap:8px;padding:0 14px;font-size:13px;color:var(--t4)}
+  .desk__hero{margin-bottom:16px;padding:22px 26px;border-radius:22px;background:linear-gradient(120deg,rgba(232,239,252,.9),rgba(243,240,253,.9) 55%,rgba(253,243,236,.9));border:1px solid rgba(20,30,60,.07)}
+  .desk__hero h2{font-size:20px;letter-spacing:-.3px;margin-bottom:6px}
+  .desk__hero p{font-size:13px;color:var(--t4)}
+  .desk__cols{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px}
+  .desk .cards--4 .card{min-height:104px}
+  .desk .cards--4 .card__art{width:38px;height:38px}
+  .desk .cards--4 .card__name{font-size:13px}
+  .desk__blk{margin-top:14px;background:#fff;border:1px solid rgba(20,30,60,.07);border-radius:18px;padding:16px 18px}
+  .desk__blk h3{font-size:14.5px;margin-bottom:10px}
+  .desk__tr{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--t2);padding:8px 0;border-bottom:1px solid rgba(20,30,60,.05)}
+  .desk__tr:last-child{border-bottom:0}
+  .desk__pill{font-size:11px;border-radius:999px;padding:2px 8px;background:rgba(20,30,60,.05);color:var(--t4)}
+
+  /* ---------- 深色画板 ---------- */
+  .phone--dark{background:#080a0f}
+  .dark-bg{position:absolute;inset:0;background:linear-gradient(180deg,#0b1020 0%,#0e1526 46%,#111a2e 100%)}
+  .dark-bg__star{position:absolute;width:2px;height:2px;border-radius:50%;background:rgba(233,236,243,.85)}
+  .dark-bg__gal{position:absolute;left:-10%;right:-10%;top:6%;height:34%;background:linear-gradient(100deg,rgba(124,92,255,0),rgba(124,92,255,.16),rgba(255,255,255,.05),rgba(124,92,255,0));transform:rotate(-8deg);filter:blur(6px)}
+  .dark-bg__planet{position:absolute;right:-34px;top:196px;width:150px;height:150px}
+  .phone--dark .card,.phone--dark .quick,.phone--dark .info{background:rgba(23,27,40,.62);border-color:rgba(160,180,230,.12)}
+  .phone--dark .card__name{color:#c8cfe0}
+  .phone--dark .cards--2 .card__name{color:#e9ecf3}
+  .phone--dark .nav__name{color:#e9ecf3}
+  .phone--dark .quick__ico{color:#8890a6}
+  .phone--dark .quick__ico svg{color:#a8b2c8}
+  .phone--dark .info__t{color:#e9ecf3}
+  .phone--dark .info__s{color:#8890a6}
+  .phone--dark .quick__dot{background:rgba(255,255,255,.18)}
+
+  /* 桌布 */
+  .stage{position:relative}
+  .stage--desk{width:720px;height:450px}
+  .stage--desk .desk{transform:scale(.5);transform-origin:top left}
+</style>
+</head>
+<body>
+
+<!-- 真实卡片图案（与产品 ui/CardArt.vue 同一套 path） -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <g id="art-camera">
+    <path d="M 13 10 v -4 a 2.5 2.5 0 0 1 2.5 -2.5 h 9 a 2.5 2.5 0 0 1 2.5 2.5 v 4 z" fill="var(--art-camera)"/>
+    <rect x="3" y="10" width="34" height="23" rx="6" fill="var(--art-camera)"/>
+    <circle cx="20" cy="21" r="8.5" fill="#fff"/>
+    <circle cx="20" cy="21" r="4.5" fill="var(--art-camera)"/>
+    <rect x="30" y="14" width="4.5" height="3" rx="1" fill="#fff" opacity=".85"/>
+  </g>
+  <g id="art-book">
+    <rect x="15" y="1.5" width="10" height="6" rx="2.5" fill="#fff" opacity=".9"/>
+    <rect x="6" y="4" width="28" height="32" rx="5" fill="var(--art-book)"/>
+    <rect x="10.5" y="9" width="19" height="23" rx="2.5" fill="#fff"/>
+    <path d="M 17 18 l 4 4 l 7 -8" fill="none" stroke="var(--art-book)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g id="art-chat">
+    <path d="M -16 -12 h 24 a 5 5 0 0 1 5 5 v 9 a 5 5 0 0 1 -5 5 h -14 l -7 6 v -6 h -3 a 5 5 0 0 1 -5 -5 v -9 a 5 5 0 0 1 5 -5 z" fill="var(--art-chat)" transform="translate(24 18)"/>
+    <circle cx="15" cy="15.5" r="2" fill="#fff"/><circle cx="23" cy="15.5" r="2" fill="#fff"/><circle cx="31" cy="15.5" r="2" fill="#fff"/>
+    <path d="M 0 -4.5 l 1.3 3.2 3.2 1.3 -3.2 1.3 -1.3 3.2 -1.3 -3.2 -3.2 -1.3 3.2 -1.3 z" fill="var(--art-chat-star)" transform="translate(33 7)"/>
+  </g>
+  <g id="art-tool">
+    <g transform="rotate(40 20 20)">
+      <rect x="16.5" y="2" width="7" height="22" rx="1.5" fill="var(--art-pencil)"/>
+      <path d="M 16.5 24 h 7 l -3.5 7 z" fill="#fff"/>
+      <rect x="16.5" y="-1" width="7" height="4.5" rx="1.5" fill="#fff" opacity=".9"/>
+    </g>
+    <g transform="rotate(-40 20 20)">
+      <rect x="4" y="15.5" width="30" height="9" rx="2" fill="var(--art-ruler)"/>
+      <path d="M 10 15.5 v 4.5 M 16 15.5 v 4.5 M 22 15.5 v 4.5 M 28 15.5 v 4.5" fill="none" stroke="#fff" stroke-width="1.5"/>
+    </g>
+  </g>
+  <!-- 次入口图标（与 ui/UiIcon.vue 同一套 path，viewBox 20×20） -->
+  <g id="ic-schedule" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 5.6h13.2v11H3.4z"/><path d="M3.4 9h13.2"/><path d="M7 3.6v3.2"/><path d="M13 3.6v3.2"/></g>
+  <g id="ic-chat" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.4A1.8 1.8 0 0 1 4.8 3.6h10.4A1.8 1.8 0 0 1 17 5.4v7.2a1.8 1.8 0 0 1-1.8 1.8H8.2L4 17.4z"/></g>
+  <g id="ic-clipboard" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5.4 4.6h9.2v12.4H5.4z"/><path d="M7.8 3.2h4.4v2.8H7.8z"/></g>
+  <g id="ic-users" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M7.6 9.4a2.4 2.4 0 1 0 0-4.8 2.4 2.4 0 0 0 0 4.8z"/><path d="M12.6 9.4a2.4 2.4 0 1 0 0-4.8"/><path d="M2.8 16.6c0-2.5 2.1-4.1 4.8-4.1s4.8 1.6 4.8 4.1"/><path d="M13.2 12.7c2.1.3 4 1.7 4 3.9"/></g>
+  <g id="ic-data" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16.4V9.6"/><path d="M10 16.4V4.6"/><path d="M16 16.4v-4.8"/></g>
+  <g id="ic-history" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M16.4 10A6.4 6.4 0 1 1 10 3.6c2.6 0 4.9 1.6 5.9 3.8"/><path d="M16.2 3.9v3.6h-3.6"/><path d="M10 6.9V10l2.3 1.5"/></g>
+  <g id="ic-sparkle" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.6l1.6 4.2 4.2 1.6-4.2 1.6L10 15.2 8.4 11 4.2 9.4 8.4 7.8z"/></g>
+  <g id="logo-mark"><path d="M2.4 11C4.3 7.2 6.4 5.4 8.7 5.4c1.7 0 3 1.1 3 2.6" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linecap="round"/><circle cx="9.8" cy="3.6" r="1.5" fill="currentColor"/></g>
+</defs></svg>
+
+<div class="wrap">
+  <h1>知一 · 首页改版样图</h1>
+  <p class="lead">按参考图改造：<b>四功能卡改 2×2 大卡</b> + <b>背景换成干净海洋</b>（浅蓝渐变 + 3 条水线 + 1 条小船，去掉云与米黄岸，保留小船起伏与水线微流）。次入口按你的选择保持横滑两页。</p>
+  <p class="lead" style="color:var(--t4);margin-top:6px">下面所有卡片图案与图标都是产品里的真实素材（同一套 SVG），不是占位色块。</p>
+
+  <!-- ① 布局对比 -->
+  <div class="sec">
+    <div class="sec-h"><h2>一、四卡布局对比</h2><span>同一套背景与素材，只差卡片排布</span></div>
+    <div class="panel">
+      <div class="row">
+        <div class="phone-w">
+          <div class="phone"><div class="sea"></div>
+            <div class="nav">
+              <div class="nav__brand"><span class="nav__mark"><svg viewBox="0 0 14 14"><use href="#logo-mark"/></svg></span><span class="nav__name">知一</span></div>
+              <span class="nav__tab on">学习</span><span class="nav__tab">我的</span>
+            </div>
+            <div class="home">
+              <div class="cards cards--4">
+                <div class="card"><svg class="card__art" viewBox="0 0 40 40"><use href="#art-camera"/></svg><span class="card__name">拍照搜题</span></div>
+                <div class="card"><svg class="card__art" viewBox="0 0 40 40"><use href="#art-book"/></svg><span class="card__name">错题学习</span></div>
+                <div class="card"><svg class="card__art" viewBox="0 0 40 40"><use href="#art-chat"/></svg><span class="card__name">AI 对话</span></div>
+                <div class="card"><svg class="card__art" viewBox="0 0 40 40"><use href="#art-tool"/></svg><span class="card__name">学习工具</span></div>
+              </div>
+              <div class="quick">
+                <div class="quick__track">
+                  <span class="quick__ico"><svg viewBox="0 0 20 20"><use href="#ic-schedule"/></svg>课程表</span>
+                  <span class="quick__ico"><svg viewBox="0 0 20 20"><use href="#ic-chat"/></svg>社区</span>
+                  <span class="quick__ico"><svg viewBox="0 0 20 20"><use href="#ic-clipboard"/></svg>考试</span>
+                  <span class="quick__ico"><svg viewBox="0 0 20 20"><use href="#ic-users"/></svg>班级</span>
+                  <span class="quick__ico"><svg viewBox="0 0 20 20"><use href="#ic-data"/></svg>数据</span>
+                </div>
+                <div class="quick__dots"><span class="quick__dot on"></span><span class="quick__dot"></span></div>
+              </div>
+              <div class="info">
+                <span class="info__ico">↻</span>
+                <div><div class="info__t">4 道错题该复习了</div><div class="info__s">按遗忘曲线，今天到期</div></div>
+                <span class="info__go">去复习 →</span>
+              </div>
+            </div>
+            <svg class="sea__boat" viewBox="0 0 60 32"><path d="M2 18h40l-10 10H11z" fill="#e8a06a"/><path d="M21 2v16" stroke="#b4763f" stroke-width="2.4"/><path d="M21 3l19 7-19 6z" fill="#f2c98a"/></svg>
+            <div class="sea__line sea__line--1"></div><div class="sea__line sea__line--2"></div><div class="sea__line sea__line--3"></div>
+          </div>
+          <div class="phone__cap">现状（一行 4 卡，卡片窄、文字小）</div>
+        </div>
+
+        <div class="phone-w">
+          <div class="phone"><div class="sea"></div>
+            <div class="nav">
+              <div class="nav__brand"><span class="nav__mark"><svg viewBox="0 0 14 14"><use href="#logo-mark"/></svg></span><span class="nav__name">知一</span></div>
+              <span class="nav__tab on">学习</span><span class="nav__tab">我的</span>
+            </div>
+            <div class="home">
+              <div class="cards cards--2">
+                <div class="card"><svg class="card__art" viewBox="0 0 40 40"><use href="#art-camera"/></svg><span class="card__name">拍照搜题</span></div>
+                <div class="card"><svg class="card__art" viewBox="0 0 40 40"><use href="#art-book"/></svg><span class="card__name">错题学习</span></div>
+                <div class="card"><svg class="card__art" viewBox="0 0 40 40"><use href="#art-chat"/></svg><span class="card__name">AI 对话</span></div>
+                <div class="card"><svg class="card__art" viewBox="0 0 40 40"><use href="#art-tool"/></svg><span class="card__name">学习工具</span></div>
+              </div>
+              <div class="quick">
+                <div class="quick__track">
+                  <span class="quick__ico"><svg viewBox="0 0 20 20"><use href="#ic-schedule"/></svg>课程表</span>
+                  <span class="quick__ico"><svg viewBox="0 0 20 20"><use href="#ic-chat"/></svg>社区</span>
+                  <span class="quick__ico"><svg viewBox="0 0 20 20"><use href="#ic-clipboard"/></svg>考试</span>
+                  <span class="quick__ico"><svg viewBox="0 0 20 20"><use href="#ic-users"/></svg>班级</span>
+                  <span class="quick__ico"><svg viewBox="0 0 20 20"><use href="#ic-data"/></svg>数据</span>
+                </div>
+                <div class="quick__dots"><span class="quick__dot on"></span><span class="quick__dot"></span></div>
+              </div>
+              <div class="info">
+                <span class="info__ico">↻</span>
+                <div><div class="info__t">4 道错题该复习了</div><div class="info__s">按遗忘曲线，今天到期</div></div>
+                <span class="info__go">去复习 →</span>
+              </div>
+            </div>
+            <svg class="sea__boat" viewBox="0 0 60 32"><path d="M2 18h40l-10 10H11z" fill="#e8a06a"/><path d="M21 2v16" stroke="#b4763f" stroke-width="2.4"/><path d="M21 3l19 7-19 6z" fill="#f2c98a"/></svg>
+            <div class="sea__line sea__line--1"></div><div class="sea__line sea__line--2"></div><div class="sea__line sea__line--3"></div>
+          </div>
+          <div class="phone__cap"><b style="color:var(--primary)">新方案（2×2 大卡，图标 46px、文字 13.5px）</b></div>
+        </div>
+      </div>
+      <p class="note">2×2 让卡片宽度从约 85px 变成约 170px，图标从 34px 放大到 46px、文字从 12.5px 到 13.5px，看图标不再需要眯眼。代价：两行卡片让首屏内容整体下移约 110px。</p>
+    </div>
+  </div>
+
+  <!-- ② 首屏与滚动位置 -->
+  <div class="sec">
+    <div class="sec-h"><h2>二、首屏实际占比</h2><span>四卡变高后，信息位落在首屏折线附近（需要轻微滚动）</span></div>
+    <div class="panel">
+      <div class="row">
+        <div class="phone-w">
+          <div class="phone" style="height:844px">
+            <div class="sea"></div>
+            <div class="nav">
+              <div class="nav__brand"><span class="nav__mark"><svg viewBox="0 0 14 14"><use href="#logo-mark"/></svg></span><span class="nav__name">知一</span></div>
+              <span class="nav__tab on">学习</span><span class="nav__tab">我的</span>
+            </div>
+            <div class="home">
+              <div class="cards cards--2">
+                <div class="card"><svg class="card__art" viewBox="0 0 40 40"><use href="#art-camera"/></svg><span class="card__name">拍照搜题</span></div>
+                <div class="card"><svg class="card__art" viewBox="0 0 40 40"><use href="#art-book"/></svg><span class="card__name">错题学习</span></div>
+                <div class="card"><svg class="card__art" viewBox="0 0 40 40"><use href="#art-chat"/></svg><span class="card__name">AI 对话</span></div>
+                <div class="card"><svg class="card__art" viewBox="0 0 40 40"><use href="#art-tool"/></svg><span class="card__name">学习工具</span></div>
+              </div>
+              <div class="quick">
+                <div class="quick__track">
+                  <span class="quick__ico"><svg viewBox="0 0 20 20"><use href="#ic-schedule"/></svg>课程表</span>
+                  <span class="quick__ico"><svg viewBox="0 0 20 20"><use href="#ic-chat"/></svg>社区</span>
+                  <span class="quick__ico"><svg viewBox="0 0 20 20"><use href="#ic-clipboard"/></svg>考试</span>
+                  <span class="quick__ico"><svg viewBox="0 0 20 20"><use href="#ic-users"/></svg>班级</span>
+                  <span class="quick__ico"><svg viewBox="0 0 20 20"><use href="#ic-data"/></svg>数据</span>
+                </div>
+                <div class="quick__dots"><span class="quick__dot on"></span><span class="quick__dot"></span></div>
+              </div>
+              <div class="info">
+                <span class="info__ico">↻</span>
+                <div><div class="info__t">4 道错题该复习了</div><div class="info__s">按遗忘曲线，今天到期</div></div>
+                <span class="info__go">去复习 →</span>
+              </div>
+            </div>
+            <div class="fold"><span class="fold__lb">首屏折线（844px）</span></div>
+            <svg class="sea__boat" viewBox="0 0 60 32"><path d="M2 18h40l-10 10H11z" fill="#e8a06a"/><path d="M21 2v16" stroke="#b4763f" stroke-width="2.4"/><path d="M21 3l19 7-19 6z" fill="#f2c98a"/></svg>
+            <div class="sea__line sea__line--1"></div><div class="sea__line sea__line--2"></div><div class="sea__line sea__line--3"></div>
+          </div>
+          <div class="phone__cap">首屏：四卡 + 次入口完整可见；信息位在折线附近（约需滚动 40~60px）</div>
+        </div>
+        <div style="flex:1;min-width:280px">
+          <div class="panel" style="box-shadow:none;background:#fbfcfe">
+            <div style="font-size:13px;font-weight:600;margin-bottom:10px">信息位被推下多少？</div>
+            <div style="font-size:12.5px;color:var(--t3);line-height:2">
+              现状：四卡高约 86px。<br>
+              新方案：四卡高约 118px × 2 行 + 行间距 12px = <b>248px</b>。<br>
+              净增约 <b>110~115px</b>，正好把「4 道错题该复习了」压到折线附近。<br>
+              <span style="color:var(--t4)">若你希望信息位仍在首屏内，我可以把卡片高度收到 104px（图标 40px），净增降到约 70px。这条你定。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ 背景细节 -->
+  <div class="sec">
+    <div class="sec-h"><h2>三、新背景构成</h2><span>浅蓝渐变 + 3 条水线 + 1 条小船；无云、无米黄岸</span></div>
+    <div class="panel">
+      <div class="row">
+        <div class="phone-w">
+          <div class="phone"><div class="sea"></div>
+            <svg class="sea__boat" viewBox="0 0 60 32"><path d="M2 18h40l-10 10H11z" fill="#e8a06a"/><path d="M21 2v16" stroke="#b4763f" stroke-width="2.4"/><path d="M21 3l19 7-19 6z" fill="#f2c98a"/></svg>
+            <div class="sea__line sea__line--1"></div><div class="sea__line sea__line--2"></div><div class="sea__line sea__line--3"></div>
+          </div>
+          <div class="phone__cap">纯背景（无内容）</div>
+        </div>
+        <div style="flex:1;min-width:320px">
+          <div class="panel" style="box-shadow:none;background:#fbfcfe">
+            <div style="font-size:13px;font-weight:600;margin-bottom:12px">元素清单</div>
+            <div style="display:flex;flex-direction:column;gap:12px;font-size:12.5px;color:var(--t3);line-height:1.8">
+              <div><b style="color:var(--t1)">渐变（5 段）</b><br><span style="font-family:var(--mono);font-size:11.5px">#f8fbff → #eef5fd → #e3eefb → #d5e6f8 → #c7dcf4</span></div>
+              <div><b style="color:var(--t1)">水线 3 条</b><br>细线、长度不同、位于 66% / 75% / 86% 高度，色 rgba(147,190,228,.6)<br><span style="color:var(--t4)">微动效：极慢左右流动（14~18s 一轮）</span></div>
+              <div><b style="color:var(--t1)">小船 1 条</b><br>居中偏左（约 31% 宽处），橙帆 + 木色船身<br><span style="color:var(--t4)">微动效：轻微起伏（约 6s 一次）</span></div>
+              <div><b style="color:var(--t1)">删除项</b><br>3 朵云、米黄斜岸、第 2 条小船、5 条水光流线（保留 3 条）</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ④ 桌面端 -->
+  <div class="sec">
+    <div class="sec-h"><h2>四、桌面端（保持一行 4 卡）</h2><span>宽屏排 2×2 会变成两条很扁的大卡，所以桌面不改布局，只换背景</span></div>
+    <div class="panel">
+      <div class="stage stage--desk">
+        <div class="desk"><div class="sea"></div>
+          <div class="desk__side">
+            <div class="desk__side-brand"><span class="nav__mark" style="width:32px;height:32px;border-radius:10px"><svg viewBox="0 0 14 14" style="width:16px;height:16px"><use href="#logo-mark"/></svg></span><div><div class="desk__side-nm">知一学习</div><div class="desk__side-sub">计算机 · 全学科</div></div></div>
+            <div class="desk__nav-g">学习</div>
+            <div class="desk__nav-i on"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 10.5 12 4l8 6.5V20H4z"/></svg>工作台</div>
+            <div class="desk__nav-i"><svg viewBox="0 0 20 20"><use href="#ic-schedule"/></svg>拍照搜题</div>
+            <div class="desk__nav-i"><svg viewBox="0 0 20 20"><use href="#ic-chat"/></svg>AI 讲题对话</div>
+            <div class="desk__nav-g">巩固</div>
+            <div class="desk__nav-i"><svg viewBox="0 0 20 20"><use href="#ic-history"/></svg>错题学习</div>
+            <div class="desk__nav-i"><svg viewBox="0 0 20 20"><use href="#ic-data"/></svg>学习数据</div>
+            <div class="desk__nav-i"><svg viewBox="0 0 20 20"><use href="#ic-sparkle"/></svg>成就殿堂</div>
+          </div>
+          <div class="desk__main">
+            <div class="desk__top">
+              <div class="desk__crumb"><span>学习 /</span>工作台</div>
+              <div class="desk__search"><svg viewBox="0 0 20 20" style="width:14px;height:14px"><use href="#ic-schedule"/></svg>搜题目、知识点、公式（也可直接粘贴截图）</div>
+            </div>
+            <div class="desk__hero"><h2>下午好，同学</h2><p>今天有 4 道错题到了复习时间，先从最薄弱的知识点开始。</p></div>
+            <div class="desk__cols">
+              <div>
+                <div class="cards cards--4">
+                  <div class="card"><svg class="card__art" viewBox="0 0 40 40"><use href="#art-camera"/></svg><span class="card__name">拍照搜题</span></div>
+                  <div class="card"><svg class="card__art" viewBox="0 0 40 40"><use href="#art-book"/></svg><span class="card__name">错题学习</span></div>
+                  <div class="card"><svg class="card__art" viewBox="0 0 40 40"><use href="#art-chat"/></svg><span class="card__name">AI 对话</span></div>
+                  <div class="card"><svg class="card__art" viewBox="0 0 40 40"><use href="#art-tool"/></svg><span class="card__name">学习工具</span></div>
+                </div>
+                <div class="desk__blk">
+                  <h3>今日复习任务</h3>
+                  <div class="desk__tr"><span style="flex:1">用主定理求 T(n)=2T(n/2)+O(n) 的时间复杂度</span><span class="desk__pill">算法分析</span><span class="desk__pill">今天</span></div>
+                  <div class="desk__tr"><span style="flex:1">快速排序平均时间复杂度推导</span><span class="desk__pill">排序</span><span class="desk__pill">今天</span></div>
+                  <div class="desk__tr"><span style="flex:1">栈与队列的区别（简答）</span><span class="desk__pill">线性表</span><span class="desk__pill">明天</span></div>
+                </div>
+              </div>
+              <div>
+                <div class="desk__blk" style="margin-top:0"><h3>今日概览</h3>
+                  <div class="desk__tr"><span style="flex:1">今日分钟</span><b>42</b></div>
+                  <div class="desk__tr"><span style="flex:1">今日题量</span><b>8</b></div>
+                  <div class="desk__tr"><span style="flex:1">待复习</span><b>4</b></div>
+                </div>
+                <div class="desk__blk"><h3>快捷工具</h3>
+                  <div class="desk__tr">模拟考试</div><div class="desk__tr">错题自测</div><div class="desk__tr">考前速查</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <svg class="sea__boat" style="left:40%;top:82%;width:76px" viewBox="0 0 60 32"><path d="M2 18h40l-10 10H11z" fill="#e8a06a"/><path d="M21 2v16" stroke="#b4763f" stroke-width="2.4"/><path d="M21 3l19 7-19 6z" fill="#f2c98a"/></svg>
+          <div class="sea__line" style="left:6%;width:16%;top:88%"></div>
+          <div class="sea__line" style="left:64%;width:14%;top:93%"></div>
+          <div class="sea__line" style="left:30%;width:20%;top:97%"></div>
+        </div>
+      </div>
+      <p class="note">桌面端背景同样换成干净海洋（水线与小船按宽屏比例铺开），但四卡维持一行 4 个——宽屏 2×2 会让卡片高度撑到 200px+，反而挤掉下方的今日任务表格。</p>
+    </div>
+  </div>
+
+  <!-- ⑤ 深色 -->
+  <div class="sec">
+    <div class="sec-h"><h2>五、深色模式（背景保持星河）</h2><span>你给的是浅色参考，深色这边建议维持现有的星河不动，只跟随四卡改 2×2</span></div>
+    <div class="panel" style="background:#0e1421;border-color:rgba(160,180,230,.14)">
+      <div class="row">
+        <div class="phone-w">
+          <div class="phone phone--dark">
+            <div class="dark-bg">
+              <div class="dark-bg__gal"></div>
+              <svg class="dark-bg__planet" viewBox="0 0 112 112"><circle cx="56" cy="56" r="30" fill="#6f57f0" opacity=".55"/><ellipse cx="56" cy="56" rx="46" ry="13" fill="none" stroke="#f2cc7e" stroke-width="2" opacity=".65"/><circle cx="40" cy="42" r="5" fill="#9b83fb" opacity=".5"/></svg>
+              <div id="darkStars"></div>
+            </div>
+            <div class="nav">
+              <div class="nav__brand"><span class="nav__mark"><svg viewBox="0 0 14 14"><use href="#logo-mark"/></svg></span><span class="nav__name">知一</span></div>
+              <span class="nav__tab on">学习</span><span class="nav__tab">我的</span>
+            </div>
+            <div class="home">
+              <div class="cards cards--2">
+                <div class="card"><svg class="card__art" viewBox="0 0 40 40"><use href="#art-camera"/></svg><span class="card__name">拍照搜题</span></div>
+                <div class="card"><svg class="card__art" viewBox="0 0 40 40"><use href="#art-book"/></svg><span class="card__name">错题学习</span></div>
+                <div class="card"><svg class="card__art" viewBox="0 0 40 40"><use href="#art-chat"/></svg><span class="card__name">AI 对话</span></div>
+                <div class="card"><svg class="card__art" viewBox="0 0 40 40"><use href="#art-tool"/></svg><span class="card__name">学习工具</span></div>
+              </div>
+              <div class="quick">
+                <div class="quick__track">
+                  <span class="quick__ico"><svg viewBox="0 0 20 20"><use href="#ic-schedule"/></svg>课程表</span>
+                  <span class="quick__ico"><svg viewBox="0 0 20 20"><use href="#ic-chat"/></svg>社区</span>
+                  <span class="quick__ico"><svg viewBox="0 0 20 20"><use href="#ic-clipboard"/></svg>考试</span>
+                  <span class="quick__ico"><svg viewBox="0 0 20 20"><use href="#ic-users"/></svg>班级</span>
+                  <span class="quick__ico"><svg viewBox="0 0 20 20"><use href="#ic-data"/></svg>数据</span>
+                </div>
+                <div class="quick__dots"><span class="quick__dot on"></span><span class="quick__dot"></span></div>
+              </div>
+              <div class="info">
+                <span class="info__ico" style="background:rgba(74,122,99,.24)">↻</span>
+                <div><div class="info__t">4 道错题该复习了</div><div class="info__s">按遗忘曲线，今天到期</div></div>
+                <span class="info__go">去复习 →</span>
+              </div>
+            </div>
+          </div>
+          <div class="phone__cap" style="color:#8890a6">深色：四卡 2×2，背景星河不动</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><h2>六、需要你确认的一点</h2></div>
+    <div class="panel">
+      <div style="font-size:13px;color:var(--t2);line-height:2">
+        <b>卡片高度</b>：现在是按参考图的比例做的（单卡 118px、图标 46px），首屏信息位会被压到折线附近。<br>
+        如果你希望「4 道错题该复习了」稳稳留在首屏内，我可以把单卡收到 <b>104px</b>（图标 40px），视觉上仍明显比现状大，净增从 110px 降到约 70px。<br>
+        <span style="color:var(--t4)">两个版本我都能实现，你说一句就行。其余细节（水线位置、船的大小、渐变深浅）也可以调。</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* 深色星河：星点用 JS 生成，避免手写一堆 div */
+(function () {
+  var box = document.getElementById('darkStars')
+  if (!box) return
+  var n = 46, html = ''
+  for (var i = 0; i < n; i++) {
+    var x = (i * 37 % 100), y = (i * 61 % 100)
+    var sz = i % 7 === 0 ? 3 : 2
+    var op = i % 5 === 0 ? 0.95 : 0.6
+    html += '<span class="dark-bg__star" style="left:' + x + '%;top:' + y + '%;width:' + sz + 'px;height:' + sz + 'px;opacity:' + op + '"></span>'
+  }
+  box.outerHTML = html
+})()
+</script>
+</body>
+</html>
