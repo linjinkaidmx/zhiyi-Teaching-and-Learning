@@ -9,6 +9,7 @@ import base64
 import json
 import os
 import random
+import secrets
 import re
 import shutil
 import subprocess
@@ -24,7 +25,7 @@ PORT = random.randint(9400, 9900)  # 随机端口，避免僵尸实例占用
 ROOT = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(ROOT, "shots")
 NICK = "冒烟" + str(int(time.time() * 10))[-7:]
-PWD = "zhiyi@2026"
+PWD = "T" + secrets.token_hex(5)   # 每次运行随机生成，避免硬编码
 GROUP_NAME = "高等数学冲刺营"
 
 failures = []

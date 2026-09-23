@@ -19,9 +19,10 @@ import paramiko
 
 warnings.filterwarnings("ignore")
 
-HOST = "193.112.28.51"
-USER = "root"
-PWD = "ljk20070114251X"
+# 凭据一律从环境变量读取，切勿把密码写回文件（本仓库是公开的）
+HOST = os.environ.get("ZHIYI_HOST", "193.112.28.51")
+USER = os.environ.get("ZHIYI_USER", "root")
+PWD = os.environ.get("ZHIYI_PW", "")
 REMOTE = "/opt/zhiyi"
 BASE = f"http://{HOST}:3300"
 STATIC = "zhiyi/backend/static6"
