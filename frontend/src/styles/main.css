@@ -1,0 +1,299 @@
+/* ============================================================
+   知一 · 设计系统 v2（学术工具感 / 书卷气）
+   原则：克制、安静。主色仅用于主按钮/导航指示/关键数字。
+   卡片 1px 描边、无投影；导航激活态用下划线，不用色块。
+   ============================================================ */
+
+:root {
+  /* 品牌与语义色 */
+  --brand: #2f6f5e;
+  --brand-strong: #265a4c;
+  --brand-soft: rgba(47, 111, 94, 0.08);
+  --danger: #c0564b;
+  --danger-soft: rgba(192, 86, 75, 0.08);
+  --text: #1f2937;
+  --text-sub: #9ca3af;
+  --text-faint: #b0aba0;
+  --border: #e8e5df;
+  --border-strong: #d9d4c9;
+  --bg: #faf9f6;
+  --card: #ffffff;
+
+  /* 字体：标题衬线（书卷气）+ 正文无衬线 */
+  --font-display: 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', Georgia, serif;
+  --font-body: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    'Helvetica Neue', Arial, sans-serif;
+
+  /* 形状与间距 */
+  --radius: 8px;
+  --radius-sm: 6px;
+  --content-width: 1080px;
+
+  /* 覆盖 Element Plus 主色（按钮/链接/选中态全局统一） */
+  --el-color-primary: #2f6f5e;
+  --el-color-primary-light-3: #55897a;
+  --el-color-primary-light-5: #87ab9f;
+  --el-color-primary-light-7: #b9cdc5;
+  --el-color-primary-light-8: #d2e0da;
+  --el-color-primary-light-9: #eaf1ee;
+  --el-color-primary-dark-2: #265a4c;
+  --el-color-danger: #c0564b;
+  --el-color-danger-light-3: #d08077;
+  --el-color-danger-light-5: #dfa59e;
+  --el-color-danger-light-7: #eec9c5;
+  --el-color-danger-light-8: #f5dbd8;
+  --el-color-danger-light-9: #faedec;
+  --el-color-danger-dark-2: #9a453d;
+  --el-border-radius-base: 6px;
+  --el-font-family: var(--font-body);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--text);
+  background: var(--bg);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+/* ---------- 顶栏 ---------- */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  padding: 0 32px;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.logo {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--brand);
+  letter-spacing: 3px;
+}
+
+.slogan {
+  font-family: var(--font-display);
+  font-size: 12px;
+  color: var(--text-faint);
+  letter-spacing: 1px;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 自定义导航链接：激活态 = 2px 墨绿下划线 */
+.nav-link {
+  position: relative;
+  padding: 6px 14px;
+  font-size: 14px;
+  color: var(--text-sub);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease;
+  user-select: none;
+}
+
+.nav-link:hover {
+  color: var(--text);
+}
+
+.nav-link.active {
+  color: var(--brand);
+  font-weight: 600;
+}
+
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: -1px;
+  height: 2px;
+  background: var(--brand);
+  border-radius: 2px;
+}
+
+/* 后端状态：细描边小胶囊，不用彩色 tag */
+.net-chip {
+  margin-left: 8px;
+  padding: 2px 10px;
+  font-size: 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  color: var(--text-sub);
+  background: var(--bg);
+}
+
+.net-chip.on {
+  color: var(--brand);
+  border-color: rgba(47, 111, 94, 0.35);
+  background: var(--brand-soft);
+}
+
+.net-chip.off {
+  color: var(--danger);
+  border-color: rgba(192, 86, 75, 0.35);
+  background: var(--danger-soft);
+}
+
+.user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 8px;
+  padding: 4px 12px 4px 4px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+}
+
+.user-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--brand);
+  border-radius: 50%;
+}
+
+/* ---------- 主区域 ---------- */
+.app-main {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 28px 24px 64px;
+}
+
+/* ---------- 通用卡片：1px 描边、无投影 ---------- */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+}
+
+.card + .card,
+.gap-top {
+  margin-top: 16px;
+}
+
+/* ---------- Element Plus 去投影、去默认蓝 ---------- */
+.el-card {
+  --el-card-border-color: var(--border);
+  --el-card-border-radius: var(--radius);
+  --el-card-padding: 20px;
+  border: 1px solid var(--border);
+  box-shadow: none !important;
+  color: var(--text);
+}
+
+.el-button {
+  font-weight: 500;
+}
+
+.el-button--primary {
+  --el-button-bg-color: var(--brand);
+  --el-button-border-color: var(--brand);
+  --el-button-hover-bg-color: var(--brand-strong);
+  --el-button-hover-border-color: var(--brand-strong);
+  --el-button-active-bg-color: var(--brand-strong);
+}
+
+.el-dialog {
+  --el-dialog-border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.el-tag {
+  border-radius: var(--radius-sm);
+}
+
+/* 细描边小胶囊（学科/错因/知识点标签） */
+.tag-chip {
+  display: inline-block;
+  padding: 1px 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-sub);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--bg);
+}
+
+.tag-chip.brand {
+  color: var(--brand);
+  border-color: rgba(47, 111, 94, 0.3);
+  background: var(--brand-soft);
+}
+
+/* 衬线大数字（统计用） */
+.stat-num {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* 页面内区块标题 */
+.block-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 12px;
+}
+
+/* 链接式操作 */
+.link-act {
+  font-size: 13px;
+  color: var(--brand);
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0 6px;
+}
+
+.link-act:hover {
+  color: var(--brand-strong);
+  text-decoration: underline;
+}
+
+.link-act.danger {
+  color: var(--danger);
+}
+
+/* 空状态弱化 */
+.el-empty__description p {
+  color: var(--text-faint);
+}
