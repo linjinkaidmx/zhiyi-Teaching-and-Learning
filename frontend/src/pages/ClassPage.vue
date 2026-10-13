@@ -2,9 +2,9 @@
   <div class="zy-page">
     <div class="zy-container clsp">
       <header class="clsp__head">
-        <UiButton variant="ghost" size="sm" class="zy-back" @click="goBackSmart($router)">← 返回</UiButton>
+        <UiButton variant="soft" size="sm" class="zy-back" @click="goBackSmart($router)" icon="left">返回</UiButton>
         <h1 class="t-h1">班级</h1>
-        <p class="t-body-2">老师建班布置作业，学生拍照提交，AI 帮老师一键批改并生成班级报告。</p>
+        <p class="t-body-2">建班、布置作业、AI 一键批改，班级学情一处搞定。</p>
       </header>
 
       <!-- 未登录 -->
@@ -30,11 +30,12 @@
           <div class="clsp__section-head">
             <h2 class="t-h3">我的班级</h2>
             <div class="clsp__section-ops">
-              <UiButton variant="ghost" size="sm" @click="openJoin">加入班级</UiButton>
+              <UiButton variant="secondary" size="sm" icon="users" @click="openJoin">加入班级</UiButton>
               <UiButton
                 v-if="teacher && teacher.is_teacher"
                 variant="primary"
                 size="sm"
+                icon="plus"
                 @click="openCreate"
               >创建班级</UiButton>
             </div>
@@ -48,16 +49,23 @@
               class="clsp__item surface-standard"
               @click="openClass(c)"
             >
+              <span class="clsp__item-head">
+                <span class="clsp__item-ic"><UiIcon name="users" :size="16" /></span>
+                <span class="clsp__badge" :class="c.is_teacher ? 'is-teacher' : 'is-student'">
+                  {{ c.is_teacher ? '老师' : '学生' }}
+                </span>
+              </span>
               <span class="clsp__item-main">
                 <span class="clsp__item-title">{{ c.name }}</span>
                 <span class="t-label">
                   {{ c.meta.subject || '未设科目' }}<template v-if="c.meta.grade"> · {{ c.meta.grade }}</template>
-                  · {{ c.member_count }} 人
                 </span>
               </span>
-              <span class="clsp__item-side">
-                <span v-if="c.is_teacher" class="clsp__badge">老师</span>
-                <span class="clsp__arrow" aria-hidden="true">→</span>
+              <span class="clsp__item-foot">
+                <span class="clsp__item-count"><UiIcon name="users" :size="13" /> {{ c.member_count }} 人</span>
+                <span v-if="c.pending_grade" class="clsp__todo">{{ c.pending_grade }} 份待批改</span>
+                <span v-else-if="c.pending_submit" class="clsp__todo">{{ c.pending_submit }} 项待交</span>
+                <span v-else class="clsp__todo is-clear">暂无待办</span>
               </span>
             </button>
           </div>
@@ -119,6 +127,8 @@
       </UiModal>
     </div>
   </div>
+  <!-- 新手教程 -->
+  <UiTour v-model="tourOpen" tour-key="classroom" />
 </template>
 
 <script setup>
@@ -126,6 +136,9 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { recordAction } from '../statsStore'
 import { useRouter } from 'vue-router'
 import UiButton from '../ui/UiButton.vue'
+import UiTour from '../ui/UiTour.vue'
+import { useTour } from '../lib/useTour.js'
+import UiIcon from '../ui/UiIcon.vue'
 import UiEmptyState from '../ui/UiEmptyState.vue'
 import UiModal from '../ui/UiModal.vue'
 import { toast } from '../ui/toast.js'
@@ -262,6 +275,10 @@ async function submitJoin() {
 function openClass(c) {
   router.push(path(ROUTES.classDetail, { id: c.id }))
 }
+
+/* 新手教程：首次进入本页自动弹（看过不再弹） */
+const { tourOpen } = useTour('classroom')
+
 </script>
 
 <style scoped>
@@ -310,49 +327,96 @@ function openClass(c) {
   display: flex;
   gap: var(--sp-2);
 }
+/* 班级卡片网格（图标块 + 名称 + 待办状态） */
 .clsp__list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+  gap: var(--sp-3);
 }
 .clsp__item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-3);
-  padding: var(--sp-3) var(--sp-4);
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
   cursor: pointer;
   text-align: left;
-  transition: border-color var(--dur) var(--ease);
+  transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
 }
 .clsp__item:hover {
+  transform: translateY(-2px);
   border-color: var(--primary-line);
+  box-shadow: var(--shadow-elevated);
+}
+.clsp__item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+.clsp__item-ic {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-soft-2);
+  color: var(--primary-text);
 }
 .clsp__item-main {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   min-width: 0;
 }
 .clsp__item-title {
-  font-size: var(--fs-body-2);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-medium);
   color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.clsp__item-side {
+.clsp__item-foot {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--sp-2);
-  flex: 0 0 auto;
+  padding-top: var(--sp-2);
+  border-top: var(--border-divider-soft);
+}
+.clsp__item-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-label);
+  color: var(--text-muted);
+}
+/* 待办徽标：有待批/待交时主色高亮，没有则弱化 */
+.clsp__todo {
+  font-size: var(--fs-label);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--primary-soft-2);
+  color: var(--primary-text);
+}
+.clsp__todo.is-clear {
+  background: var(--surface-unit);
+  color: var(--text-muted);
 }
 .clsp__badge {
   font-size: var(--fs-label);
-  color: var(--primary-text);
-  background: var(--primary-soft);
   border-radius: var(--radius-pill);
   padding: 2px 10px;
 }
-.clsp__arrow {
-  color: var(--text-disabled);
+.clsp__badge.is-teacher {
+  color: var(--primary-text);
+  background: var(--primary-soft-2);
+}
+.clsp__badge.is-student {
+  color: var(--text-tertiary);
+  background: var(--surface-unit);
 }
 .clsp__cert-tip {
   margin-bottom: var(--sp-2);

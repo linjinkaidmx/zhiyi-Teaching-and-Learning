@@ -32,22 +32,29 @@ const options = computed(() => {
 <style scoped>
 .countpicker {
   display: flex;
-  gap: var(--sp-2);
+  gap: 8px;
   margin: var(--sp-3) 0;
+  flex-wrap: wrap;
 }
 .countpicker__btn {
-  min-width: 48px;
-  padding: 8px 0;
+  min-width: 64px;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
   border: var(--border-subtle);
-  border-radius: var(--radius-sm);
   background: var(--surface-1);
   color: var(--text-secondary);
+  font-family: inherit;
   font-size: var(--fs-body-2);
   cursor: pointer;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.countpicker__btn:hover {
+  border-color: var(--primary-line);
 }
 .countpicker__btn.is-active {
-  border-color: var(--primary-line);
-  background: var(--primary-soft-3);
-  color: var(--primary-text);
+  border-color: transparent;
+  background: linear-gradient(135deg, #7c5cff, #5b47d6);
+  color: #fff;
+  font-weight: 600;
 }
 </style>

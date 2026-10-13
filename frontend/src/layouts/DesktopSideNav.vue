@@ -74,10 +74,12 @@ const isOn = (it) => {
   // 详情页归属父级，保证侧栏始终有高亮项
   const parents = {
     [ROUTES.capture]: [/^\/q\//],
-    [ROUTES.wrongbook]: [/^\/wrongbook\//, /^\/practice\//],
+    [ROUTES.wrongbook]: [/^\/wrongbook\//],
+    '/practice/original': [/^\/practice\//],
     [ROUTES.chat]: [/^\/chat\//],
     [ROUTES.classPage]: [/^\/class\//],
-    [ROUTES.exams]: [/^\/exam/],
+    [ROUTES.simExam]: [/^\/exam\/run/],
+    [ROUTES.companion]: [/^\/companion/],
     [ROUTES.tools]: [/^\/more$/],
   }
   return (parents[it.path] || []).some((re) => re.test(p))
@@ -94,7 +96,7 @@ const badgeOf = (it) => (it.badge === 'review' && reviewCount.value > 0 ? review
   border-right: var(--border-divider-soft);
   padding: var(--sp-4) var(--sp-3);
   flex-direction: column;
-  overflow-y: auto;
+  overflow: hidden;
   overscroll-behavior: contain;
 }
 .ui-sidenav__brand {
@@ -125,6 +127,11 @@ const badgeOf = (it) => (it.badge === 'review' && reviewCount.value > 0 ? review
   margin-top: 1px;
 }
 .ui-sidenav__nav {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
   display: flex;
   flex-direction: column;
 }
@@ -132,14 +139,14 @@ const badgeOf = (it) => (it.badge === 'review' && reviewCount.value > 0 ? review
   font-size: var(--fs-label);
   color: var(--text-disabled);
   letter-spacing: .06em;
-  padding: var(--sp-4) var(--sp-3) var(--sp-2);
+  padding: 14px var(--sp-3) 5px;
 }
 .ui-sidenav__item {
   position: relative;
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  padding: 9px var(--sp-3);
+  padding: 7px var(--sp-3);
   border: 0;
   border-radius: var(--radius-sm);
   background: none;
@@ -185,7 +192,7 @@ const badgeOf = (it) => (it.badge === 'review' && reviewCount.value > 0 ? review
   padding: 1px 7px;
 }
 .ui-sidenav__foot {
-  margin-top: auto;
+  flex: none;
   padding-top: var(--sp-3);
   border-top: var(--border-divider-soft);
 }

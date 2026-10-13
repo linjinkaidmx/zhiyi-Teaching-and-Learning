@@ -1,3 +1,9 @@
+<!--
+  @deprecated 2026-10-13 —— 本组件已无任何引用（Element Plus 时代的遗留文件）。
+  保留仅作历史参考。若将来要复用：
+    1) 先移除对 'element-plus' 的 import（依赖已不在 package.json，直接用会构建失败）
+    2) 文本类字段一律套 <MathText :content="..." />（prop 是 content，不是 text）
+-->
 <template>
   <div class="book">
     <!-- 顶部一行紧凑统计（替代 4 张大卡片） -->
@@ -70,7 +76,7 @@
           <span v-for="k in it.knowledge_points || []" :key="k" class="tag-chip">{{ k }}</span>
           <span class="time">{{ fmt(it.createdAt) }}</span>
         </div>
-        <div class="q"><MathText :text="it.question" /></div>
+        <div class="q"><MathText :content="it.question" /></div>
         <div class="row-ops">
           <button class="link-act" @click.stop="emit('review', it)">查看解析</button>
           <button class="link-act" @click.stop="emit('share', it)">分享</button>

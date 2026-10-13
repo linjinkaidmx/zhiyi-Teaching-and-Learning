@@ -55,6 +55,38 @@ export function formToWeeks(weeksType, weeksRanges) {
   return { type: weeksType || 'every' }
 }
 
+/** 第 w 周（1 起）是否命中该 weeks 配置 */
+export function weekActive(weeks, w) {
+  const t = weeks && typeof weeks === 'object' ? weeks : { type: 'every' }
+  if (t.type === 'odd') return w % 2 === 1
+  if (t.type === 'even') return w % 2 === 0
+  if (t.type === 'custom') {
+    return (Array.isArray(t.ranges) ? t.ranges : []).some(([a, b]) => w >= Number(a) && w <= Number(b))
+  }
+  return true // every
+}
+
+/** 两组 weeks 是否存在共同上课周（用于「同格不同周可共存」判重） */
+export function weeksOverlap(a, b, totalWeeks = 60) {
+  const n = Math.min(60, Math.max(1, Number(totalWeeks) || 60))
+  for (let w = 1; w <= n; w += 1) {
+    if (weekActive(a, w) && weekActive(b, w)) return true
+  }
+  return false
+}
+
+/** weeks 对象 → 人话（冲突提示用）：单周 / 双周 / 每周 / 第 1,5,7 周 */
+export function weeksLabel(weeks) {
+  const t = weeks && typeof weeks === 'object' ? weeks : { type: 'every' }
+  if (t.type === 'odd') return '单周'
+  if (t.type === 'even') return '双周'
+  if (t.type === 'custom') {
+    const rs = formatRanges(t.ranges)
+    return rs ? `第 ${rs} 周` : '每周'
+  }
+  return '每周'
+}
+
 /**
  * 排课格子 → 时段列表
  * 同一「星期 + 周次」下的连续节次合并为一个时段（3、4、5 节 → 3~5）

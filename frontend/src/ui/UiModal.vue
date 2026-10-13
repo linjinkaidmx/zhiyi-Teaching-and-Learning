@@ -10,7 +10,7 @@
         :style="zIndex ? { zIndex } : null"
       >
         <div class="ui-modal__mask" @click="closeOnMask && close()" />
-        <div class="ui-modal__panel" :class="[`ui-modal__panel--${size}`, 'surface-elevated']">
+        <div class="ui-modal__panel" :class="[`ui-modal__panel--${size}`, 'surface-elevated', panelClass]">
           <header class="ui-modal__head">
             <h3 class="t-h3">{{ title }}</h3>
             <button class="ui-modal__close" type="button" aria-label="关闭" @click="close()">
@@ -47,6 +47,8 @@ const props = defineProps({
   closeOnMask: { type: Boolean, default: true },
   /** 需要盖住 Toast 时可传 'var(--z-confirm)'（确认框用） */
   zIndex: { type: [String, Number], default: '' },
+  /** 追加到面板上的自定义 class（用于单弹窗定制宽度等） */
+  panelClass: { type: String, default: '' },
 })
 const emit = defineEmits(['update:modelValue', 'close'])
 

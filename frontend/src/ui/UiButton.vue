@@ -8,6 +8,7 @@
     @click="$emit('click', $event)"
   >
     <slot name="icon" />
+    <UiIcon v-if="icon" :name="icon" :size="iconSize" class="ui-btn__icon" />
     <span class="ui-btn__label"><slot /></span>
   </button>
 </template>
@@ -18,17 +19,24 @@
  *            / Ghost（轻量动作）/ Text（文字动作）
  * 每页只应有一个 Primary。
  */
-defineProps({
+import { computed } from 'vue'
+import UiIcon from './UiIcon.vue'
+
+const props = defineProps({
   variant: {
     type: String,
     default: 'ghost',
-    validator: (v) => ['primary', 'cta', 'secondary', 'ghost', 'text'].includes(v),
+    validator: (v) => ['primary', 'cta', 'secondary', 'soft', 'ghost', 'text'].includes(v),
   },
   size: { type: String, default: 'md', validator: (v) => ['sm', 'md', 'lg'].includes(v) },
   block: { type: Boolean, default: false },
   loading: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
+  /** 前置线性图标名（见 UiIcon） */
+  icon: { type: String, default: '' },
 })
+
+const iconSize = computed(() => (props.size === 'lg' ? 16 : 14))
 defineEmits(['click'])
 </script>
 
@@ -99,6 +107,25 @@ defineEmits(['click'])
 .ui-btn--secondary:not(:disabled):hover {
   background: var(--primary-soft-3);
   border-color: var(--primary);
+}
+/* soft：白底胶囊返回键（对齐 AI 课堂 .tch__back 那套：白底 + 淡描边 + 胶囊 + hover 左移）
+   注意：项目 --primary-soft-1/2/3 是「数字越大越淡」，hover 加深用 color-mix。 */
+.ui-btn--soft {
+  min-height: 0;
+  padding: 7px 14px;
+  gap: 5px;
+  background: var(--surface-1);
+  border-color: var(--border-subtle);
+  border-radius: var(--radius-pill);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: var(--fw-semibold);
+}
+.ui-btn--soft:not(:disabled):hover {
+  background: var(--surface-1);
+  border-color: var(--primary);
+  color: var(--primary-text);
+  transform: translateX(-2px);
 }
 
 .ui-btn--ghost {

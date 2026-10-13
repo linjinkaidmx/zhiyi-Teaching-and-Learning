@@ -24,6 +24,10 @@
         <stop offset=".82" stop-color="#9b83fb" stop-opacity=".38" />
         <stop offset="1" stop-color="#6f57f0" stop-opacity="0" />
       </radialGradient>
+      <!-- 未解锁进度弧（品牌紫渐变）：不参与奖章灰度滤镜，灰奖章 + 亮进度形成收集感 -->
+      <linearGradient id="bm-g-progress" x1="0" y1="1" x2="1" y2="0">
+        <stop offset="0" stop-color="#8a6bff" /><stop offset="1" stop-color="#7c5cff" />
+      </linearGradient>
       <filter id="bm-soft" x="-40%" y="-40%" width="180%" height="180%">
         <feDropShadow dx="0" dy="1.5" stdDeviation="2.2" flood-color="#1b2340" flood-opacity=".28" />
       </filter>

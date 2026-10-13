@@ -13,7 +13,6 @@
         :initial="initial"
         :remind-dot="remindDot"
         @navigate="$emit('navigate', $event)"
-        @search="onSearch"
         @remind="$emit('navigate', ROUTES.home + '?remind=1')"
       />
 
@@ -31,6 +30,9 @@
       <main class="ui-shell__main">
         <slot />
       </main>
+
+      <!-- 全站页脚标语：内容短则贴视口底、长则沉到内容末尾（ui-shell__col 纵向 flex 的天然行为） -->
+      <SiteSlogan />
     </div>
 
     <BadgeDefs />
@@ -38,22 +40,23 @@
     <AchievementReveal />
     <UiToastHost />
     <UiConfirmHost />
+    <CompanionLayer />
   </div>
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted } from 'vue'
 import TopNav from './TopNav.vue'
 import DesktopSideNav from './DesktopSideNav.vue'
 import DesktopTopBar from './DesktopTopBar.vue'
 import AiStatusBar from './AiStatusBar.vue'
 import UiToastHost from '../ui/UiToastHost.vue'
 import UiConfirmHost from '../ui/UiConfirmHost.vue'
+import CompanionLayer from '../components/CompanionLayer.vue'
+import SiteSlogan from '../components/SiteSlogan.vue'
 import BadgeDefs from '../ui/BadgeDefs.vue'
 import AchievementToast from '../ui/AchievementToast.vue'
 import AchievementReveal from '../ui/AchievementReveal.vue'
-import { ROUTES, path } from '../lib/routes.js'
-import { useRouter } from 'vue-router'
+import { ROUTES } from '../lib/routes.js'
 
 /**
  * 应用外壳
@@ -61,7 +64,7 @@ import { useRouter } from 'vue-router'
  * 同一份 DOM 承载两种形态，靠媒体查询切换（不重建组件，避免切换时丢页面状态）：
  *   ≥1024px  左侧竖向导航 + 顶部工具条 + 内容区（桌面工作台）
  *   <1024px  顶部「学习 / 我的」双 Tab（移动端原样，未做任何改动）
- * 全局搜题：点击工具条搜索框或按 Ctrl/⌘+K → 进拍题页并聚焦文本输入。
+ * 2026-10-10：原「全局搜题（点搜索框/Ctrl K 进拍题页）」移除，改为 DesktopTopBar 内嵌的站内搜功能。
  */
 defineProps({
   active: { type: String, default: ROUTES.home },
@@ -75,24 +78,6 @@ defineProps({
   remindDot: { type: Boolean, default: false },
 })
 const emit = defineEmits(['navigate', 'ai-stop', 'ai-rerun'])
-const router = useRouter()
-
-const isDesktop = () => typeof window !== 'undefined' && window.matchMedia('(min-width: 1024px)').matches
-
-function onSearch() {
-  emit('navigate', path(ROUTES.capture, {}) + '?focus=text')
-}
-
-function onKey(e) {
-  if (!isDesktop()) return
-  const k = String(e.key || '').toLowerCase()
-  if ((e.ctrlKey || e.metaKey) && k === 'k') {
-    e.preventDefault()
-    onSearch()
-  }
-}
-onMounted(() => window.addEventListener('keydown', onKey))
-onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 </script>
 
 <style scoped>
@@ -116,7 +101,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 @media (min-width: 1024px) {
   .ui-shell {
     flex-direction: row;
-    background: var(--background);
+    /* 2026-10-13 品牌化：桌面端外壳背景叠加品牌紫/暖橘柔光（原来纯 var(--background) 无渐变无光斑，
+       会盖死 body 的光斑）；内容列与侧栏间的留白、卡片间隙透出紫氛围 */
+    background:
+      radial-gradient(55% 45% at 6% -6%, rgba(124, 92, 255, 0.10), rgba(124, 92, 255, 0) 60%),
+      radial-gradient(45% 40% at 100% 0%, rgba(250, 199, 117, 0.08), rgba(250, 199, 117, 0) 60%),
+      linear-gradient(180deg, #f5f3fc 0%, #faf9fe 45%, #fbfaff 100%);
   }
   .ui-shell__col {
     min-height: 100vh;

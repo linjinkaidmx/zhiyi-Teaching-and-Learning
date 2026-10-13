@@ -39,6 +39,9 @@ const TOTALS_OF = {
   examPlan: 'examPlan',  // 考试安排维护
   profile: 'profile',    // 资料完善
   cls: 'cls',            // 加入班级
+  teach: 'teach',        // AI 课堂完成一节
+  teachQuiz: 'teachQuiz', // AI 课堂测验满分
+  cmCustom: 'cmCustom',  // 创建自定义伴学角色
 }
 
 export function emptyTotals() {
@@ -50,6 +53,8 @@ export function emptyTotals() {
     course: 0, examPlan: 0, profile: 0, cls: 0,
     perfect: 0, stickyFix: 0, ontime: 0, hwPerfect: 0, examPerfect: 0, top3: 0,
     night: 0, comeback: 0,
+    // AI 课堂 / 造角色（2026-10-13 成就扩展）
+    teach: 0, teachQuiz: 0, cmCustom: 0,
   }
 }
 
@@ -371,6 +376,8 @@ export function buildContext(s, extra = {}) {
     courseCount: Math.max(0, Number(extra.courseCount) || 0),
     examCount: Math.max(0, Number(extra.examCount) || 0),
     profileDone: Math.max(0, Number(extra.profileDone) || 0),
+    // 伴学伙伴统计（当前伙伴）：由 App 的 provider 从 companionStatsStore 注入
+    companion: extra.companion || {},
   }
 }
 

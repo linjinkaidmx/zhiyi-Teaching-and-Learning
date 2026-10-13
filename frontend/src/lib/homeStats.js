@@ -3,7 +3,7 @@
  * ---------------------------------------------------------------------------
  * 数据来源全是本地真实数据，没有任何写死的演示值：
  *   今日时长 / 完成题目  ← 学习记录 records（minutes、type）
- *   待复习 / 复习计划    ← 错题本 book + 复习设置 settings（SRS 到期）
+ *   待巩固 / 复习计划    ← 错题本 book + 复习设置 settings（节奏档位）
  *   推荐知识点          ← book.analyzeWeakPoints（按知识点错误率降序）
  *   学习总结            ← 规则生成（不调用模型、不产生费用）
  */
@@ -46,7 +46,7 @@ export function todayQuestions(records, now = Date.now()) {
   }).length
 }
 
-/** 待复习数量：复习池大小（未掌握，或已到 SRS 复习时间） */
+/** 待巩固数量：复习池大小（只含未掌握的题，2026-10-11 起已掌握不再回炉） */
 export function pendingReviewCount(book, settings, now = Date.now()) {
   return quizPool(Array.isArray(book) ? book : [], settings).length
 }

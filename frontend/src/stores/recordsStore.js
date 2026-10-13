@@ -22,6 +22,7 @@ export const RECORD_TYPES = {
   quiz: { label: '自测作答', icon: 'book' },
   save: { label: '存入错题本', icon: 'clipboard' },
   debug: { label: '代码诊断', icon: 'settings' },
+  teach: { label: '跟老师上课', icon: 'sparkle' },
 }
 
 const records = ref([])

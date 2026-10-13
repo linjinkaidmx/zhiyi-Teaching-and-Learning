@@ -2,15 +2,23 @@
   <div class="zy-container zy-page records">
     <header class="rec__head">
       <div>
-        <UiButton variant="ghost" size="sm" class="zy-back" @click="goBackSmart($router)">← 返回</UiButton>
+        <UiButton variant="soft" size="sm" class="zy-back" @click="goBackSmart($router)" icon="left">返回</UiButton>
         <h1 class="t-h1">学习记录</h1>
         <p class="t-body-2">讲解、追问、自测、存题与代码诊断的流水（本地记录，后端表就绪后同步）</p>
       </div>
       <div class="rec__head-ops">
-        <UiButton variant="ghost" size="sm" @click="$router.push(ROUTES.data)">学习数据</UiButton>
-        <UiButton v-if="records.length" variant="ghost" size="sm" @click="doClear">清空记录</UiButton>
+        <UiButton variant="ghost" size="sm" icon="data" @click="$router.push(ROUTES.data)">学习数据</UiButton>
+        <button v-if="records.length" type="button" class="rec__clear" @click="doClear">
+          <UiIcon name="trash" :size="14" /> 清空记录
+        </button>
       </div>
     </header>
+
+    <!-- 统计条 -->
+    <div v-if="records.length" class="rec__stats">
+      <span class="rec__stat">共 <b>{{ records.length }}</b> 条记录</span>
+      <span class="rec__stat">今天 <b>{{ todayCount }}</b> 条</span>
+    </div>
 
     <!-- 类型筛选 -->
     <div class="rec__filters">
@@ -30,6 +38,7 @@
         :class="{ 'is-active': type === key }"
         @click="type = key"
       >
+        <UiIcon :name="meta.icon" :size="13" :class="`is-${toneOf(key)}`" />
         {{ meta.label }} <b>{{ countOf(key) }}</b>
       </button>
     </div>
@@ -44,24 +53,31 @@
       </template>
     </UiEmptyState>
 
-    <ul v-else class="rec__list">
-      <li v-for="r in shown" :key="r.id" class="rec__item surface-standard">
-        <UiIcon :name="iconOf(r.type)" :size="18" />
-        <div class="rec__body">
-          <div class="rec__title-row">
-            <span class="rec__type">{{ labelOf(r.type) }}</span>
-            <span class="t-label rec__time">{{ timeText(r.createdAt) }}</span>
-          </div>
-          <!-- MathText 渲染：兼容历史记录里未转符号的 LaTeX 源码（渲染失败自动降级，绝不显示 $ 或反斜杠残留） -->
-          <p v-if="r.titleTex || r.title" class="rec__title"><MathText :content="r.titleTex || r.title" /></p>
-          <div class="rec__meta">
-            <UiTag v-if="r.brief" variant="neutral"><MathText :content="r.brief" /></UiTag>
-            <UiTag v-if="r.correct === true" variant="success">答对</UiTag>
-            <UiTag v-else-if="r.correct === false" variant="error">答错</UiTag>
-          </div>
-        </div>
-      </li>
-    </ul>
+    <div v-else class="rec__grouped">
+      <template v-for="g in grouped" :key="g.key">
+        <div class="rec__group-label">{{ g.label }} · {{ g.items.length }}</div>
+        <ul class="rec__list">
+          <li v-for="r in g.items" :key="r.id" class="rec__item surface-standard">
+            <span class="rec__icon" :class="`is-${toneOf(r.type)}`">
+              <UiIcon :name="iconOf(r.type)" :size="16" />
+            </span>
+            <div class="rec__body">
+              <div class="rec__title-row">
+                <span class="rec__type">{{ labelOf(r.type) }}</span>
+                <span class="t-label rec__time">{{ timeText(r.createdAt) }}</span>
+              </div>
+              <!-- MathText 渲染：兼容历史记录里未转符号的 LaTeX 源码（渲染失败自动降级，绝不显示 $ 或反斜杠残留） -->
+              <p v-if="r.titleTex || r.title" class="rec__title"><MathText :content="r.titleTex || r.title" /></p>
+              <div class="rec__meta">
+                <UiTag v-if="r.brief" variant="neutral"><MathText :content="r.brief" /></UiTag>
+                <UiTag v-if="r.correct === true" variant="success">答对</UiTag>
+                <UiTag v-else-if="r.correct === false" variant="error">答错</UiTag>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </template>
+    </div>
 
     <p v-if="records.length >= 300" class="t-label rec__more">记录上限 300 条，更早的会自动滚出。</p>
   </div>
@@ -89,9 +105,46 @@ const type = ref('')
 
 const shown = computed(() => (type.value ? records.value.filter((r) => r.type === type.value) : records.value))
 
+/** 记录类型配色（图标着色 + 筛选 chips 一致） */
+const TYPE_TONE = {
+  explain: 'blue',
+  followup: 'cyan',
+  quiz: 'purple',
+  save: 'green',
+  debug: 'orange',
+  teach: 'indigo',
+}
+const toneOf = (t) => TYPE_TONE[t] || 'purple'
+
 const labelOf = (t) => (RECORD_TYPES[t] ? RECORD_TYPES[t].label : t)
 const iconOf = (t) => (RECORD_TYPES[t] ? RECORD_TYPES[t].icon : 'sparkle')
 const countOf = (t) => records.value.filter((r) => r.type === t).length
+
+/** 统计条：共 N 条 · 今天 N 条 */
+const todayCount = computed(() => {
+  const now = new Date()
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+  return records.value.filter((r) => (Number(r.createdAt) || 0) >= start).length
+})
+
+/** 时间分组：今天 / 昨天 / 更早 */
+const grouped = computed(() => {
+  const now = new Date()
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+  const yesterdayStart = todayStart - 86400000
+  const groups = [
+    { key: 'today', label: '今天', items: [] },
+    { key: 'yesterday', label: '昨天', items: [] },
+    { key: 'earlier', label: '更早', items: [] },
+  ]
+  for (const r of shown.value) {
+    const t = Number(r.createdAt) || 0
+    if (t >= todayStart) groups[0].items.push(r)
+    else if (t >= yesterdayStart) groups[1].items.push(r)
+    else groups[2].items.push(r)
+  }
+  return groups.filter((g) => g.items.length)
+})
 
 function timeText(ts) {
   const d = new Date(ts)
@@ -130,7 +183,42 @@ function doClear() {
 }
 .rec__head-ops {
   display: flex;
+  align-items: center;
   gap: var(--sp-2);
+}
+/* 清空记录：危险操作，红色描边与常规按钮区隔 */
+.rec__clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  border: 0.5px solid rgba(201, 80, 58, 0.4);
+  background: none;
+  color: #c9503a;
+  font-family: inherit;
+  font-size: var(--fs-body-2);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.rec__clear:hover {
+  background: rgba(201, 80, 58, 0.08);
+  border-color: #c9503a;
+}
+/* 统计条 */
+.rec__stats {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.rec__stat {
+  font-size: var(--fs-body-2);
+  color: var(--text-muted);
+}
+.rec__stat b {
+  color: var(--text-primary);
+  font-weight: var(--fw-medium);
 }
 .rec__filters {
   display: flex;
@@ -138,6 +226,9 @@ function doClear() {
   flex-wrap: wrap;
 }
 .rec__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 6px 14px;
   border: var(--border-subtle);
   border-radius: var(--radius-pill);
@@ -154,6 +245,28 @@ function doClear() {
 .rec__chip b {
   font-weight: var(--fw-medium);
 }
+/* 类型图标着色（记录项与筛选 chips 共用） */
+.is-blue { color: #3a78c0; }
+.is-cyan { color: #2a8f9a; }
+.is-purple { color: #7c5cff; }
+.is-green { color: #2f7a4d; }
+.is-orange { color: #d0762a; }
+.is-indigo { color: #5b5bd6; }
+/* 时间分组 */
+.rec__grouped {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.rec__group-label {
+  font-size: var(--fs-label);
+  color: var(--text-tertiary);
+  letter-spacing: 0.5px;
+  margin-top: var(--sp-2);
+}
+.rec__grouped > .rec__group-label:first-child {
+  margin-top: 0;
+}
 .rec__list {
   display: flex;
   flex-direction: column;
@@ -164,8 +277,23 @@ function doClear() {
   gap: var(--sp-3);
   padding: var(--sp-3) var(--sp-4);
   align-items: flex-start;
-  color: var(--text-tertiary);
 }
+.rec__icon {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-recess);
+}
+.rec__icon.is-blue { background: rgba(58, 120, 192, 0.12); }
+.rec__icon.is-cyan { background: rgba(42, 143, 154, 0.12); }
+.rec__icon.is-purple { background: var(--primary-soft-2); }
+.rec__icon.is-green { background: rgba(47, 122, 77, 0.12); }
+.rec__icon.is-orange { background: rgba(208, 118, 42, 0.12); }
+.rec__icon.is-indigo { background: rgba(91, 91, 214, 0.12); }
 .rec__body {
   flex: 1;
   min-width: 0;

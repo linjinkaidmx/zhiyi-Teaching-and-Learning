@@ -6,7 +6,7 @@
         <p class="t-body-2">选择练习方式，检测掌握程度</p>
       </div>
       <div class="pr__head-ops">
-        <UiButton variant="ghost" size="sm" @click="settingsOpen = true">
+        <UiButton variant="soft" size="sm" @click="settingsOpen = true">
           <UiIcon name="settings" :size="14" /> 复习设置
         </UiButton>
       </div>
@@ -37,9 +37,32 @@
           <template #action><UiButton variant="primary" @click="$router.push(ROUTES.capture)">去拍题</UiButton></template>
         </UiEmptyState>
         <template v-else>
-          <p class="t-body">待复习 {{ pool.length }} 道。选练习题数：</p>
+          <!-- 上下文条（2026-10-11）：从错题学习进来时显示来路与筛选，并可返回 -->
+          <div v-if="fromWrongbook" class="pr__ctx">
+            <span>
+              从「错题学习」进入 · 当前筛选 <b>{{ ctxMasteryLabel }}</b> · 选中 <b>{{ planItems.length }}</b> 道<template
+                v-if="dueCount">（今天到期 {{ dueCount }} 道）</template>
+            </span>
+            <button type="button" class="pr__ctx-back" @click="$router.push(ROUTES.wrongbook)">返回错题本 →</button>
+          </div>
+
+          <p class="t-body">待巩固 {{ pool.length }} 道。选练习题数：</p>
           <CountPicker :count="count" :max="pool.length" @change="count = $event" />
-          <UiButton variant="primary" size="lg" @click="startOriginal">开始练习</UiButton>
+
+          <!-- 将要练的题（2026-10-11）：与开始后实际出题完全一致（同一 orderPool 取前 N） -->
+          <div class="pr__preview">
+            <span class="pr__preview-t">将要练的题</span>
+            <div v-for="(it, i) in planItems" :key="it.id" class="pr__prow">
+              <span class="pr__pidx">{{ i + 1 }}</span>
+              <span class="pr__ptxt"><MathText :content="it.question" /></span>
+              <span v-if="(it.knowledgePoints || [])[0]" class="pr__pkp">{{ it.knowledgePoints[0] }}</span>
+              <span class="pr__pdue">{{ dueLabel(it) }}</span>
+            </div>
+          </div>
+
+          <UiButton variant="primary" size="lg" @click="startOriginal">
+            开始练习（{{ planItems.length }} 道）
+          </UiButton>
         </template>
       </template>
 
@@ -50,7 +73,7 @@
         </UiEmptyState>
         <template v-else>
           <p class="t-body">
-          从待复习的 {{ pool.length }} 道题各生成一道变式题（同知识点换数据）。选数量：
+          从待巩固的 {{ pool.length }} 道题各生成一道变式题（同知识点换数据）。选数量：
         </p>
         <p class="t-label">变式题由 AI 逐题生成，同一道题重复练习会命中缓存、不会重复计费。</p>
           <CountPicker :count="count" :max="pool.length" @change="count = $event" />
@@ -92,6 +115,8 @@
       <div class="pr__progress surface-standard">
         <span class="t-caption">第 {{ idx + 1 }} / {{ paper.length }} 题</span>
         <div class="pr__bar"><span :style="{ width: pct + '%' }" /></div>
+        <button v-if="fromWrongbook" type="button" class="pr__back-wb"
+                @click="$router.push(ROUTES.wrongbook)">返回错题本</button>
       </div>
 
       <section class="surface-standard pr__q">
@@ -147,7 +172,7 @@
           <span class="t-h3">{{ verdictText }}</span>
           <span v-if="verdict.score != null" class="t-body-2">{{ verdict.score }} 分</span>
         </div>
-        <p v-if="verdict.comment" class="t-body pr__verdict-comment">{{ verdict.comment }}</p>
+        <p v-if="verdict.comment" class="t-body pr__verdict-comment"><MathText :content="verdict.comment" /></p>
         <section class="pr__ref">
           <p class="t-label">参考答案</p>
           <MathText :content="current.answer" />
@@ -179,12 +204,16 @@
       </UiCard>
     </section>
   </div>
+  <!-- 新手教程 -->
+  <UiTour v-model="tourOpen" tour-key="practice" />
 </template>
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import UiButton from '../ui/UiButton.vue'
+import UiTour from '../ui/UiTour.vue'
+import { useTour } from '../lib/useTour.js'
 import UiIcon from '../ui/UiIcon.vue'
 import UiTag from '../ui/UiTag.vue'
 import UiCard from '../ui/UiCard.vue'
@@ -334,13 +363,39 @@ function initPaper() {
   Object.assign(summary, { total: 0, correct: 0, masteredCount: 0 })
 }
 
+/* ---------------- 上下文与将要练的题（2026-10-11） ---------------- */
+const fromWrongbook = computed(() => String(route.query.from || '') === 'wrongbook')
+const ctxMasteryLabel = computed(() => ({
+  all: '全部掌握程度', learning: '待巩固', mastered: '已掌握',
+}[String(route.query.f || '')] || '全部掌握程度'))
+
+/** 到期优先的稳定顺序：逾期最久 → 今天到期 → 未到期 → 已掌握（保证预览与实练一致） */
+const orderPool = computed(() => {
+  const rank = (it) => (it.mastered ? 2 : (!it.reviewAt || it.reviewAt <= Date.now()) ? 0 : 1)
+  return [...pool.value].sort((a, b) => {
+    const r = rank(a) - rank(b)
+    if (r) return r
+    return (Number(a.reviewAt) || 0) - (Number(b.reviewAt) || 0)
+  })
+})
+const planItems = computed(() => {
+  if (focusId.value) return orderPool.value.filter((it) => String(it.id) === focusId.value)
+  return orderPool.value.slice(0, Math.min(count.value, orderPool.value.length))
+})
+const dueCount = computed(() => planItems.value.filter(
+  (it) => !it.mastered && (!it.reviewAt || it.reviewAt <= Date.now())).length)
+function dueLabel(it) {
+  if (it.mastered) return '已掌握'
+  if (!it.reviewAt) return '待复习'
+  const d = Math.floor((Date.now() - it.reviewAt) / 86400000)
+  if (d >= 1) return `逾期 ${d} 天`
+  return '今天到期'
+}
+
 /* 原题复习：真实 SRS */
 function startOriginal() {
-  // 错题本「重做此题」带 ?focus=<id>：只考这一题
-  const base = focusId.value
-    ? pool.value.filter((it) => String(it.id) === focusId.value)
-    : [...pool.value].sort(() => Math.random() - 0.5).slice(0, count.value)
-  const picked = base
+  // 错题本「重做此题」带 ?focus=<id>：只考这一题；否则取「将要练的题」同一份顺序
+  const picked = planItems.value
   if (!picked.length) {
     toast.info('暂无可复习的题')
     return
@@ -490,6 +545,10 @@ function next() {
     verdict.value = { verdict: '', score: null, comment: '' }
   }
 }
+
+/* 新手教程：首次进入本页自动弹（看过不再弹） */
+const { tourOpen } = useTour('practice')
+
 </script>
 
 <style scoped>
@@ -510,7 +569,92 @@ function next() {
 .pr__head-ops {
   display: flex;
   gap: var(--sp-2);
+  /* 不被压缩：否则按钮内「图标 + 文字」会被挤成两行（图标上、文字下） */
+  flex: none;
 }
+/* 窄屏：页头改两行，操作区右对齐 —— 按钮拿到整行宽度，绝不会被挤竖排 */
+@media (max-width: 560px) {
+  .pr__head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .pr__head-ops {
+    justify-content: flex-end;
+  }
+}
+/* 上下文条 / 将要练的题（2026-10-11） */
+.pr__ctx {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: var(--sp-4) 0 0;
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 0.5px solid var(--primary-line);
+  background: var(--primary-soft-3);
+  font-size: var(--fs-body-2);
+  color: var(--text-secondary);
+}
+.pr__ctx b { color: var(--primary-text); }
+.pr__ctx-back {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: var(--fs-body-2);
+  font-weight: 600;
+  color: var(--primary-text);
+  cursor: pointer;
+}
+.pr__preview {
+  display: grid;
+  gap: 8px;
+  margin: var(--sp-3) 0 var(--sp-4);
+}
+.pr__preview-t { font-size: var(--fs-label); color: var(--text-tertiary); }
+.pr__prow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 11px;
+  border: var(--border-subtle);
+  background: var(--surface-recess);
+}
+.pr__pidx {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--primary-text);
+  background: var(--primary-soft-2);
+}
+.pr__ptxt {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-body-2);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pr__pkp {
+  flex: none;
+  font-size: 10.5px;
+  padding: 2px 8px;
+  border-radius: 7px;
+  color: var(--primary-text);
+  background: var(--primary-soft-3);
+  border: 0.5px solid var(--primary-line);
+}
+.pr__pdue { flex: none; font-size: 11px; font-weight: 600; color: #d0762a; }
+
 .pr__modes {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -565,6 +709,18 @@ function next() {
   flex-direction: column;
   gap: var(--sp-2);
   padding: var(--sp-3) var(--sp-4);
+}
+.pr__back-wb {
+  margin-left: 12px;
+  flex: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: var(--fs-label);
+  font-weight: 600;
+  color: var(--primary-text);
+  cursor: pointer;
 }
 .pr__bar {
   height: 3px;

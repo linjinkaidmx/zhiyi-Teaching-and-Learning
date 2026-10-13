@@ -6,7 +6,7 @@
 import { ref, watch, onMounted } from 'vue'
 import katex from 'katex'
 import 'katex/contrib/mhchem' // 化学：支持 \ce{} 方程式
-import { hasBareMath, wrapBareMath, stripDelims, splitInlineCode, latexToPlain } from '../mathtext'
+import { hasBareMath, wrapBareMath, stripDelims, splitInlineCode, latexToPlain, normalizeLatex, sanitizePlain } from '../mathtext'
 import { profileRef } from '../profileStore'
 
 const props = defineProps({
@@ -84,7 +84,8 @@ function renderMathInText(text, el) {
       continue
     }
     if (!mathContext) {
-      el.appendChild(textNode(seg))
+      // 非数学上下文也要兜底：万一残留 LaTeX 痕迹（如 overline{A}）也不原样输出
+      el.appendChild(textNode(sanitizePlain(seg)))
       continue
     }
     // 数学上下文里的纯文本：补裸公式定界符，并清掉孤立的 $（多为丢失配对的定界符）
@@ -92,7 +93,8 @@ function renderMathInText(text, el) {
       if (isMathSeg(piece)) {
         if (renderMathSeg(piece, el)) failed = true
       } else {
-        el.appendChild(textNode(piece.replace(/\$/g, '')))
+        // 未被识别为公式、但含 LaTeX 噪声（\ 、{ }）的残留片段 → 走可读降级，绝不把源码打到页面
+        el.appendChild(textNode(sanitizePlain(piece)))
       }
     }
   }
@@ -132,7 +134,7 @@ function render() {
   const el = host.value
   if (!el) return
   el.textContent = ''
-  const raw = props.content || ''
+  const raw = normalizeLatex(props.content || '')
   if (!raw) return
 
   // 先按代码块切段，其余部分走文本+公式渲染

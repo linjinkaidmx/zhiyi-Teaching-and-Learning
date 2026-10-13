@@ -42,18 +42,43 @@ export function nextId() {
 }
 
 // ---- 复习设置（SRS，用户可配置、可关闭）
+/**
+ * 复习节奏（2026-10-11 改版）
+ * ---------------------------------------------------------------------------
+ * 语义变化：档位 = 「答对之后隔多久再考你一次」，而不是一串阶梯间隔。
+ * 原因：已掌握的题不再自动回炉（用户拍板），一道题最多答对 2 次就毕业，
+ * 阶梯的后几档永远用不到；档位改成"回炉间隔"才有真实差异。
+ */
+export const PACES = [
+  { key: 'easy', label: '轻松', days: 3, desc: '答对后 3 天回炉' },
+  { key: 'standard', label: '标准', days: 1, desc: '答对后 1 天回炉' },
+  { key: 'rush', label: '冲刺', days: 0, desc: '当天就再考一次' },
+]
+export const DEFAULT_PACE = 'standard'
+
 export const DEFAULT_SETTINGS = {
-  srsEnabled: true,           // 关闭 = 掌握即永久移出（旧行为）
-  srsMode: 'ladder',          // 'ladder' 阶梯间隔 | 'fixed' 固定天数
-  srsIntervals: [1, 3, 7, 15, 30], // 阶梯间隔（天）
-  srsFixedDays: 7,            // 固定模式的天数
+  pace: DEFAULT_PACE, // 'easy' | 'standard' | 'rush'
+}
+
+/** 当前档位定义（找不到就回退标准档） */
+export function paceOf(settings) {
+  const key = (settings || DEFAULT_SETTINGS).pace
+  return PACES.find((p) => p.key === key) || PACES[1]
 }
 
 export function loadSettings() {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY)
     const s = raw ? JSON.parse(raw) : {}
-    return { ...DEFAULT_SETTINGS, ...s }
+    const merged = { ...DEFAULT_SETTINGS, ...s }
+    // 迁移旧的 SRS 设置：旧「关闭间隔复习」= 新默认（已掌握不回炉）；
+    // 旧阶梯首值/固定天数 ≥3 天 → 映射成「轻松」，其余 → 标准。
+    if (!s.pace) {
+      const first = Array.isArray(s.srsIntervals) && s.srsIntervals.length ? Number(s.srsIntervals[0]) : 1
+      const legacyDays = s.srsMode === 'fixed' ? Number(s.srsFixedDays || 7) : first
+      merged.pace = Number(legacyDays) >= 3 ? 'easy' : DEFAULT_PACE
+    }
+    return merged
   } catch {
     return { ...DEFAULT_SETTINGS }
   }
@@ -63,13 +88,9 @@ export function saveSettings(s) {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(s))
 }
 
-/** 答对后下一个复习间隔（天）。 */
+/** 答对后下一次回炉间隔（天）；0 = 当天就能再练（冲刺档）。 */
 export function nextInterval(repetitions, settings) {
-  const s = settings || DEFAULT_SETTINGS
-  if (!s.srsEnabled) return 0
-  if (s.srsMode === 'fixed') return s.srsFixedDays || 7
-  const arr = (s.srsIntervals && s.srsIntervals.length) ? s.srsIntervals : DEFAULT_SETTINGS.srsIntervals
-  return arr[Math.min(Math.max(repetitions - 1, 0), arr.length - 1)] || 30
+  return paceOf(settings).days
 }
 
 /**
@@ -119,11 +140,13 @@ export function removeItem(list, id) {
   return list.filter((it) => it.id !== id)
 }
 
-/** 组卷池：未掌握题 + （开启 SRS 时）到期的已掌握题。笔记（kind='note'）不参与自测与复习。 */
-export function quizPool(list, settings) {
-  const s = settings || DEFAULT_SETTINGS
-  const now = Date.now()
-  return list.filter((it) => it.kind === 'note' ? false : (!it.mastered || (s.srsEnabled && it.reviewAt <= now)))
+/**
+ * 组卷池：**只含未掌握的题**（2026-10-11 改版）。
+ * 已掌握的题不再按遗忘曲线自动回炉——想练可以从错题本点「再练一遍」。
+ * 笔记（kind='note'）不参与自测与复习。settings 参数保留仅为兼容调用方。
+ */
+export function quizPool(list) {
+  return list.filter((it) => it.kind !== 'note' && !it.mastered)
 }
 
 /**
@@ -179,7 +202,7 @@ export function applyAnswer(item, ok, settings) {
     it.repetitions = (it.repetitions || 0) + 1
     if (it.streak >= 2) it.mastered = true
     it.interval = nextInterval(it.repetitions, s)
-    it.reviewAt = s.srsEnabled ? Date.now() + it.interval * DAY : 0
+    it.reviewAt = Date.now() + it.interval * DAY
   } else {
     it.streak = 0
     it.repetitions = 0

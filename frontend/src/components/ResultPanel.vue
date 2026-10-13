@@ -1,3 +1,9 @@
+<!--
+  @deprecated 2026-10-13 —— 本组件已无任何引用（Element Plus 时代的遗留文件）。
+  保留仅作历史参考。若将来要复用：
+    1) 先移除对 'element-plus' 的 import（依赖已不在 package.json，直接用会构建失败）
+    2) 文本类字段一律套 <MathText :content="..." />（prop 是 content，不是 text）
+-->
 <!-- [LEGACY-P8] 本组件已无任何引用（功能已迁到 pages/* 与 ui/*），
      保留文件仅为回看对照，可随时删除。它仍引用 Element Plus，但不在构建图里。 -->
 <template>

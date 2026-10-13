@@ -6,6 +6,9 @@
   <!-- 账号弹窗（全局，由 uiStore 唤起：页面不再需要把事件传回外壳） -->
   <AuthModal v-model="authOpen" :initial-mode="authMode" @auth="onAuth" />
 
+  <!-- 新手教程：新用户第一次打开网站时自动弹（看过不再弹） -->
+  <UiTour v-model="tourOpen" tour-key="welcome" />
+
   <!-- 退出落地页：双击返回键退出时，若没有站外历史可退（直接打开本站）则显示 -->
   <div v-if="byeOpen" class="zy-bye">
     <div class="zy-bye__box surface-standard">
@@ -32,6 +35,8 @@ import { useRoute, useRouter } from 'vue-router'
 import UiButton from './ui/UiButton.vue'
 import AppShell from './layouts/AppShell.vue'
 import AuthModal from './components/AuthModal.vue'
+import UiTour from './ui/UiTour.vue'
+import { useTour } from './lib/useTour.js'
 import { installExitGuard } from './lib/exitGuard.js'
 import { ACHIEVEMENT_MAP } from './achievements'
 import { getProfile, onProfileChange } from './profileStore'
@@ -45,6 +50,7 @@ import { setContextProvider } from './statsStore'
 import { bookRef } from './stores/bookStore'
 import { coursesRef, examsRef } from './stores/courseStore'
 import { profileRef } from './profileStore'
+import { companionStats } from './stores/companionStatsStore'
 
 /**
  * 注册成就统计上下文：把「错题本掌握数 / 同题最大复习次数 / 课表课程数 / 考试安排数 / 资料是否完善」
@@ -61,6 +67,8 @@ setContextProvider(() => {
       courseCount: ((coursesRef() && coursesRef().value) || []).length,
       examCount: ((examsRef() && examsRef().value) || []).length,
       profileDone: (String(prof.nickname || '').trim() || prof.avatar) ? 1 : 0,
+      // 伴学伙伴统计（当前伙伴）：CompanionPage 拉到后写入缓存，这里同步读取
+      companion: companionStats(),
     }
   } catch {
     return {}
@@ -97,6 +105,9 @@ initSession()
 onUnlock(showUnlock)
 applyFontScale()
 onProfileChange(applyFontScale)
+
+/* ---------------- 新手教程（首次进入自动弹） ---------------- */
+const { tourOpen } = useTour('welcome')
 
 /* ---------------- 移动端双击返回键退出 ---------------- */
 const byeOpen = ref(false)

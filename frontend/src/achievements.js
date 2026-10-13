@@ -1,9 +1,9 @@
-// 成就定义（44 枚，含 3 枚隐藏）
+// 成就定义（71 枚，含 3 枚隐藏）
 // ---------------------------------------------------------------------------
 // value(ctx) 返回当前进度，达到 target 即解锁
 // ctx 由 stats.js 的 buildContext 提供：
 //   { totals, streak, days, refSeen, settings, checkedDays, mastered, weekFull,
-//     earlyStreak, maxQuizPerItem, night, comeback }
+//     earlyStreak, maxQuizPerItem, night, comeback, algoSeen }
 // rarity：common(铜) | rare(银) | epic(金) | legend(传说)
 // totem：奖章图腾（对应 ui/BadgeMedal.vue 的图形表）
 // hidden：隐藏成就 —— 解锁前在成就页只显示灰影与「?」，不泄露条件
@@ -19,8 +19,19 @@ export const RARITY = {
 export const RARITY_NAME = { common: '普通', rare: '稀有', epic: '史诗', legend: '传说' }
 
 /** 分组顺序即成就页的展示顺序（按用户使用路径排） */
+/** 伴学统计（挂在成就判定上下文 c.companion 上，由 App 的 provider 注入当前伙伴数据） */
+function cm(c) {
+  return (c && c.companion) || {}
+}
+/** 和 TA 认识多少天（没有数据返回 0） */
+function cmDays(c) {
+  const first = Number(cm(c).first_at) || 0
+  if (!first) return 0
+  return Math.max(0, Math.floor((Date.now() - first) / 86400000))
+}
+
 export const GROUPS = [
-  '拍照搜题', '讲解与追问', '错题与自测', '坚持与打卡',
+  '拍照搜题', '讲解与追问', '伴学伙伴', 'AI 课堂', '错题与自测', '坚持与打卡',
   '编程与工具', '班级课堂', '考试与模拟', '社区与个人',
 ]
 
@@ -50,6 +61,11 @@ export const ACHIEVEMENTS = [
     key: 'search_200', group: '拍照搜题', name: '识题如飞', rarity: 'epic', totem: 'bolt',
     desc: '累计识别 200 次', target: 200,
     value: (c) => c.totals.search,
+  },
+  {
+    key: 'bank_100', group: '拍照搜题', name: '秒答百题', rarity: 'epic', totem: 'bolt',
+    desc: '题库秒答命中 100 次', target: 100,
+    value: (c) => c.totals.bank,
   },
 
   // ---------------- 讲解与追问
@@ -82,6 +98,16 @@ export const ACHIEVEMENTS = [
     key: 'explain_100', group: '讲解与追问', name: '精研百题', rarity: 'epic', totem: 'chat',
     desc: '累计完成 100 次题目讲解', target: 100,
     value: (c) => c.totals.explain,
+  },
+  {
+    key: 'explain_30', group: '讲解与追问', name: '三十而讲', rarity: 'rare', totem: 'chat',
+    desc: '累计完成 30 次题目讲解', target: 30,
+    value: (c) => c.totals.explain,
+  },
+  {
+    key: 'followup_50', group: '讲解与追问', name: '追问五十', rarity: 'epic', totem: 'question',
+    desc: '累计向 AI 追问 50 次', target: 50,
+    value: (c) => c.totals.followup,
   },
   {
     key: 'followup_100', group: '讲解与追问', name: '刨根问底', rarity: 'legend', totem: 'layers',
@@ -173,6 +199,11 @@ export const ACHIEVEMENTS = [
     desc: '连续学习 60 天', target: 60,
     value: (c) => Math.max(c.streak.current, c.streak.longest),
   },
+  {
+    key: 'streak_100', group: '坚持与打卡', name: '百日成钢', rarity: 'legend', totem: 'spark',
+    desc: '连续学习 100 天', target: 100,
+    value: (c) => Math.max(c.streak.current, c.streak.longest),
+  },
 
   // ---------------- 编程与工具
   {
@@ -214,6 +245,11 @@ export const ACHIEVEMENTS = [
     key: 'export_10', group: '编程与工具', name: '导出能手', rarity: 'epic', totem: 'homework',
     desc: '导出或打印讲解 10 次', target: 10,
     value: (c) => c.totals.export,
+  },
+  {
+    key: 'algo_all', group: '编程与工具', name: '算法全览', rarity: 'epic', totem: 'rocket',
+    desc: '看完算法演示的全部 14 个算法', target: 14,
+    value: (c) => (c.algoSeen || []).length,
   },
 
   // ---------------- 班级课堂
@@ -292,9 +328,107 @@ export const ACHIEVEMENTS = [
     value: (c) => c.comeback,
   },
   {
+    key: 'save_10', group: '社区与个人', name: '云端常客', rarity: 'rare', totem: 'compass',
+    desc: '手动同步/保存数据 10 次', target: 10,
+    value: (c) => c.totals.save || 0,
+  },
+  {
     key: 'never_give_up', group: '社区与个人', name: '不离不弃', rarity: 'rare', totem: 'layers', hidden: true,
     desc: '同一道错题累计复习 5 次以上', target: 5,
     value: (c) => c.maxQuizPerItem,
+  },
+
+  // ---------------- 伴学伙伴（2026-10-11）
+  // 数据来自 /api/companion/stats（口径 = 当前这位伙伴）：
+  //   msgs 累计对话句数 / sessions 会话数 / deeds 一起过过的题 / level 亲密度等级 /
+  //   first_at 第一次聊天 / partners 聊过的伙伴数
+  {
+    key: 'cm_first', group: '伴学伙伴', name: '初次见面', rarity: 'common', totem: 'chat',
+    desc: '和伙伴说出第一句话', target: 1,
+    value: (c) => cm(c).msgs || 0,
+  },
+  {
+    key: 'cm_chat_50', group: '伴学伙伴', name: '话匣子', rarity: 'common', totem: 'chat',
+    desc: '和伙伴累计聊满 50 句', target: 50,
+    value: (c) => cm(c).msgs || 0,
+  },
+  {
+    key: 'cm_chat_200', group: '伴学伙伴', name: '无话不谈', rarity: 'rare', totem: 'spark',
+    desc: '和伙伴累计聊满 200 句', target: 200,
+    value: (c) => cm(c).msgs || 0,
+  },
+  {
+    key: 'cm_sess_5', group: '伴学伙伴', name: '常来坐坐', rarity: 'common', totem: 'bookmark',
+    desc: '和伙伴开过 5 段对话', target: 5,
+    value: (c) => cm(c).sessions || 0,
+  },
+  {
+    key: 'cm_deed_1', group: '伴学伙伴', name: '一起过题', rarity: 'common', totem: 'homework',
+    desc: '和伙伴一起过掉 1 道题（你讲或 TA 考）', target: 1,
+    value: (c) => cm(c).deeds || 0,
+  },
+  {
+    key: 'cm_deed_5', group: '伴学伙伴', name: '讲题搭子', rarity: 'rare', totem: 'layers',
+    desc: '和伙伴一起过掉 5 道题', target: 5,
+    value: (c) => cm(c).deeds || 0,
+  },
+  {
+    key: 'cm_deed_15', group: '伴学伙伴', name: '半个老师', rarity: 'epic', totem: 'podium',
+    desc: '和伙伴一起过掉 15 道题', target: 15,
+    value: (c) => cm(c).deeds || 0,
+  },
+  {
+    key: 'cm_lv3', group: '伴学伙伴', name: '默契初成', rarity: 'common', totem: 'medal',
+    desc: '亲密度达到 Lv3「搭子」', target: 3,
+    value: (c) => cm(c).level || 0,
+  },
+  {
+    key: 'cm_lv5', group: '伴学伙伴', name: '知己', rarity: 'rare', totem: 'medal',
+    desc: '亲密度达到 Lv5「默契」', target: 5,
+    value: (c) => cm(c).level || 0,
+  },
+  {
+    key: 'cm_lv7', group: '伴学伙伴', name: '形影不离', rarity: 'legend', totem: 'medal',
+    desc: '亲密度满级 Lv7「死党」', target: 7,
+    value: (c) => cm(c).level || 0,
+  },
+  {
+    key: 'cm_days_30', group: '伴学伙伴', name: '老朋友', rarity: 'rare', totem: 'clock',
+    desc: '和 TA 认识满 30 天', target: 30,
+    value: (c) => cmDays(c),
+  },
+  {
+    key: 'cm_partners_3', group: '伴学伙伴', name: '人缘不错', rarity: 'rare', totem: 'class',
+    desc: '和 3 位不同的伙伴都聊过', target: 3,
+    value: (c) => cm(c).partners || 0,
+  },
+  {
+    key: 'cm_custom', group: '伴学伙伴', name: '独一无二', rarity: 'rare', totem: 'spark',
+    desc: '创建 1 个自定义伴学角色（造角色）', target: 1,
+    value: (c) => c.totals.cmCustom || 0,
+  },
+
+  // ---------------- AI 课堂（2026-10-13 新增，字段 teach / teachQuiz）
+  // teach = 确认推进一节（TeacherPage 的 afterNext 里埋点）；teachQuiz = 课堂测验满分
+  {
+    key: 'teach_first', group: 'AI 课堂', name: '初入课堂', rarity: 'common', totem: 'board',
+    desc: '完成第 1 节 AI 课堂', target: 1,
+    value: (c) => c.totals.teach || 0,
+  },
+  {
+    key: 'teach_5', group: 'AI 课堂', name: '学有所成', rarity: 'rare', totem: 'board',
+    desc: '累计学完 5 节 AI 课堂', target: 5,
+    value: (c) => c.totals.teach || 0,
+  },
+  {
+    key: 'teach_quiz', group: 'AI 课堂', name: '课堂满分', rarity: 'rare', totem: 'exam',
+    desc: '课堂测验拿到满分', target: 1,
+    value: (c) => c.totals.teachQuiz || 0,
+  },
+  {
+    key: 'teach_20', group: 'AI 课堂', name: '桃李满堂', rarity: 'epic', totem: 'podium',
+    desc: '累计学完 20 节 AI 课堂', target: 20,
+    value: (c) => c.totals.teach || 0,
   },
 ]
 

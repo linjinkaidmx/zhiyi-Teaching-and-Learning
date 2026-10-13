@@ -1,5 +1,8 @@
 <template>
   <div class="zy-container zy-page mine">
+    <div class="mine__cols">
+      <!-- 左栏：身份 + 学习资料 + 学习档案 -->
+      <div class="mine__col">
     <!-- ① 身份区 -->
     <section class="mine__head surface-standard">
       <div class="mine__avatar-wrap">
@@ -24,12 +27,19 @@
           知一 ID {{ userId || '—' }}<template v-if="joinedText"> · {{ joinedText }}</template>
         </p>
         <div class="mine__bio">
+          <button v-if="!bioEditing" type="button" class="mine__bio-view" @click="startBioEdit">
+            <span v-if="profile.bio" class="mine__bio-text">{{ profile.bio }}</span>
+            <span v-else class="mine__bio-empty">写一句正在做的事，比如：期末周把高数错题清一遍</span>
+            <span class="mine__bio-edit"><UiIcon name="pencil" :size="12" /> 编辑</span>
+          </button>
           <UiInput
+            v-else
+            ref="bioInputRef"
             v-model="bioDraft"
             :maxlength="60"
             show-count
             placeholder="写一句正在做的事，比如：期末周把高数错题清一遍"
-            @blur="saveBio"
+            @blur="onBioBlur"
           />
         </div>
         <div class="mine__colors">
@@ -49,7 +59,7 @@
 
     <!-- ② 学习资料 -->
     <section class="mine__block">
-      <h2 class="t-h3 mine__title">学习资料</h2>
+      <h2 class="t-h3 mine__title"><span class="mine__block-icon"><UiIcon name="book" :size="15" /></span>学习资料</h2>
       <div class="mine__form">
         <UiInput v-model="form.school" label="学校" :maxlength="30" placeholder="如：××大学" />
         <UiInput v-model="form.major" label="专业" :maxlength="30" placeholder="如：计算机科学与技术" />
@@ -67,8 +77,8 @@
     <!-- ③ 学习档案 -->
     <section class="mine__block">
       <div class="mine__title-row">
-        <h2 class="t-h3 mine__title">学习档案 <span class="t-label">只读 · 来自打卡与错题本</span></h2>
-        <UiButton variant="text" size="sm" @click="goReport">查看完整学情 →</UiButton>
+        <h2 class="t-h3 mine__title"><span class="mine__block-icon"><UiIcon name="data" :size="15" /></span>学习档案 <span class="t-label">只读 · 来自打卡与错题本</span></h2>
+        <UiButton variant="text" size="sm" class="mine__go-report" @click="goReport">查看完整学情 →</UiButton>
       </div>
       <div class="mine__metrics">
         <div
@@ -84,21 +94,28 @@
       </div>
     </section>
 
+    <!-- ⑦ 意见反馈（放左栏，平衡两栏高度） -->
+    <section class="mine__block">
+      <h2 class="t-h3 mine__title"><span class="mine__block-icon"><UiIcon name="chat" :size="15" /></span>意见反馈</h2>
+      <UiInput
+        v-model="feedback"
+        type="textarea"
+        :maxlength="500"
+        show-count
+        :rows="4"
+        placeholder="遇到问题、想要的功能、觉得哪里别扭，都可以写在这里"
+      />
+      <div class="mine__form-ops">
+        <UiButton variant="primary" size="sm" :loading="fbSending" @click="sendFeedback">提交反馈</UiButton>
+      </div>
+    </section>
+      </div>
+
+      <!-- 右栏：偏好设置 + 账号与安全 + 数据管理 -->
+      <div class="mine__col">
     <!-- ④ 偏好设置 -->
     <section class="mine__block">
-      <h2 class="t-h3 mine__title">偏好设置</h2>
-      <div class="mine__row">
-        <div class="mine__row-l">
-          <div class="mine__row-t">界面主题</div>
-          <div class="t-label">深色适合夜间；浅色适合白天与投屏</div>
-        </div>
-        <UiSegmented
-          :model-value="theme"
-          :options="[{ label: '深色', value: 'dark' }, { label: '浅色', value: 'light' }]"
-          aria-label="界面主题"
-          @change="setTheme"
-        />
-      </div>
+      <h2 class="t-h3 mine__title"><span class="mine__block-icon"><UiIcon name="settings" :size="15" /></span>偏好设置</h2>
       <div class="mine__row">
         <div class="mine__row-l">
           <div class="mine__row-t">追问默认档位</div>
@@ -154,7 +171,7 @@
 
     <!-- ⑤ 账号与安全 -->
     <section class="mine__block">
-      <h2 class="t-h3 mine__title">账号与安全</h2>
+      <h2 class="t-h3 mine__title"><span class="mine__block-icon"><UiIcon name="user" :size="15" /></span>账号与安全</h2>
       <template v-if="loggedIn">
         <button class="mine__row mine__row-click" type="button" @click="openTeacherCert">
           <span>教师认证</span>
@@ -172,8 +189,9 @@
         <button class="mine__row mine__row-click" type="button" @click="doSwitchAccount">
           <span>切换账号</span><span class="t-label">用其他昵称登录</span>
         </button>
-        <button class="mine__row mine__row-click" type="button" @click="openDelete">
-          <span class="mine__danger">注销账号</span><span class="t-label">清空云端数据，不可恢复</span>
+        <button class="mine__row mine__row-click is-danger" type="button" @click="openDelete">
+          <span class="mine__row-danger-main"><UiIcon name="trash" :size="14" /><span class="mine__danger">注销账号</span></span>
+          <span class="t-label">清空云端数据，不可恢复</span>
         </button>
       </template>
       <div v-else class="mine__row">
@@ -185,7 +203,7 @@
     <!-- ⑥ 数据管理 -->
     <section class="mine__block">
       <div class="mine__title-row">
-        <h2 class="t-h3 mine__title">数据管理 <span class="t-label">本机占用约 {{ usage }} KB</span></h2>
+        <h2 class="t-h3 mine__title"><span class="mine__block-icon"><UiIcon name="clipboard" :size="15" /></span>数据管理 <span class="t-label">本机占用约 {{ usage }} KB</span></h2>
         <UiButton v-if="loggedIn" variant="text" size="sm" :loading="syncing" @click="doSyncNow">立即同步</UiButton>
       </div>
       <button class="mine__row mine__row-click" type="button" @click="doExport">
@@ -197,26 +215,14 @@
       <button class="mine__row mine__row-click" type="button" @click="pullOverwrite">
         <span>以云端覆盖本地</span><span class="t-label">换设备后数据乱了时用它</span>
       </button>
-      <button class="mine__row mine__row-click" type="button" @click="clearLocal">
-        <span class="mine__danger">清空本地数据</span><span class="t-label">云端保留，下次登录会拉回</span>
+      <button class="mine__row mine__row-click is-danger" type="button" @click="clearLocal">
+        <span class="mine__row-danger-main"><UiIcon name="trash" :size="14" /><span class="mine__danger">清空本地数据</span></span>
+        <span class="t-label">云端保留，下次登录会拉回</span>
       </button>
     </section>
 
-    <!-- ⑦ 意见反馈 -->
-    <section class="mine__block">
-      <h2 class="t-h3 mine__title">意见反馈</h2>
-      <UiInput
-        v-model="feedback"
-        type="textarea"
-        :maxlength="500"
-        show-count
-        :rows="4"
-        placeholder="遇到问题、想要的功能、觉得哪里别扭，都可以写在这里"
-      />
-      <div class="mine__form-ops">
-        <UiButton variant="primary" size="sm" :loading="fbSending" @click="sendFeedback">提交反馈</UiButton>
       </div>
-    </section>
+    </div>
 
     <!-- 教师认证 -->
     <UiModal v-model="teacherVisible" title="教师认证" size="sm">
@@ -336,7 +342,7 @@
  *   3. 数据来源由 props/emits 改为直接读 stores（P2.5 起的目标架构：页面不再逐层透传）
  * 数据契约、接口调用、localStorage key 一律未改。
  */
-import { reactive, ref, computed, watch } from 'vue'
+import { reactive, ref, computed, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from '../ui/notify.js'
 import { api } from '../api'
@@ -357,6 +363,7 @@ import {
 import { openAuth } from '../stores/uiStore'
 import { ROUTES } from '../lib/routes.js'
 import UiButton from '../ui/UiButton.vue'
+import UiIcon from '../ui/UiIcon.vue'
 import UiInput from '../ui/UiInput.vue'
 import UiTag from '../ui/UiTag.vue'
 import UiModal from '../ui/UiModal.vue'
@@ -497,27 +504,23 @@ const onProfileChanged = () => scheduleProfilePush()
 const dlgErr = reactive({ nickname: '', password: '', old: '', next: '', confirm: '' })
 const clearDlgErr = () => Object.keys(dlgErr).forEach((k) => { dlgErr[k] = '' })
 
-/* 界面主题：按设备记（localStorage zy_theme），与 main.js 启动时读取的键保持一致 */
-const theme = ref(readTheme())
-function readTheme() {
-  try {
-    return localStorage.getItem('zy_theme') === 'light' ? 'light' : 'dark'
-  } catch {
-    return 'dark'
-  }
-}
-function setTheme(v) {
-  theme.value = v === 'light' ? 'light' : 'dark'
-  document.documentElement.dataset.theme = theme.value
-  try {
-    localStorage.setItem('zy_theme', theme.value)
-  } catch {
-    /* 忽略 */
-  }
-}
-
 function saveBio() {
   updateProfile({ bio: bioDraft.value })
+}
+
+/* 简介：展示态 → 点击进入编辑（失焦保存并回到展示态） */
+const bioEditing = ref(false)
+const bioInputRef = ref(null)
+function startBioEdit() {
+  bioEditing.value = true
+  nextTick(() => {
+    const el = bioInputRef.value && bioInputRef.value.$el
+    if (el && el.querySelector) el.querySelector('input')?.focus()
+  })
+}
+function onBioBlur() {
+  saveBio()
+  bioEditing.value = false
 }
 
 function saveProfileData() {
@@ -858,6 +861,48 @@ function fmtTime(iso) {
   gap: var(--sp-4);
   max-width: var(--col-main);
 }
+/* 两栏布局：左=身份/资料/档案，右=偏好/账号/数据/反馈 */
+.mine__cols {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.mine__col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+@media (min-width: 1024px) {
+  .mine {
+    max-width: none;
+  }
+  .mine__cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: var(--sp-4);
+    align-items: stretch; /* 两栏等高 */
+  }
+  .mine__col {
+    height: 100%;
+  }
+  /* 内容较少的一栏：区块均分剩余高度，底部与另一栏对齐（两侧自适应） */
+  .mine__col > .mine__block {
+    flex: 1 1 auto;
+  }
+}
+/* 区块标题图标 */
+.mine__block-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-right: var(--sp-2);
+  border-radius: var(--radius-sm);
+  background: var(--primary-soft-2);
+  color: var(--primary-text);
+  vertical-align: -4px;
+}
 .mine__head {
   display: flex;
   gap: var(--sp-5);
@@ -919,6 +964,65 @@ function fmtTime(iso) {
 .mine__bio {
   max-width: 460px;
 }
+/* 简介展示态（点击进入编辑） */
+.mine__bio-view {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  max-width: 100%;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 0.5px dashed var(--border-subtle);
+  background: var(--surface-recess);
+  font-family: inherit;
+  font-size: var(--fs-body-2);
+  color: var(--text-secondary);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.mine__bio-view:hover {
+  border-color: var(--primary-line);
+  background: var(--primary-soft-3);
+}
+.mine__bio-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mine__bio-empty {
+  color: var(--text-muted);
+}
+.mine__bio-edit {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--fs-label);
+  color: var(--primary-text);
+}
+/* 危险行：红色描边 + 图标，和普通行区隔 */
+.mine__row.is-danger {
+  margin-top: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  border: 0.5px solid rgba(201, 80, 58, 0.35);
+  border-radius: var(--radius-sm);
+  background: rgba(201, 80, 58, 0.05);
+}
+.mine__row.is-danger:hover {
+  background: rgba(201, 80, 58, 0.1);
+  border-color: rgba(201, 80, 58, 0.6);
+}
+.mine__row-danger-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.mine__row.is-danger .mine__danger {
+  color: #c9503a;
+  font-weight: var(--fw-medium);
+}
 .mine__colors {
   display: flex;
   align-items: center;
@@ -959,6 +1063,11 @@ function fmtTime(iso) {
   justify-content: space-between;
   gap: var(--sp-3);
   flex-wrap: wrap;
+}
+/* 触控目标（2026-10-13）：text 变体 min-height:0 太难点，抬高到 36px（仅本按钮） */
+.mine__go-report {
+  min-height: 36px;
+  padding: 0 var(--sp-3);
 }
 .mine__title-row .t-label {
   margin-left: var(--sp-2);

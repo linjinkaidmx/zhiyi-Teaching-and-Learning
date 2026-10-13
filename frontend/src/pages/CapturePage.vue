@@ -21,21 +21,27 @@
         @drop.prevent="onDrop"
       >
         <template v-if="!upload.file">
-          <div class="capture__channels">
-            <button type="button" class="capture__channel capture__channel--camera" @click.stop="pick('camera')">
-              <UiIcon name="camera" :size="20" /><span>拍照解题</span>
-            </button>
-            <button type="button" class="capture__channel capture__channel--album" @click.stop="pick('album')">
-              <UiIcon name="image" :size="20" /><span>从相册选图</span>
-            </button>
-            <button type="button" class="capture__channel capture__channel--drag" @click.stop="pick('album')">
-              <UiIcon name="drag" :size="20" /><span>拖拽</span>
-            </button>
-            <button type="button" class="capture__channel capture__channel--text" @click.stop="focusText">
-              <UiIcon name="clipboard" :size="20" /><span>粘贴 / 文字</span>
-            </button>
+          <div class="capture__drop-inner">
+            <div class="capture__channels">
+              <button type="button" class="capture__channel capture__channel--camera" style="--c: #3D6FA8" @click.stop="pick('camera')">
+                <span class="capture__channel-ico"><UiIcon name="camera" :size="20" /></span>
+                <b>拍照解题</b><i>手机拍最方便</i>
+              </button>
+              <button type="button" class="capture__channel capture__channel--album" style="--c: #7C5CFF" @click.stop="pick('album')">
+                <span class="capture__channel-ico"><UiIcon name="image" :size="20" /></span>
+                <b>从相册选图</b><i>截图 / 试卷照片</i>
+              </button>
+              <button type="button" class="capture__channel capture__channel--drag" style="--c: #4A7A63" @click.stop="pick('album')">
+                <span class="capture__channel-ico"><UiIcon name="drag" :size="20" /></span>
+                <b>拖拽上传</b><i>拖到框里即可</i>
+              </button>
+              <button type="button" class="capture__channel capture__channel--text" style="--c: #B5722A" @click.stop="focusText">
+                <span class="capture__channel-ico"><UiIcon name="clipboard" :size="20" /></span>
+                <b>粘贴 / 文字</b><i>公式可直接输入</i>
+              </button>
+            </div>
+            <p class="capture__hint">把题目图片拖到这里，或点击任意位置选择　·　<kbd>Ctrl</kbd> + <kbd>V</kbd> 直接粘贴截图</p>
           </div>
-          <p class="capture__hint">把题目图片拖到这里，或点击任意位置选择</p>
         </template>
         <div v-else class="capture__preview">
           <div
@@ -65,10 +71,12 @@
         </div>
       </div>
 
-      <div class="capture__text" :class="{ 'is-open': textOpen }">
+      <div class="capture__text capture__card-line surface-standard" :class="{ 'is-open': textOpen }">
         <button type="button" class="capture__text-toggle" @click="toggleText">
-          <UiIcon name="clipboard" :size="15" />
-          <span>{{ textOpen ? '收起文字输入' : '手动输入题目文字' }}</span>
+          <span class="capture__text-ico"><UiIcon name="clipboard" :size="15" /></span>
+          <span class="capture__text-label">手动输入题目文字</span>
+          <span class="capture__text-hint">支持 LaTeX 公式，识别后自动切题</span>
+          <span class="capture__text-go">{{ textOpen ? '收起 ↑' : '展开 →' }}</span>
         </button>
         <textarea
           ref="textareaEl"
@@ -96,6 +104,46 @@
         </template>
       </div>
 
+      <!-- 新增：拍完之后会发生什么（四步流程，新手最关心的事） -->
+      <section class="capture__tint-card capture__flow">
+        <div class="capture__block-head">
+          <b>拍完之后会发生什么</b><span>四步到掌握</span>
+        </div>
+        <div class="capture__flow-steps">
+          <div
+            v-for="(st, i) in flowSteps"
+            :key="st.title"
+            class="capture__flow-step"
+            :style="{ '--nc': st.color }"
+          >
+            <span class="capture__flow-no">{{ i + 1 }}</span>
+            <span class="capture__flow-ico"><UiIcon :name="st.icon" :size="15" /></span>
+            <b>{{ st.title }}</b>
+            <span class="capture__flow-desc">{{ st.desc }}</span>
+            <span v-if="i < flowSteps.length - 1" class="capture__flow-arrow">›</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 新增：示例题（内置题目，点一下填入输入框，不调模型） -->
+      <section class="capture__tint-card capture__sample">
+        <div class="capture__block-head">
+          <b>没有题目在手？</b><span>点一道示例试试流程</span>
+        </div>
+        <div class="capture__sample-list">
+          <button
+            v-for="s in sampleQuestions"
+            :key="s.label"
+            type="button"
+            class="capture__sample-chip"
+            @click="useSample(s)"
+          >
+            <span class="capture__sample-ico">{{ s.glyph }}</span>
+            <b>{{ s.label }}</b><i>{{ s.brief }}</i>
+          </button>
+        </div>
+      </section>
+
       <input ref="albumInput" type="file" accept="image/*" class="sr-only" @change="onFile($event)" />
       <input ref="cameraInput" type="file" accept="image/*" capture="environment" class="sr-only" @change="onFile($event)" />
 
@@ -104,14 +152,21 @@
       <!-- 桌面端右栏：历史 + 使用提示（移动端由 CSS 隐藏，保持单列原样） -->
       <aside class="capture__aside">
       <!-- 最近拍过的题（原型 A2）：来自学习记录，「历史」入口的页内呈现 -->
-      <section v-if="recentQuestions.length" class="surface-standard capture__recent">
+      <!-- 最近拍过的题（原型 A2）：来自学习记录，「历史」入口的页内呈现 -->
+      <section class="surface-standard capture__recent">
         <div class="capture__recent-head">
           <span class="capture__recent-title">最近拍过的题</span>
-          <button type="button" class="capture__recent-all" @click="$router.push(ROUTES.records)">全部 →</button>
+          <button v-if="recentQuestions.length" type="button" class="capture__recent-all" @click="$router.push(ROUTES.records)">全部 →</button>
         </div>
-        <div v-for="r in recentQuestions" :key="r.id" class="capture__recent-row">
-          <span class="capture__recent-q">{{ r.title || r.brief || '题目讲解' }}</span>
-          <span class="t-label">{{ timeAgo(r.createdAt) }}</span>
+        <template v-if="recentQuestions.length">
+          <div v-for="r in recentQuestions" :key="r.id" class="capture__recent-row">
+            <span class="capture__recent-q">{{ r.title || r.brief || '题目讲解' }}</span>
+            <span class="t-label">{{ timeAgo(r.createdAt) }}</span>
+          </div>
+        </template>
+        <div v-else class="capture__recent-empty">
+          <span class="capture__recent-empty-ico"><UiIcon name="schedule" :size="18" /></span>
+          <p>还没有拍过题<br />拍完的题会按时间排在这里，一键重讲</p>
         </div>
       </section>
 
@@ -289,8 +344,36 @@ function pick(kind) {
 }
 
 function focusText() {
-  const ta = document.querySelector('.capture__textarea')
-  if (ta) ta.focus()
+  textOpen.value = true
+  nextTick(() => {
+    const ta = document.querySelector('.capture__textarea')
+    if (ta) ta.focus()
+  })
+}
+
+/** 拍题四步流程（2026-10-11 新增：把「拍完会发生什么」讲清楚，新手最关心） */
+const flowSteps = [
+  { icon: 'camera', color: '#9d8bf5', title: '上传 / 拍照', desc: '一题一图最准，整页试卷可框选' },
+  { icon: 'search', color: '#8b74f3', title: 'AI 识别切题', desc: '自动识别文字、公式、代码，可编辑修正' },
+  { icon: 'sparkle', color: '#7c5cff', title: '逐句讲解', desc: '一步步讲思路，能追问、能换个讲法' },
+  { icon: 'refresh', color: '#5b47d6', title: '错题自动进本', desc: '做错的按遗忘曲线排期，到期提醒复习' },
+]
+/** 示例题（内置文本，不调模型；点一下填入输入框，用户自己点「开始识别」） */
+const sampleQuestions = [
+  { glyph: '∫', label: '定积分', brief: '求 ∫₀¹ x²dx', text: '求定积分 $\\int_0^1 x^2 \\, dx$ 的值。' },
+  { glyph: 'λ', label: '线性代数', brief: '求矩阵特征值', text: '已知矩阵 $A = \\begin{pmatrix} 2 & 1 \\\\ 1 & 2 \\end{pmatrix}$，求 $A$ 的特征值与特征向量。' },
+  { glyph: 'ƒ', label: '高数泰勒', brief: '展开到二阶', text: '求 $f(x) = x^3 - 3x^2 + 2$ 在 $x = 1$ 处的二阶泰勒展开式。' },
+  { glyph: '</>', label: '算法题', brief: '两数之和', text: '给定数组 $[2, 7, 11, 15]$ 与目标值 $9$，找出和为 $9$ 的两个元素的下标，并说明时间复杂度。' },
+]
+async function useSample(s) {
+  upload.text = s.text
+  textOpen.value = true
+  await nextTick()
+  const ta = textareaEl.value
+  if (ta) {
+    ta.focus()
+    ta.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
 }
 
 /** 输入框里含 LaTeX 定界符时才显示渲染预览 */
@@ -442,12 +525,23 @@ onBeforeUnmount(() => window.removeEventListener('paste', onPaste))
 .capture__drop.is-over {
   border-color: var(--primary);
 }
+/* 取景框（2026-10-11：桌面改卡片式通道后的紫色虚线内框） */
+.capture__drop-inner {
+  border: 1px dashed rgba(124, 92, 255, 0.35);
+  border-radius: 13px;
+  padding: 20px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+}
 .capture__channels {
   display: flex;
   justify-content: center;
   gap: var(--sp-8);
   margin-bottom: var(--sp-4);
   flex-wrap: wrap;
+  width: 100%;
 }
 .capture__channel {
   display: flex;
@@ -459,6 +553,12 @@ onBeforeUnmount(() => window.removeEventListener('paste', onPaste))
   cursor: pointer;
   color: var(--text-tertiary);
   font-size: var(--fs-body-2);
+  font-family: inherit;
+}
+.capture__channel-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .capture__channel:hover {
   color: var(--text-primary);
@@ -466,6 +566,15 @@ onBeforeUnmount(() => window.removeEventListener('paste', onPaste))
 .capture__hint {
   font-size: var(--fs-body-2);
   color: var(--text-tertiary);
+}
+.capture__hint kbd {
+  background: rgba(124, 92, 255, 0.1);
+  border: 0.5px solid rgba(124, 92, 255, 0.22);
+  border-radius: 5px;
+  padding: 1px 5px;
+  font-family: inherit;
+  font-size: var(--fs-label);
+  color: var(--primary-text);
 }
 .capture__preview {
   display: flex;
@@ -521,22 +630,53 @@ onBeforeUnmount(() => window.removeEventListener('paste', onPaste))
 .capture__remove:hover {
   color: var(--error);
 }
-/* 文字输入折叠开关：仅在移动端出现，桌面常驻展开 */
+/* 文字输入行（2026-10-11 改卡片式：默认收起，点开才出现输入框） */
+.capture__card-line {
+  padding: 0;
+  overflow: hidden;
+}
 .capture__text-toggle {
-  display: none;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  min-height: 40px;
-  padding: 0 var(--sp-4);
-  border: 0.5px solid var(--border-default);
-  border-radius: var(--radius-sm);
-  background: var(--surface-recess);
-  color: var(--text-tertiary);
-  font-size: var(--fs-body-2);
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 0;
+  background: none;
   cursor: pointer;
+  font-family: inherit;
+  font-size: var(--fs-body-2);
+  color: var(--text-secondary);
+  text-align: left;
+}
+.capture__text-ico {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-text);
+  background: var(--primary-soft-2);
+  border: 0.5px solid var(--primary-line);
+}
+.capture__text-hint {
+  font-size: var(--fs-label);
+  color: var(--text-disabled);
+}
+.capture__text-go {
+  margin-left: auto;
+  flex: none;
+  font-size: var(--fs-body-2);
+  font-weight: var(--fw-medium);
+  color: var(--primary-text);
+  white-space: nowrap;
 }
 .capture__textarea {
-  width: 100%;
+  display: none;
+  width: calc(100% - 32px);
+  margin: 0 16px var(--sp-3);
   resize: vertical;
   min-height: 96px;
   padding: var(--sp-3) var(--sp-4);
@@ -547,6 +687,9 @@ onBeforeUnmount(() => window.removeEventListener('paste', onPaste))
   color: var(--text-primary);
   font-size: var(--fs-body);
   line-height: var(--lh-relaxed);
+}
+.capture__card-line.is-open .capture__textarea {
+  display: block;
 }
 .capture__textarea:focus {
   outline: none;
@@ -701,6 +844,12 @@ onBeforeUnmount(() => window.removeEventListener('paste', onPaste))
   .capture__drop {
     padding: 22px 16px;
   }
+  /* 移动端维持原纵向按钮设计：取景框不描边、通道不显示副文案 */
+  .capture__drop-inner {
+    border: 0;
+    padding: 0;
+    gap: 0;
+  }
   .capture__channels {
     flex-direction: column;
     gap: 10px;
@@ -716,6 +865,12 @@ onBeforeUnmount(() => window.removeEventListener('paste', onPaste))
     border-radius: var(--radius-sm);
     font-size: var(--fs-body);
     color: var(--text-secondary);
+  }
+  .capture__channel b {
+    font-weight: 400;
+  }
+  .capture__channel i {
+    display: none;
   }
   .capture__channel--camera {
     background: var(--primary);
@@ -740,15 +895,6 @@ onBeforeUnmount(() => window.removeEventListener('paste', onPaste))
   }
   .capture__actions .ui-btn {
     width: 100%;
-  }
-  .capture__text-toggle {
-    display: inline-flex;
-  }
-  .capture__textarea {
-    display: none;
-  }
-  .capture__text.is-open .capture__textarea {
-    display: block;
   }
   .capture__preview {
     flex-direction: column;
@@ -840,6 +986,238 @@ onBeforeUnmount(() => window.removeEventListener('paste', onPaste))
   background: var(--primary);
   opacity: 0.6;
 }
+/* 最近拍过的题空态（无记录时占位，避免右栏顶部空一块） */
+.capture__recent-empty {
+  text-align: center;
+  padding: var(--sp-3) var(--sp-2) 2px;
+}
+.capture__recent-empty-ico {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  margin: 0 auto 9px;
+  display: grid;
+  place-items: center;
+  background: var(--primary-soft-3);
+  border: 0.5px dashed var(--primary-line);
+  color: var(--text-disabled);
+}
+.capture__recent-empty p {
+  font-size: var(--fs-label);
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+/* 拍题小贴士：序号圆点 */
+.capture__tip-list {
+  counter-reset: tip;
+}
+.capture__tip-list li::before {
+  counter-increment: tip;
+  content: counter(tip);
+  position: absolute;
+  left: 0;
+  top: 3px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--primary-soft-2);
+  color: var(--primary-text);
+  font-size: 10.5px;
+  font-weight: var(--fw-semibold);
+  opacity: 1;
+}
+.capture__tip-list li {
+  padding-left: 26px;
+}
+
+/* ---------------- 新增区块：流程卡 + 示例题（2026-10-11，淡紫柔底） ---------------- */
+.capture__tint-card {
+  padding: var(--sp-4) var(--sp-5) var(--sp-5);
+  border-radius: var(--radius-lg);
+  border: 0.5px solid rgba(124, 92, 255, 0.16);
+  background: linear-gradient(180deg, #fcfbff 0%, #f7f5ff 100%);
+  box-shadow: 0 1px 2px rgba(20, 30, 60, 0.05), 0 8px 22px -12px rgba(124, 92, 255, 0.24);
+}
+html[data-theme='dark'] .capture__tint-card {
+  border-color: rgba(124, 92, 255, 0.24);
+  background: linear-gradient(180deg, rgba(124, 92, 255, 0.1) 0%, rgba(124, 92, 255, 0.05) 100%);
+}
+.capture__block-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.capture__block-head b {
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+}
+.capture__block-head span {
+  font-size: var(--fs-label);
+  color: var(--text-muted);
+}
+.capture__flow-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: var(--sp-4);
+}
+.capture__flow-step {
+  position: relative;
+  padding: 14px 14px 13px;
+  border-radius: 13px;
+  background: var(--surface-1);
+  border: 0.5px solid rgba(124, 92, 255, 0.14);
+}
+.capture__flow-no {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-semibold);
+  color: #fff;
+  background: var(--nc, var(--primary));
+}
+.capture__flow-ico {
+  position: absolute;
+  top: 13px;
+  right: 13px;
+  color: color-mix(in srgb, var(--nc, var(--primary)) 55%, #fff);
+}
+.capture__flow-step b {
+  display: block;
+  margin-top: 9px;
+  font-size: var(--fs-body-2);
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+}
+.capture__flow-desc {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--fs-label);
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+.capture__flow-arrow {
+  position: absolute;
+  top: 50%;
+  right: -9px;
+  transform: translateY(-50%);
+  color: rgba(124, 92, 255, 0.35);
+  font-size: var(--fs-body);
+}
+.capture__sample-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: var(--sp-4);
+}
+.capture__sample-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 11px;
+  border: 0.5px solid rgba(124, 92, 255, 0.18);
+  background: var(--surface-1);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.capture__sample-chip:hover {
+  border-color: rgba(124, 92, 255, 0.45);
+  transform: translateY(-1px);
+}
+.capture__sample-ico {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  font-style: normal;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-semibold);
+  color: var(--primary-text);
+  background: var(--primary-soft-2);
+  border: 0.5px solid var(--primary-line);
+}
+.capture__sample-chip b {
+  font-size: var(--fs-body-2);
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+}
+.capture__sample-chip i {
+  font-style: normal;
+  font-size: var(--fs-label);
+  color: var(--text-disabled);
+}
+@media (max-width: 767px) {
+  .capture__flow-steps {
+    grid-template-columns: 1fr 1fr;
+  }
+  .capture__flow-arrow {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  /* 上传区：桌面改卡片式通道（淡色圆角底图标 + 标题 + 副文案） */
+  .capture__drop {
+    padding: var(--sp-4);
+    text-align: left;
+  }
+  .capture__channels {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 0;
+  }
+  .capture__channel {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    padding: 14px 8px;
+    border: var(--border-subtle);
+    border-radius: 13px;
+    background: var(--surface-1);
+    box-shadow: 0 1px 2px rgba(20, 30, 60, 0.04);
+    color: var(--text-primary);
+    transition: border-color var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  .capture__channel:hover {
+    border-color: rgba(124, 92, 255, 0.35);
+    transform: translateY(-1px);
+    color: var(--text-primary);
+  }
+  .capture__channel b {
+    font-size: var(--fs-body-2);
+    font-weight: var(--fw-medium);
+  }
+  .capture__channel i {
+    font-style: normal;
+    font-size: var(--fs-label);
+    color: var(--text-disabled);
+  }
+  .capture__channel-ico {
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+    color: var(--c, var(--primary-text));
+    background: color-mix(in srgb, var(--c, var(--primary)) 22%, transparent);
+    border: 1px solid color-mix(in srgb, var(--c, var(--primary)) 38%, transparent);
+  }
+  html[data-theme='dark'] .capture__channel-ico {
+    color: color-mix(in srgb, var(--c, var(--primary)) 55%, #fff);
+  }
+}
+
 @media (min-width: 1024px) {
   .capture {
     max-width: none;
@@ -860,7 +1238,7 @@ onBeforeUnmount(() => window.removeEventListener('paste', onPaste))
     display: flex;
   }
   .capture__drop {
-    padding: var(--sp-10) var(--sp-8);
+    padding: var(--sp-4);
   }
   .capture__recent {
     position: sticky;

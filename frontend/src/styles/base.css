@@ -19,7 +19,13 @@
 html[data-theme] body {
   margin: 0;
   /* 主题背景必须落到 body：否则内容不满一屏或移动端 overscroll 时会露出旧样式表的浅色底 */
-  background: var(--background);
+  /* 2026-10-13 品牌化：全局底色叠加品牌紫（左上）+ 暖橘（右上）柔光 + 极浅紫灰渐变，
+     fixed 让滚动时光斑位置稳定（光斑极淡，不影响可读性） */
+  background:
+    radial-gradient(55% 45% at 6% -6%, rgba(124, 92, 255, 0.10), rgba(124, 92, 255, 0) 60%),
+    radial-gradient(45% 40% at 100% 0%, rgba(250, 199, 117, 0.08), rgba(250, 199, 117, 0) 60%),
+    linear-gradient(180deg, #f5f3fc 0%, #faf9fe 45%, #fbfaff 100%);
+  background-attachment: fixed;
   color: var(--text-primary);
 }
 
@@ -183,7 +189,7 @@ html[data-theme] body {
 .zy-page {
   padding: var(--sp-6) 0 var(--sp-16);
 }
-/* 子页面「← 返回更多」入口：靠在标题上方，row / column 两种 head 布局都适用 */
+/* 子页面「返回」胶囊：样式由 UiButton soft 变体提供（对齐 AI 课堂），这里只管位置 */
 .zy-back {
   display: inline-flex;
   align-self: flex-start;

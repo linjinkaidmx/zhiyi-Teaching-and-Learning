@@ -385,10 +385,17 @@ img { max-width: 100%; }
    ---------------------------------------------------------------------------
    桌面端已让出左侧 232px 导航，页面不应再按移动端单列宽度（640/880/1080）收窄；
    阅读与表单型页面仍保留可读宽度，避免长行排版。
+
+   2026-10-11（方案 A）：恢复容器左右留白。
+   base.css 里 .zy-page 的 padding 简写（左右为 0）在同等特异性下覆盖了
+   .zy-container 的 padding: 0 var(--container-pad)，导致桌面端所有页面内容贴边。
+   这里把左右内边距恢复成 token 原本的 40px，并统一限宽 1440 居中。
+   移动端（<768px）有单独的 16px 覆盖，不受影响。
    ========================================================================== */
 @media (min-width: 1024px) {
   .zy-container.zy-page {
-    max-width: none !important;
+    max-width: var(--container) !important;
+    padding-inline: var(--container-pad);
   }
   .zy-page.about,
   .zy-page.help,

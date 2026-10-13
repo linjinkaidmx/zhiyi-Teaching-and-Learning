@@ -144,6 +144,124 @@ class DebugRequest(BaseModel):
     description: str = ""  # 问题描述（可选）
 
 
+class CompanionChatRequest(BaseModel):
+    """伴学角色闲聊：人设由前端注入（V1 轻自定义——形象自带人设 + 用户改名）。"""
+    token: str = ""
+    character: str = ""    # 角色 id，如 yue / nailong
+    name: str = ""         # 当前显示名（含用户改名）
+    persona: str = ""      # 人设描述
+    message: str = ""
+    history: list = []     # 已登录时以云端历史为准，该字段仅作旧客户端兼容
+    pending_question: str = ""  # 主页求教泡找回：待请教题目摘要（用户问「题目是啥」时 AI 能如实复述）
+    session_id: str = ""   # p20：聊天记录会话 id（记忆按会话隔离）
+
+
+class CustomCompanionCreateRequest(BaseModel):
+    """造角色二期：用户自定义伴学角色创建。"""
+    token: str = ""
+    name: str = ""              # 角色名 ≤6 字
+    template: str = ""          # 性格模板 key：cheerful/gentle/cool/passionate/funny/healing
+    extra: str = ""             # 一句话补充（可空，LLM 融合进 persona）
+    image: str = ""             # dataURL（image/png 或 image/jpeg，前端已压至 ≤600px 宽）
+    ratio: float = 0.5          # 立绘 宽/高 比
+
+
+class CustomCompanionDeleteRequest(BaseModel):
+    token: str = ""
+    char_id: str = ""
+
+
+class CustomAiGenRequest(BaseModel):
+    """AI 造角色·第一步：照片 → AI 画成 Q 版立绘（2026-10-09）。"""
+    token: str = ""
+    image: str = ""             # 照片 dataURL（前端已压缩）
+    mime: str = "image/jpeg"
+    hint: str = ""              # 用户补充描述（可空，≤60 字）
+
+
+class CustomAiSaveRequest(BaseModel):
+    """AI 造角色·第二步：确认保存（凭 gen_id 取服务端暂存图，防绕过 AI 直传）。"""
+    token: str = ""
+    gen_id: str = ""
+    name: str = ""              # 角色名 ≤6 字
+    template: str = ""          # 性格模板 key
+    extra: str = ""
+
+
+class CustomAiUpdateRequest(BaseModel):
+    """AI 造角色·编辑（2026-10-09）：char_id 不变原地更新，聊天/亲密度保留。
+    gen_id 空 = 不换形象（沿用旧 BLOB，不扣生图次数）；非空 = 取暂存新图（重画已在 ai-gen 扣过额度）。"""
+    token: str = ""
+    char_id: str = ""
+    gen_id: str = ""            # 可空
+    name: str = ""              # 角色名 ≤6 字
+    template: str = ""          # 性格模板 key
+    extra: str = ""
+
+
+class CompanionHistoryRequest(BaseModel):
+    """拉取伙伴页云端聊天历史 + 全部角色偏好（名字/大小）。"""
+    token: str = ""
+    character: str = ""
+    session_id: str = ""   # p20：只取该会话的消息；为空兼容旧客户端（全量流水）
+
+
+class CompanionSessionListRequest(BaseModel):
+    """p20：历史对话列表（标题/计数/最后一句/是否含进行中的链）。"""
+    token: str = ""
+    character: str = ""
+
+
+class CompanionSessionCreateRequest(BaseModel):
+    """p20：新开一条聊天记录（每角色 30 条上限，超出自动清最旧）。"""
+    token: str = ""
+    character: str = ""
+
+
+class CompanionSessionRenameRequest(BaseModel):
+    """p20：重命名聊天记录（≤18 字）。"""
+    token: str = ""
+    session_id: str = ""
+    title: str = ""
+
+
+class CompanionSessionDeleteRequest(BaseModel):
+    """p20：删除聊天记录（消息级联删除、进行中的链作废）。"""
+    token: str = ""
+    session_id: str = ""
+
+
+class CompanionPrefRequest(BaseModel):
+    """角色偏好：改名 + 页面立绘大小（0.6~2.0，None 表示不修改）。"""
+    token: str = ""
+    character: str = ""
+    name: str | None = None
+    size_scale: float | None = None
+
+
+class CompanionQuizRequest(BaseModel):
+    """轻量问答：start=出题（纯 SQL 选题不耗模型）/ answer=点评 / peek=冒泡取题（不计费）。"""
+    token: str = ""
+    character: str = ""
+    name: str = ""
+    persona: str = ""
+    action: str = "start"
+    question_id: str = ""   # start 可指定题目（行走角色冒泡点击跳转）
+    question: str = ""      # answer：题目文本
+    source: str = ""        # answer：来源标签
+    answer: str = ""        # answer：用户作答
+    chain_id: str = ""      # chain_start/chain_answer：小老师模式问题链标识
+    step_idx: int = -1      # chain_answer：当前讲解的层序号（服务端校验用）
+    session_id: str = ""    # p20：链/考题绑定会话（进度隔离）
+
+
+class CompanionAsrRequest(BaseModel):
+    """语音转文字：浏览器录好 WAV 转 base64 上传。"""
+    token: str = ""
+    audio_base64: str = ""
+    mime: str = "wav"
+
+
 class GenerateQuizRequest(BaseModel):
     knowledge_points: list = []   # 要练习的知识点
     reference_question: str = ""  # 参考原题（可选，用于对齐难度）
@@ -188,6 +306,10 @@ class AnalyzeRequest(BaseModel):
     sample_questions: list = []  # 最多 5 条题目摘要（各 ≤120 字）
 
 
+class DailyAdviceRequest(BaseModel):
+    summary: dict = {}         # 今日上下文：{date, lessons:[{start,end,name}], due, weak_points, next_chapter, done_today}
+
+
 # ---------------- 社区：论坛 ----------------
 
 class ForumListRequest(BaseModel):
@@ -209,7 +331,7 @@ class CreatePostRequest(BaseModel):
     type: str = "thought"      # thought 学习感想 | question 题目求助
     title: str = ""
     content: str = ""          # 纯文本正文（感想）或题目帖的补充说明
-    card: dict = {}            # 题目卡片（question 类型）：{question, answer, steps, knowledgePoints, subject}
+    card: dict | None = None   # 题目卡片（question 类型）；感想帖可为 null（handler 里按空处理）
 
 
 class CommentRequest(BaseModel):
@@ -264,6 +386,12 @@ class GroupInviteRequest(BaseModel):
     token: str = ""
     group_id: str = ""
     nickname: str = ""         # 按昵称直接拉人进组（仅 owner）
+
+
+class GroupRemoveMemberRequest(BaseModel):
+    token: str = ""
+    group_id: str = ""
+    user_id: str = ""          # 组长要移除的成员（仅 owner）
 
 
 # ---------------- 班级模块 ----------------
@@ -421,4 +549,117 @@ class HomeworkImageRequest(BaseModel):
     token: str = ""
     homework_id: str = ""
     user_id: str = ""          # 老师查看某学生的作业原图
+
+
+# ---------------- AI 教学老师（2026-10-09） ----------------
+
+from pydantic import model_validator
+
+
+class TeachBase(BaseModel):
+    """教学模块统一入口校验：Pydantic v2 对 str 字段收到 null/数字会直接 422，
+    前端「我的课程」id 是数字、部分字段可能传 null，这里统一 coerce（2026-10-09 开课 422 修复）"""
+
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce_teach_types(cls, data):
+        if not isinstance(data, dict):
+            return data
+        out = dict(data)
+        for name, f in cls.model_fields.items():
+            if name not in out:
+                continue
+            v = out[name]
+            if v is None:
+                # None → 用字段默认值（如 teacher_id 默认 chenli）
+                out[name] = f.get_default(call_default_factory=True)
+                continue
+            if f.annotation is str:
+                if isinstance(v, bool):
+                    out[name] = "1" if v else "0"
+                elif isinstance(v, (int, float)):
+                    out[name] = str(int(v)) if isinstance(v, int) else str(v)
+            elif f.annotation is int:
+                if isinstance(v, bool):
+                    out[name] = int(v)
+                elif isinstance(v, float):
+                    out[name] = int(v)
+                elif isinstance(v, str):
+                    s = v.strip()
+                    if not s:
+                        out[name] = f.get_default(call_default_factory=True)
+                    else:
+                        try:
+                            out[name] = int(float(s))
+                        except ValueError:
+                            pass  # 留给 pydantic 报 422，非数字串不该静默吞
+        return out
+
+
+class TeachSyllabusRequest(TeachBase):
+    token: str = ""
+    subject: str = ""          # 学科名（手输或来自「我的课程」）
+    course_id: str = ""        # 关联课程 id（可选）
+    teacher_id: str = "chenli"
+    level: str = "auto"        # auto | basic | final | kaoyan
+    want: int = 14             # 期望知识点数量
+
+
+class TeachStartRequest(TeachBase):
+    token: str = ""
+    syllabus_id: str = ""
+    kp_index: int = -1         # -1 = 用大纲当前游标
+    minutes: int = 0           # 上一讲耗时（进学习记录）
+
+
+class TeachAnswerRequest(TeachBase):
+    token: str = ""
+    session_id: str = ""
+    choice: str = ""           # 选择题所选项（A/B/C/D）
+    text: str = ""             # 文字题作答
+
+
+class TeachAskRequest(TeachBase):
+    token: str = ""
+    session_id: str = ""
+    question: str = ""
+
+
+class TeachNextRequest(TeachBase):
+    token: str = ""
+    session_id: str = ""
+    minutes: int = 0
+
+
+class TeachChapterRequest(TeachBase):
+    """章末（2026-10-10 章节化）：总结 + 单元测试。"""
+    token: str = ""
+    syllabus_id: str = ""
+    ch_index: int = -1          # 章号
+
+
+class TeachChapterAnswerRequest(TeachBase):
+    """单元测试提交：answers = [{q_index, choice, text}]（与题目顺序对齐）。"""
+    token: str = ""
+    syllabus_id: str = ""
+    ch_index: int = -1
+    answers: list = []
+
+
+class TeachExamAnalysisRequest(TeachBase):
+    """批改后的逐选项分析（结果缓存，同题不二次花钱）。"""
+    token: str = ""
+    session_id: str = ""
+
+
+class TeachEditRequest(TeachBase):
+    token: str = ""
+    syllabus_id: str = ""
+    action: str = ""           # rename | add | del | reset | switch_teacher | delete | rename_ch
+    title: str = ""
+    index: int = -1
+    name: str = ""
+    brief: str = ""
+    teacher_id: str = ""
+    ch_index: int = -1         # rename_ch / 章级操作用
 

@@ -34,6 +34,14 @@ def _slot(name: str, default_model: str, default_thinking: str):
 EXTRACT_SLOT = _slot("EXTRACT", "doubao-seed-2-1-turbo-260628", "0")
 EXPLAIN_SLOT = _slot("EXPLAIN", "doubao-seed-2-1-turbo-260628", "0")
 JUDGE_SLOT = _slot("JUDGE", "doubao-seed-2-1-turbo-260628", "0")
+# 伴学角色闲聊位：轻量模型 + 低温度即可，独立于学习 AI 配额
+COMPANION_SLOT = _slot("COMPANION", "doubao-seed-2-1-turbo-260628", "0")
+# 语音转写位（ASR）：必须用支持音频输入的多模态模型。
+# 实测（2026-10-03）：doubao-seed-evolving 是纯文本模型不吃音频；
+# doubao-seed-2-1-lite-260915 实测 input_audio 转写成功，作为默认。
+ASR_MODEL = os.getenv("ASR_MODEL", "doubao-seed-2-1-lite-260915").strip()
+# ASR 允许用独立 key（默认复用 ARK_API_KEY）
+ARK_ASR_API_KEY = os.getenv("ARK_ASR_API_KEY", "").strip() or ARK_API_KEY
 
 EXPLAIN_FALLBACK = os.getenv("EXPLAIN_FALLBACK", "1").lower() in ("1", "true", "yes")
 
@@ -60,7 +68,10 @@ def chat_text(messages, temperature: float = 0.2, slot: dict | None = None, time
     provider = slot["provider"]
     kwargs = {"model": slot["model"], "messages": messages, "temperature": temperature}
     if provider == "ark":
-        kwargs["extra_body"] = {"enable_thinking": bool(slot["thinking"])}
+        # 2026-10-07: 方舟已废弃 enable_thinking 参数（静默失效→思考常开，闲聊被拖到 75~90s 超时），
+        # 换新参数 thinking={"type": ...}；保留旧参数一并下发兼容过渡期
+        kwargs["extra_body"] = {"thinking": {"type": "enabled" if slot["thinking"] else "disabled"},
+                                "enable_thinking": bool(slot["thinking"])}
     resp = _get_client(provider, timeout).chat.completions.create(**kwargs)
     return resp.choices[0].message.content or ""
 
@@ -75,6 +86,33 @@ def chat_with_fallback(messages, temperature: float, slot: dict) -> str:
             raise
         fb = {"provider": "ark", "model": "doubao-seed-2-1-turbo-260628", "thinking": False}
         return chat_text(messages, temperature=temperature, slot=fb)
+
+
+def transcribe_audio(audio_b64: str, fmt: str = "wav", timeout: float = 45) -> str:
+    """语音转文字：走方舟 OpenAI 兼容协议的 input_audio（多模态模型）。
+
+    audio_b64 为原始音频字节的 base64（浏览器端录好并编码）。
+    无任何 Key（MOCK）时返回占位文本，方便本地联调。
+    """
+    if MOCK:
+        return "（语音转写示例）这道题我先讲一下我的思路"
+    cache_key = ("ark-asr", ARK_ASR_API_KEY, ARK_BASE_URL, timeout)
+    if cache_key not in _clients:
+        _clients[cache_key] = OpenAI(
+            api_key=ARK_ASR_API_KEY, base_url=ARK_BASE_URL, timeout=timeout, max_retries=0,
+        )
+    resp = _clients[cache_key].chat.completions.create(
+        model=ASR_MODEL,
+        messages=[{
+            "role": "user",
+            "content": [
+                {"type": "text", "text": "请把这段音频里的语音转成文字，只输出转写内容，不要任何解释；若没有可识别的语音则输出空字符串"},
+                {"type": "input_audio", "input_audio": {"data": audio_b64, "format": fmt}},
+            ],
+        }],
+        temperature=0,
+    )
+    return (resp.choices[0].message.content or "").strip()
 
 
 # ---------------------------------------------------------------- JSON 修复
@@ -852,7 +890,8 @@ def _stream_iter(messages, temperature: float, slot: dict, timeout: float):
     provider = slot["provider"]
     kwargs = {"model": slot["model"], "messages": messages, "temperature": temperature, "stream": True}
     if provider == "ark":
-        kwargs["extra_body"] = {"enable_thinking": bool(slot["thinking"])}
+        kwargs["extra_body"] = {"thinking": {"type": "enabled" if slot["thinking"] else "disabled"},
+                                "enable_thinking": bool(slot["thinking"])}
     stream = _get_client(provider, timeout).chat.completions.create(**kwargs)
     for ch in stream:
         if not getattr(ch, "choices", None):
@@ -1065,6 +1104,49 @@ def chat_stream(messages: list | None, context: list | None):
                             slot=JUDGE_SLOT, timeout=180)
 
 
+_MOCK_COMPANION = """我在呢～（当前未配置模型 Key，走的是内置 Mock）
+今天想聊点什么？学习上的问题、心情、还是随便唠两句都行。
+你也可以把不会的题拿来，我们一起琢磨琢磨。"""
+
+
+def companion_stream(messages: list):
+    """AI 伴学闲聊：流式版本。与一次性版本同槽位同温度，生成器 yield 文本片。"""
+    if MOCK:
+        yield from _mock_pieces(_MOCK_COMPANION)
+        return
+    yield from _stream_chat(messages, temperature=0.8, slot=COMPANION_SLOT, timeout=90)
+
+
+def json_field_stream(prompt: str, temperature: float, slot: dict, timeout: float):
+    """结构化 JSON 的「字段级流式」通用封装（课堂讲义等复用）。
+
+    事件协议（与 explain_stream 一致）：
+      {"field": path, "delta": "新增文本"}
+      {"field_done": path}
+      {"done": True, "result": {...}, "raw": "..."}
+      {"error": "...", "partial": bool}   partial=True 表示已出字（不可降级）
+    首 token 前失败由调用方决定是否降级为非流式。
+    """
+    buf = ""
+    emitted = {}
+    done_paths = set()
+    got_first = False
+    try:
+        for piece in _stream_chat([{"role": "user", "content": prompt}], temperature=temperature,
+                                  slot=slot, timeout=timeout):
+            if not piece:
+                continue
+            got_first = True
+            buf += piece
+            for ev in _diff_field_events(buf, emitted, done_paths):
+                yield ev
+        if not got_first:
+            raise RuntimeError("模型没有返回内容")
+        yield {"done": True, "result": extract_json(buf), "raw": buf}
+    except Exception as e:
+        yield {"error": f"生成中断：{e}", "partial": got_first}
+
+
 # ---------------------------------------------------------------- 学情分析（批次4）
 
 ANALYZE_PROMPT = """你是大学理工科的学习教练。下面给出某位学生错题本的**聚合摘要**（不是全部题目）。
@@ -1130,4 +1212,68 @@ def analyze_errorbook(summary: dict | None, sample_questions: list | None = None
         "weak_points": weak[:5],
         "reason_advice": reasons[:4],
         "summary": str(data.get("summary") or "")[:400],
+    }
+
+
+# ---------------- 今日学习建议（2026-10-10 首页 Hero 入口） ----------------
+
+DAILY_ADVICE_PROMPT = """你是大学理工科的学习教练。下面给出某位学生**今天**的学习上下文（课程表、复习任务、薄弱点、新课进度）。
+
+请给出 3~5 条今天可执行的学习安排建议，要求：
+1. 只依据给出的信息，不要编造没出现过的课、题或知识点。
+2. 每条建议 = 一句明确的行动（什么时间做什么、大约多久），再加一句理由。
+3. 有课的时间段不要安排其他任务；没填的部分（如无课表/无错题）就跳过对应维度，不要提。
+4. 语气鼓励、直接、具体，不说空话。
+5. summary 用一句话总结今天最重要的一件事。
+
+只输出 JSON：
+{"items": [{"title": "行动（一句话，含时间点/时长）", "reason": "为什么安排这个"}],
+ "summary": "一句话总结"}
+"""
+
+_MOCK_DAILY = {
+    "items": [
+        {"title": "上午 10:15 有数据结构课，课前花 10 分钟过一遍「树与二叉树」的讲义",
+         "reason": "AI 课堂下一章正好是这一章，提前看一遍上课更跟得上"},
+        {"title": "午休后先清掉 3 道到期错题，动态规划那道放第一个",
+         "reason": "错误率最高的知识点，记忆快过期了，先复习性价比最高"},
+        {"title": "晚上 19:00 后没有课，开 AI 课堂学「树与二叉树」，预计 25 分钟",
+         "reason": "今天剩余空闲时段较长，适合推进新课"},
+    ],
+    "summary": "今天最重要的一件事：清掉 3 道到期错题，重点是动态规划。",
+}
+
+
+def daily_advice(summary: dict | None) -> dict:
+    """今日学习上下文 → 3~5 条今日安排建议。只传聚合数据（课表/数量/知识点名），不传题目全文。"""
+    if MOCK:
+        return json.loads(json.dumps(_MOCK_DAILY))
+    payload = summary if isinstance(summary, dict) else {}
+    lines = []
+    for c in (payload.get("lessons") or [])[:8]:
+        if isinstance(c, dict):
+            lines.append("今天 %s-%s 有课「%s」" % (c.get("start", ""), c.get("end", ""), c.get("name", "")))
+    if not (payload.get("lessons") or []):
+        lines.append("今天课表没有课（或未填课表）")
+    due = int(payload.get("due") or 0)
+    lines.append("到期待复习错题：%d 道" % due)
+    for w in (payload.get("weak_points") or [])[:3]:
+        if isinstance(w, dict):
+            lines.append("薄弱知识点「%s」：错误率 %s" % (w.get("name", ""), w.get("errorRate", "")))
+    nxt = payload.get("next_chapter")
+    if isinstance(nxt, dict) and nxt.get("name"):
+        lines.append("AI 课堂进度：《%s》学到「%s」，下一章是「%s」" % (
+            nxt.get("subject", ""), nxt.get("current", ""), nxt.get("name", "")))
+    done_today = payload.get("done_today")
+    if done_today:
+        lines.append("今天已完成：%s" % done_today)
+    prompt = DAILY_ADVICE_PROMPT + "\n\n【今日上下文】\n" + "\n".join(lines)
+    text = chat_text([{"role": "user", "content": prompt}], temperature=0.3, slot=JUDGE_SLOT, timeout=150)
+    data = extract_json(text)
+    items = [i for i in (data.get("items") or []) if isinstance(i, dict) and i.get("title")]
+    if not items:
+        raise ValueError("生成失败，请重试")
+    return {
+        "items": [{"title": str(i["title"])[:160], "reason": str(i.get("reason") or "")[:160]} for i in items[:5]],
+        "summary": str(data.get("summary") or "")[:200],
     }

@@ -1,3 +1,9 @@
+<!--
+  @deprecated 2026-10-13 —— 本组件已无任何引用（Element Plus 时代的遗留文件）。
+  保留仅作历史参考。若将来要复用：
+    1) 先移除对 'element-plus' 的 import（依赖已不在 package.json，直接用会构建失败）
+    2) 文本类字段一律套 <MathText :content="..." />（prop 是 content，不是 text）
+-->
 <template>
   <el-dialog
     :model-value="visible"
@@ -25,7 +31,7 @@
         <el-input v-model="form.question" type="textarea" :rows="3" resize="vertical" />
         <div v-if="form.question.trim()" class="preview">
           <span class="preview-t">预览</span>
-          <MathText :text="form.question" />
+          <MathText :content="form.question" />
         </div>
       </el-form-item>
 
@@ -66,7 +72,7 @@
         <el-input v-model="form.correct_answer" type="textarea" :rows="2" resize="vertical" />
         <div v-if="form.correct_answer.trim()" class="preview">
           <span class="preview-t">预览</span>
-          <MathText :text="form.correct_answer" />
+          <MathText :content="form.correct_answer" />
         </div>
       </el-form-item>
 

@@ -13,6 +13,7 @@ import { ref, computed } from 'vue'
 import { nextId } from '../book.js'
 import { mergeSchedule, MAX_COURSES, MAX_TOMBSTONES } from '../lib/syncMerge.js'
 import { weekIndexFor, weekActiveIn, mondayOf, toDateStr, parseDate } from '../lib/termCalc.js'
+import { weeksOverlap } from '../lib/schedulePeriods.js'
 
 const asArray = (x) => (Array.isArray(x) ? x : [])
 
@@ -26,7 +27,19 @@ const LEGACY_KEYS = [
 ]
 
 /** 课程卡片可选底色 */
-export const COURSE_COLORS = ['#3d5a8a', '#4a7a63', '#7a5f3d', '#6b4a7a', '#3d6a7a', '#7a3d4a']
+export const COURSE_COLORS = ['#7c5cff', '#4a90e2', '#2bb3a3', '#e8893a', '#e873a5', '#4aa576']
+/** 旧暗色预设 → 新明快色（读取时迁移，兼容历史数据） */
+const LEGACY_TO_COLOR = {
+  '#6b4a7a': '#7c5cff', '#3d5a8a': '#4a90e2', '#3d6a7a': '#2bb3a3',
+  '#7a5f3d': '#e8893a', '#7a3d4a': '#e873a5', '#4a7a63': '#4aa576',
+}
+function normalizeCourses(arr) {
+  return asArray(arr).map((c) => {
+    if (!c || typeof c !== 'object') return c
+    const color = LEGACY_TO_COLOR[c.color] || c.color || ''
+    return { ...c, color }
+  })
+}
 
 /** 14 节，精确到分钟（用户确认的作息） */
 export const SLOTS = [
@@ -75,11 +88,7 @@ function read(sp) {
     if (!o || typeof o !== 'object') return _emptyState()
     return {
       // 章节功能已移除：读取时顺手剔除历史数据里的 chapters 字段（避免旧数据继续占空间）
-      courses: asArray(o.courses).map((c) => {
-        if (!c || typeof c !== 'object' || !('chapters' in c)) return c
-        const { chapters, ...rest } = c
-        return rest
-      }),
+      courses: normalizeCourses(asArray(o.courses)),
       timetable: asArray(o.timetable),
       exams: asArray(o.exams),
       term: o.term && typeof o.term === 'object' ? { ...DEFAULT_TERM, ...o.term } : { ...DEFAULT_TERM },
@@ -121,7 +130,57 @@ export function initCourses(sp) {
   } catch {
     /* 忽略 */
   }
+  // 存量同名卡自动合并（2026-10-10 用户拍板：允许建同名卡，但引用入口合并成一张）
+  try {
+    mergeDuplicateCourses()
+  } catch {
+    /* 合并失败不阻塞初始化 */
+  }
   return state.value.courses
+}
+
+/** 课程名归一化键：去空白与常见标点、转小写（同名卡判重用，与 AI 课堂后端口径一致） */
+export function normNameKey(s) {
+  return String(s || '')
+    .replace(/[\s，,。．.、；;：:！!？?~～（）()[\]【】]+/g, '')
+    .toLowerCase()
+}
+
+/**
+ * 存量同名课程卡自动合并（2026-10-10）：同名（归一化）多张卡保留一张，
+ * 其余卡的排课时段与考试引用改挂到保留卡后删除（进墓碑，云同步另一端同样删除）。
+ * 保留规则：被时段/考试引用最多 > 师资教室信息最全 > 最近更新。幂等。
+ */
+export function mergeDuplicateCourses() {
+  const groups = {}
+  for (const c of state.value.courses) {
+    const k = normNameKey(c.name)
+    if (!k) continue
+    ;(groups[k] = groups[k] || []).push(c)
+  }
+  let mergedAny = false
+  for (const lst of Object.values(groups)) {
+    if (lst.length <= 1) continue
+    mergedAny = true
+    const refsOf = (id) =>
+      state.value.timetable.filter((s) => s.courseId === id).length +
+      state.value.exams.filter((e) => e.courseId === id).length
+    const infoOf = (c) => [c.teacher, c.location].filter(Boolean).length
+    const keep = [...lst].sort((a, b) =>
+      refsOf(b.id) - refsOf(a.id)
+      || infoOf(b) - infoOf(a)
+      || (b.updatedAt || 0) - (a.updatedAt || 0))[0]
+    for (const dup of lst) {
+      if (dup.id === keep.id) continue
+      state.value.timetable = state.value.timetable.map(
+        (s) => (s.courseId === dup.id ? { ...s, courseId: keep.id } : s))
+      state.value.exams = state.value.exams.map(
+        (e) => (e.courseId === dup.id ? { ...e, courseId: keep.id } : e))
+      removeCourse(dup.id)          // 进墓碑 + write：云同步另一端的同名卡也会被删
+    }
+  }
+  if (mergedAny) write()
+  return mergedAny
 }
 
 // ---------------- 引用与汇总
@@ -183,8 +242,12 @@ export function removeCourse(id) {
 
 export function addSlot({ courseId, day, slot, location = '', weeks }) {
   if (!courseId || !day || !slot) return null
-  const dup = state.value.timetable.find((s) => s.day === Number(day) && s.slot === Number(slot))
-  if (dup) return null // 同一格只放一门课
+  // 判重升级：同格但周次不重叠（如单周 A 课 / 双周 B 课）可以共存，只有周次有交集才算冲突
+  const dup = state.value.timetable.find(
+    (s) => s.day === Number(day) && s.slot === Number(slot)
+      && weeksOverlap(weeks, s.weeks, state.value.term?.totalWeeks || 20),
+  )
+  if (dup) return null
   const s = {
     id: nextId(),
     courseId,
@@ -317,7 +380,7 @@ export function applyCloudCourses(remote, opts = {}) {
   if (opts.merge === false) {
     const r = remote && typeof remote === 'object' ? remote : {}
     state.value = {
-      courses: asArray(r.courses).slice(0, MAX_COURSES),
+      courses: normalizeCourses(asArray(r.courses).slice(0, MAX_COURSES)),
       timetable: asArray(r.timetable).slice(0, MAX_COURSES * 14),
       exams: asArray(r.exams).slice(0, MAX_COURSES),
       term: r.term && typeof r.term === 'object' ? { ...DEFAULT_TERM, ...r.term } : { ...DEFAULT_TERM },
@@ -329,6 +392,7 @@ export function applyCloudCourses(remote, opts = {}) {
     return { ...state.value }
   }
   const merged = mergeSchedule({ ...state.value }, remote || {})
+  merged.courses = normalizeCourses(merged.courses)
   state.value = merged
   write()
   return merged

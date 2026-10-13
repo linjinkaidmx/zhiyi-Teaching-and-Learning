@@ -1,3 +1,9 @@
+<!--
+  @deprecated 2026-10-13 —— 本组件已无任何引用（Element Plus 时代的遗留文件）。
+  保留仅作历史参考。若将来要复用：
+    1) 先移除对 'element-plus' 的 import（依赖已不在 package.json，直接用会构建失败）
+    2) 文本类字段一律套 <MathText :content="..." />（prop 是 content，不是 text）
+-->
 <template>
   <div class="forum-view">
     <div class="toolbar">
@@ -27,9 +33,9 @@
           <span class="card-title">{{ p.title }}</span>
         </div>
         <div v-if="p.type === 'question' && p.question" class="card-stem">
-          <MathText :text="truncate(p.question, 120)" />
+          <MathText :content="truncate(p.question, 120)" />
         </div>
-        <div v-else-if="p.content" class="card-content">{{ truncate(p.content, 140) }}</div>
+        <div v-else-if="p.content" class="card-content"><MathText :content="truncate(p.content, 140)" /></div>
         <div class="card-kps">
           <el-tag v-for="k in p.knowledgePoints.slice(0, 4)" :key="k" size="small" effect="plain">
             {{ k }}

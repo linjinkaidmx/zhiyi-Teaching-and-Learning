@@ -18,38 +18,27 @@
           <UiIcon name="arrowRight" :size="16" style="transform: rotate(180deg)" /> 返回
         </UiButton>
         <div class="explain__topbar-right">
-          <div class="explain__depth" role="radiogroup" aria-label="讲解深度">
-            <button
-              v-for="d in DEPTHS"
-              :key="d.key"
-              type="button"
-              class="explain__depth-btn"
-              :class="{ 'is-active': currentDepth === d.key }"
-              @click="pickDepth(d.key)"
-            >
-              {{ d.label }}
-            </button>
-          </div>
-          <span v-if="depthDirty" class="explain__depth-hint">已切换深度，需重新生成生效</span>
-          <UiButton v-if="item.status !== 'loading'" variant="ghost" size="sm" @click="regenerate">
-            <UiIcon name="refresh" :size="16" /> 重新生成
+          <UiSegmented
+            v-if="item && item.status !== 'loading'"
+            :model-value="currentDepth"
+            :options="depthOptions"
+            aria-label="讲解深度"
+            @change="pickDepth"
+          />
+          <UiButton
+            v-if="item.status !== 'loading'"
+            :variant="depthDirty ? 'secondary' : 'ghost'"
+            size="sm"
+            icon="refresh"
+            @click="regenerate"
+          >
+            {{ depthDirty ? '重新生成生效' : '重新生成' }}
           </UiButton>
         </div>
       </div>
 
       <!-- 文档型讲解：桌面左原题 / 右讲解 -->
       <div class="explain__layout">
-        <aside class="explain__aside surface-standard">
-          <button class="explain__aside-head" type="button" @click="questionOpen = !questionOpen">
-            <span class="t-h3">原题</span>
-            <span class="explain__chevron" :class="{ 'is-open': questionOpen }">▾</span>
-          </button>
-          <div v-show="questionOpen" class="explain__q">
-            <MathText :content="item.text" />
-            <div v-if="item.attempt" class="explain__attempt t-label">你的作答：{{ item.attempt }}</div>
-          </div>
-        </aside>
-
         <main class="explain__main">
           <!-- 讲解加载中：顶部 AI 状态 + 骨架 -->
           <div v-if="item.status === 'loading'" class="explain__loading surface-standard">
@@ -78,48 +67,73 @@
           />
 
           <div v-else-if="item.result" class="explain__doc">
+            <!-- 标签 + 折叠控制合并为一行 -->
             <div class="explain__meta">
               <UiTag v-if="item.result.source === 'bank'" variant="success">题库秒答</UiTag>
               <UiTag v-if="item.result.subject" variant="info">{{ item.result.subject }}</UiTag>
               <UiTag v-if="item.result.question_type" variant="neutral">{{ item.result.question_type }}</UiTag>
-            </div>
-
-            <!-- 折叠控制 -->
-            <div class="explain__fold-ops">
-              <UiButton variant="text" size="sm" @click="expandAll = !expandAll">
+              <UiButton class="explain__fold-op" variant="text" size="sm" @click="toggleAll">
                 {{ expandAll ? '收起全部' : '展开全部' }}
               </UiButton>
             </div>
 
-            <section v-for="sec in visibleSections" :key="sec.key" class="explain__section">
+            <!-- 核心讲解：答案 / 步骤 / 突破口 -->
+            <section
+              v-for="sec in coreSections"
+              :key="sec.key"
+              class="explain__section"
+              :class="{ 'is-answer': sec.key === 'answer' }"
+            >
               <button class="explain__section-head" type="button" @click="toggle(sec)">
+                <span class="explain__section-ic"><UiIcon :name="sec.icon" :size="14" /></span>
                 <span class="t-h3">{{ sec.title }}</span>
                 <span class="explain__chevron" :class="{ 'is-open': sec.open }">▾</span>
               </button>
               <div v-show="sec.open" class="explain__section-body">
-                <!-- 解题步骤：逐条渲染 -->
                 <template v-if="sec.key === 'steps'">
                   <div v-for="(s, i) in sec.content" :key="i" class="explain__step">
-                    <div class="explain__step-title">{{ i + 1 }}. <MathText :content="s.title" /></div>
-                    <MathText :content="s.detail" />
+                    <span class="explain__step-dot">{{ i + 1 }}</span>
+                    <div class="explain__step-main">
+                      <div class="explain__step-title"><MathText :content="s.title" /></div>
+                      <MathText :content="s.detail" />
+                    </div>
                   </div>
                 </template>
-                <!-- 举一反三：逐条渲染 -->
-                <template v-else-if="sec.key === 'extensions'">
-                  <div v-for="(e, i) in sec.content" :key="i" class="explain__ext">
-                    <span class="explain__ext-no">{{ i + 1 }}</span>
-                    <MathText :content="e" />
-                  </div>
-                </template>
+                <div v-else-if="sec.key === 'answer'" class="explain__answer">
+                  <MathText :content="sec.content" />
+                </div>
                 <MathText v-else :content="sec.content" />
               </div>
             </section>
-          </div>
-        </main>
-      </div>
 
-      <!-- 底部操作区（固定，不遮挡正文） -->
-      <div class="explain__footer">
+            <!-- 更多讲解：知识点 / 易错点 / 举一反三（渐进展开） -->
+            <div v-if="moreSections.length" class="explain__more">
+              <button class="explain__more-head" type="button" @click="moreOpen = !moreOpen">
+                <span class="t-h3">更多讲解 <span class="t-label explain__more-sub">知识点 · 易错点 · 举一反三</span></span>
+                <span class="explain__chevron" :class="{ 'is-open': moreOpen }">▾</span>
+              </button>
+              <div v-show="moreOpen" class="explain__more-body">
+                <section v-for="sec in moreSections" :key="sec.key" class="explain__section">
+                  <button class="explain__section-head" type="button" @click="toggle(sec)">
+                    <span class="explain__section-ic"><UiIcon :name="sec.icon" :size="14" /></span>
+                    <span class="t-h3">{{ sec.title }}</span>
+                    <span class="explain__chevron" :class="{ 'is-open': sec.open }">▾</span>
+                  </button>
+                  <div v-show="sec.open" class="explain__section-body">
+                    <template v-if="sec.key === 'extensions'">
+                      <div v-for="(e, i) in sec.content" :key="i" class="explain__ext">
+                        <span class="explain__ext-no">{{ i + 1 }}</span>
+                        <MathText :content="e" />
+                      </div>
+                    </template>
+                    <MathText v-else :content="sec.content" />
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+          <!-- 底部操作区（已并入讲解栏，与讲解栏左右对齐） -->
+          <div class="explain__footer">
         <div class="explain__footer-bar">
           <UiButton
             :variant="saved ? 'ghost' : 'primary'"
@@ -129,9 +143,9 @@
           >
             {{ saved ? '已保存到错题本' : '保存到错题本' }}
           </UiButton>
-          <UiButton variant="ghost" size="sm" @click="genVariants('similar')">生成相似题</UiButton>
-          <UiButton variant="ghost" size="sm" @click="genVariants('variant')">生成变式题</UiButton>
-          <UiButton v-if="item.result" variant="ghost" size="sm" @click="shareOpen = true">分享</UiButton>
+          <UiButton variant="ghost" size="sm" icon="sparkle" @click="genVariants('similar')">相似题</UiButton>
+          <UiButton variant="ghost" size="sm" icon="refresh" @click="genVariants('variant')">变式题</UiButton>
+          <UiButton v-if="item.result" variant="ghost" size="sm" icon="share" @click="shareOpen = true">分享</UiButton>
         </div>
 
         <!-- 追问（真实流式） -->
@@ -144,10 +158,16 @@
           </div>
 
           <div v-for="m in followups" :key="m.id" class="explain__msg">
-            <div class="explain__msg-q">{{ m.q }}</div>
+            <div class="explain__msg-q">
+              <span class="explain__msg-role is-q">你</span>
+              <div class="explain__bubble is-q">{{ m.q }}</div>
+            </div>
             <div class="explain__msg-a">
-              <MarkdownText v-if="!m.streaming" :content="m.a" />
-              <span v-else class="explain__msg-stream">{{ m.a }}<span class="ai-caret" /></span>
+              <span class="explain__msg-role is-a"><UiIcon name="sparkle" :size="12" /></span>
+              <div class="explain__bubble is-a">
+                <MarkdownText v-if="!m.streaming" :content="m.a" />
+                <span v-else class="explain__msg-stream">{{ m.a }}<span class="ai-caret" /></span>
+              </div>
             </div>
           </div>
 
@@ -163,6 +183,45 @@
             <UiButton v-else variant="ghost" size="sm" @click="stop">停止</UiButton>
           </div>
         </div>
+          </div>
+        </main>
+
+        <!-- 右栏：原题 + 本题信息（粘性，滚动时始终可见） -->
+        <aside class="explain__aside">
+          <div class="explain__aside-sticky">
+            <section class="surface-standard explain__qcard">
+              <button class="explain__aside-head" type="button" @click="questionOpen = !questionOpen">
+                <span class="t-h3">原题</span>
+                <span v-if="item.result && item.result.subject" class="explain__subject">{{ item.result.subject }}</span>
+                <span class="explain__chevron" :class="{ 'is-open': questionOpen }">▾</span>
+              </button>
+              <div v-show="questionOpen" class="explain__q">
+                <MathText :content="item.text" />
+                <div v-if="item.attempt" class="explain__attempt">
+                  <span class="explain__attempt-label">你的作答</span>
+                  <span class="explain__attempt-text">{{ item.attempt }}</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="surface-standard explain__info">
+              <h3 class="t-h3 explain__info-title">本题信息</h3>
+              <dl class="explain__info-list">
+                <div class="explain__info-row"><dt>学科</dt><dd>{{ (item.result && item.result.subject) || '未识别' }}</dd></div>
+                <div class="explain__info-row"><dt>题型</dt><dd>{{ (item.result && item.result.question_type) || '—' }}</dd></div>
+                <div class="explain__info-row"><dt>讲解深度</dt><dd>{{ depthLabel }}</dd></div>
+                <div class="explain__info-row"><dt>来源</dt><dd>{{ item.result && item.result.source === 'bank' ? '题库秒答' : 'AI 生成' }}</dd></div>
+              </dl>
+              <div
+                v-if="item.result && item.result.knowledge_points && item.result.knowledge_points.length"
+                class="explain__info-tags"
+              >
+                <UiTag v-for="k in item.result.knowledge_points" :key="k" variant="brand-soft">{{ k }}</UiTag>
+              </div>
+              <p v-if="saved" class="t-label explain__info-saved">已保存到错题本</p>
+            </section>
+          </div>
+        </aside>
       </div>
     </template>
   </div>
@@ -206,6 +265,7 @@ import { useRoute, useRouter } from 'vue-router'
 import UiButton from '../ui/UiButton.vue'
 import UiIcon from '../ui/UiIcon.vue'
 import UiTag from '../ui/UiTag.vue'
+import UiSegmented from '../ui/UiSegmented.vue'
 import UiModal from '../ui/UiModal.vue'
 import UiAiLogo from '../ui/UiAiLogo.vue'
 import UiSkeleton from '../ui/UiSkeleton.vue'
@@ -275,7 +335,13 @@ const DEPTHS = [
   { key: 'standard', label: '标准' },
   { key: 'deep', label: '深入' },
 ]
+const depthOptions = DEPTHS.map((d) => ({ label: d.label, value: d.key }))
 const currentDepth = computed(() => (item.value && item.value.depth) || 'standard')
+/** 右栏「本题信息」用：当前深度的中文名 */
+const depthLabel = computed(() => {
+  const d = DEPTHS.find((x) => x.key === currentDepth.value)
+  return d ? d.label : '标准'
+})
 /** 切了深度但还没重新生成 → 明确提示，避免"点了没反应" */
 const depthDirty = computed(() => {
   const it = item.value
@@ -297,12 +363,12 @@ let followCtrl = null
 
 /* 讲解结构（思路/步骤/答案展开，其余折叠；深度控制层级） */
 const SECTIONS = [
-  { key: 'answer', title: '最终答案', depth: 'basic', defaultOpen: true },
-  { key: 'steps', title: '解题步骤', depth: 'basic', defaultOpen: true },
-  { key: 'breakthrough', title: '关键突破口', depth: 'standard', defaultOpen: true },
-  { key: 'knowledge', title: '知识点回顾', depth: 'standard', defaultOpen: false },
-  { key: 'diagnosis', title: '易错点', depth: 'deep', defaultOpen: false },
-  { key: 'extensions', title: '举一反三', depth: 'deep', defaultOpen: false },
+  { key: 'answer', title: '最终答案', icon: 'target', depth: 'basic', defaultOpen: true },
+  { key: 'steps', title: '解题步骤', icon: 'clipboard', depth: 'basic', defaultOpen: true },
+  { key: 'breakthrough', title: '关键突破口', icon: 'sparkle', depth: 'standard', defaultOpen: true },
+  { key: 'knowledge', title: '知识点回顾', icon: 'book', depth: 'standard', defaultOpen: false },
+  { key: 'diagnosis', title: '易错点', icon: 'bell', depth: 'deep', defaultOpen: false },
+  { key: 'extensions', title: '举一反三', icon: 'refresh', depth: 'deep', defaultOpen: false },
 ]
 
 /** 流式行：把服务端下发的字段按到达顺序铺出来（流式阶段只显示纯文本，完成后切结构化渲染） */
@@ -347,7 +413,7 @@ const sectionContent = computed(() => {
 })
 
 const DEPTH_ORDER = { brief: 0, standard: 1, deep: 2 }
-const visibleSections = computed(() => {
+const allSections = computed(() => {
   const c = sectionContent.value
   return SECTIONS.filter((s) => {
     if (!c[s.key]) return false
@@ -359,6 +425,16 @@ const visibleSections = computed(() => {
     open: expandAll.value ? true : collapsed.has(s.key) ? false : s.defaultOpen,
   }))
 })
+
+/** 渐进展开：核心讲解（答案/步骤/突破口）直接列，其余收进「更多讲解」 */
+const CORE_KEYS = ['answer', 'steps', 'breakthrough']
+const coreSections = computed(() => allSections.value.filter((s) => CORE_KEYS.includes(s.key)))
+const moreSections = computed(() => allSections.value.filter((s) => !CORE_KEYS.includes(s.key)))
+const moreOpen = ref(false)
+function toggleAll() {
+  expandAll.value = !expandAll.value
+  if (expandAll.value) moreOpen.value = true
+}
 
 function toggle(sec) {
   if (collapsed.has(sec.key)) collapsed.delete(sec.key)
@@ -516,19 +592,6 @@ onBeforeUnmount(() => {
   gap: var(--sp-3);
   flex-wrap: wrap;
 }
-.explain__depth {
-  display: inline-flex;
-  padding: 3px;
-  border-radius: var(--radius-sm);
-  border: var(--border-subtle);
-  background: var(--surface-recess);
-  gap: 2px;
-}
-.explain__depth-hint {
-  margin-left: var(--sp-2);
-  font-size: var(--fs-label);
-  color: var(--warning);
-}
 .explain__stream {
   display: flex;
   flex-direction: column;
@@ -550,28 +613,68 @@ onBeforeUnmount(() => {
   color: var(--text-secondary);
   white-space: pre-wrap;
 }
-.explain__depth-btn {
-  padding: 5px 14px;
-  border: 0;
-  border-radius: 6px;
-  background: none;
-  color: var(--text-tertiary);
-  font-size: var(--fs-body-2);
-  cursor: pointer;
-}
-.explain__depth-btn.is-active {
-  background: var(--primary);
-  color: var(--text-on-primary);
-}
 
 .explain__layout {
   display: grid;
-  grid-template-columns: 340px minmax(0, 1fr);
+  /* 左：讲解（主内容，占宽）｜ 右：原题 + 本题信息（参照，340px） */
+  grid-template-columns: minmax(0, 1fr) 340px;
   gap: var(--sp-4);
   align-items: start;
 }
 .explain__aside {
+  min-width: 0;
+}
+/* 右栏粘性容器：滚动讲解时原题始终可见 */
+.explain__aside-sticky {
+  position: sticky;
+  top: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.explain__qcard {
   padding: var(--sp-4) var(--sp-5);
+}
+.explain__info {
+  padding: var(--sp-4) var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.explain__info-title {
+  margin: 0;
+}
+.explain__info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+.explain__info-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  font-size: var(--fs-body-2);
+}
+.explain__info-row dt {
+  flex: none;
+  width: 64px;
+  color: var(--text-muted);
+  font-size: var(--fs-label);
+}
+.explain__info-row dd {
+  margin: 0;
+  color: var(--text-primary);
+}
+.explain__info-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: var(--sp-2);
+  border-top: var(--border-divider-soft);
+}
+.explain__info-saved {
+  color: var(--primary-text);
 }
 .explain__aside-head {
   display: flex;
@@ -595,7 +698,27 @@ onBeforeUnmount(() => {
   padding: var(--sp-2) var(--sp-3);
   border-radius: var(--radius-sm);
   background: var(--surface-recess);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.explain__attempt-label {
+  font-size: var(--fs-label);
   color: var(--text-muted);
+}
+.explain__attempt-text {
+  font-size: var(--fs-body-2);
+  color: var(--text-secondary);
+}
+.explain__subject {
+  flex: 1;
+  margin-left: var(--sp-2);
+  text-align: left;
+  font-size: var(--fs-label);
+  color: var(--primary-text);
+  background: var(--primary-soft-2);
+  border-radius: var(--radius-pill);
+  padding: 2px 10px;
 }
 .explain__chevron {
   color: var(--text-muted);
@@ -629,12 +752,12 @@ onBeforeUnmount(() => {
 }
 .explain__meta {
   display: flex;
+  align-items: center;
   gap: var(--sp-2);
   flex-wrap: wrap;
 }
-.explain__fold-ops {
-  display: flex;
-  justify-content: flex-end;
+.explain__fold-op {
+  margin-left: auto;
 }
 .explain__section {
   border-radius: var(--radius-lg);
@@ -647,6 +770,60 @@ onBeforeUnmount(() => {
 .explain__section-head {
   display: flex;
   align-items: center;
+  gap: var(--sp-2);
+  width: 100%;
+  padding: var(--sp-3) var(--sp-5);
+  background: none;
+  border: 0;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.explain__section-ic {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-soft-2);
+  color: var(--primary-text);
+}
+.explain__section-head .explain__chevron {
+  margin-left: auto;
+}
+/* 最终答案：高亮卡，一眼锁定 */
+.explain__section.is-answer {
+  border-color: var(--primary-line);
+}
+.explain__section.is-answer .explain__section-ic {
+  background: var(--primary);
+  color: var(--text-on-primary);
+}
+.explain__answer {
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius-md);
+  background: var(--primary-soft-3);
+  border: 0.5px solid var(--primary-line);
+  font-size: var(--fs-h3);
+  line-height: var(--lh-relaxed);
+  color: var(--text-primary);
+}
+.explain__section-body {
+  padding: 0 var(--sp-5) var(--sp-4);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--text-secondary);
+}
+/* 更多讲解（渐进展开容器） */
+.explain__more {
+  border-top: var(--border-top-subtle);
+  background: var(--grad-surface);
+  overflow: hidden;
+}
+.explain__more-head {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
   width: 100%;
   padding: var(--sp-3) var(--sp-5);
@@ -655,17 +832,48 @@ onBeforeUnmount(() => {
   color: var(--text-primary);
   cursor: pointer;
 }
-.explain__section-body {
-  padding: 0 var(--sp-5) var(--sp-4);
-  font-size: var(--fs-body);
-  line-height: var(--lh-body);
-  color: var(--text-secondary);
+.explain__more-sub {
+  margin-left: var(--sp-2);
 }
+/* 解题步骤：时间轴（序号圆点 + 连接竖线） */
 .explain__step {
-  padding: var(--sp-2) 0;
+  position: relative;
+  display: flex;
+  gap: var(--sp-3);
+  padding: var(--sp-2) 0 var(--sp-3);
 }
 .explain__step + .explain__step {
-  border-top: var(--border-divider-soft);
+  border-top: 0;
+}
+.explain__step:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 36px;
+  bottom: 0;
+  width: 1px;
+  background: var(--border-subtle);
+}
+.explain__step-dot {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-soft-2);
+  color: var(--primary-text);
+  font-size: var(--fs-label);
+  font-weight: var(--fw-medium);
+}
+.explain__step-main {
+  min-width: 0;
+}
+.explain__step-title {
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+  margin-bottom: 2px;
 }
 .explain__step-title {
   font-size: var(--fs-body);
@@ -729,12 +937,11 @@ onBeforeUnmount(() => {
   position: sticky;
   bottom: 0;
   z-index: var(--z-sticky);
-  margin: 0 calc(-1 * var(--sp-4));
   padding: var(--sp-3) var(--sp-4);
   background: color-mix(in srgb, var(--background) 92%, transparent);
   backdrop-filter: saturate(140%) blur(14px);
-  border-top: var(--border-divider-soft);
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  border: var(--border-subtle);
+  border-radius: var(--radius-md);
 }
 .explain__footer-bar {
   display: flex;
@@ -757,23 +964,57 @@ onBeforeUnmount(() => {
 .explain__msg {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-1);
+  gap: var(--sp-2);
   margin-bottom: var(--sp-3);
 }
 .explain__msg-q {
-  align-self: flex-end;
-  max-width: 80%;
-  padding: var(--sp-2) var(--sp-3);
-  border-radius: var(--radius-md);
-  background: var(--primary);
-  color: var(--text-on-primary);
-  font-size: var(--fs-body);
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-start;
+  gap: var(--sp-2);
 }
 .explain__msg-a {
-  max-width: 92%;
-  font-size: var(--fs-body);
-  line-height: var(--lh-body);
-  color: var(--text-secondary);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+}
+.explain__msg-role {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: var(--fw-medium);
+}
+.explain__msg-role.is-q {
+  background: var(--primary-soft-2);
+  color: var(--primary-text);
+}
+.explain__msg-role.is-a {
+  background: var(--primary);
+  color: var(--text-on-primary);
+}
+/* 追问气泡：自己靠右紫底，AI 靠左白底 */
+.explain__bubble {
+  max-width: 82%;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: var(--fs-body-2);
+  line-height: var(--lh-relaxed);
+}
+.explain__bubble.is-q {
+  background: var(--primary);
+  color: var(--text-on-primary);
+  border-top-right-radius: 4px;
+}
+.explain__bubble.is-a {
+  background: var(--surface-1);
+  border: var(--border-subtle);
+  border-top-left-radius: 4px;
+  color: var(--text-primary);
 }
 .explain__msg-stream {
   white-space: pre-wrap;
@@ -804,12 +1045,21 @@ onBeforeUnmount(() => {
   .explain__layout {
     grid-template-columns: 1fr;
   }
+  /* 移动端：原题放回最前（先看题再看讲解），粘性取消 */
+  .explain__aside {
+    order: -1;
+  }
+  .explain__aside-sticky {
+    position: static;
+  }
   .explain__footer {
     position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
     margin: 0;
+    border: 0;
+    border-top: var(--border-divider-soft);
     border-radius: var(--radius-md) var(--radius-md) 0 0;
   }
   .explain {

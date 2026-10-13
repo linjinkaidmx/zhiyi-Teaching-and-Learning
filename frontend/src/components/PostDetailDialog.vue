@@ -1,3 +1,9 @@
+<!--
+  @deprecated 2026-10-13 —— 本组件已无任何引用（Element Plus 时代的遗留文件）。
+  保留仅作历史参考。若将来要复用：
+    1) 先移除对 'element-plus' 的 import（依赖已不在 package.json，直接用会构建失败）
+    2) 文本类字段一律套 <MathText :content="..." />（prop 是 content，不是 text）
+-->
 <template>
   <el-dialog v-model="visible" :title="post ? post.title : '帖子详情'" width="640px" top="6vh">
     <div v-if="loading" class="center-hint"><el-skeleton :rows="4" animated /></div>
@@ -10,11 +16,11 @@
           @click="removePost">删除</el-button>
       </div>
 
-      <div v-if="post.content" class="post-content">{{ post.content }}</div>
+      <div v-if="post.content" class="post-content"><MathText :content="post.content" /></div>
 
       <div v-if="post.type === 'question'" class="qcard">
         <div class="qcard-label">题目</div>
-        <div class="stem"><MathText :text="post.question" /></div>
+        <div class="stem"><MathText :content="post.question" /></div>
         <div v-if="post.knowledgePoints && post.knowledgePoints.length" class="kp-row">
           <el-tag v-for="k in post.knowledgePoints" :key="k" size="small" effect="plain">
             {{ k }}
@@ -25,7 +31,7 @@
         </div>
         <el-collapse class="ans-collapse">
           <el-collapse-item title="查看答案 / 解析">
-            <div class="stem"><MathText :text="post.answer || '（作者未提供答案）'" /></div>
+            <div class="stem"><MathText :content="post.answer || '（作者未提供答案）'" /></div>
             <div v-if="post.hint" class="hint">思路：{{ post.hint }}</div>
           </el-collapse-item>
         </el-collapse>
@@ -50,7 +56,7 @@
         <div v-if="c.replyTo" class="reply-ref">
           回复 @{{ nicknameOf(c.replyTo) }}
         </div>
-        <div class="comment-body">{{ c.content }}</div>
+        <div class="comment-body"><MathText :content="c.content" /></div>
         <div class="comment-actions">
           <el-button text size="small" @click="startReply(c)">回复</el-button>
         </div>

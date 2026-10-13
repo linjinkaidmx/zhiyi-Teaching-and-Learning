@@ -15,6 +15,16 @@
  * 说明：现有 pages 仍在用 src/api.js（同一批接口）；P2 迁移时统一切到本文件。
  */
 import { API_BASE } from '../../config/app.js'
+import { getToken } from '../../auth.js'
+
+/** A2：受保护接口需要登录态——调用方没显式传 token 且已登录时自动注入（与 src/api.js 同策略） */
+function withToken(payload) {
+  if (payload && typeof payload === 'object' && !('token' in payload)) {
+    const t = getToken()
+    if (t) return { ...payload, token: t }
+  }
+  return payload
+}
 
 export async function request(path, payload = {}, options = {}) {
   const { timeout = 30000, signal } = options
@@ -24,7 +34,7 @@ export async function request(path, payload = {}, options = {}) {
     const res = await fetch(`${API_BASE}${path}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(withToken(payload)),
       signal: signal || controller.signal,
     })
     if (!res.ok) throw new Error(`请求失败（${res.status}）`)

@@ -2,14 +2,14 @@
   <div class="zy-page">
     <div class="zy-container clsd">
       <header class="clsd__head">
-        <UiButton variant="ghost" size="sm" class="zy-back" @click="goBackSmart($router)">← 返回</UiButton>
+        <UiButton variant="soft" size="sm" class="zy-back" @click="goBackSmart($router)" icon="left">返回</UiButton>
         <div class="clsd__title-row">
           <h1 class="t-h1">{{ cls?.name || '班级' }}</h1>
           <span v-if="isTeacher" class="clsd__badge">老师</span>
         </div>
         <p v-if="cls" class="t-body-2">
           {{ meta.subject || '未设科目' }}<template v-if="meta.grade"> · {{ meta.grade }}</template>
-          <template v-if="isTeacher"> · 班级码 <code class="clsd__code">{{ cls.invite_code }}</code></template>
+          · 班级码 <code class="clsd__code">{{ cls.invite_code }}</code>
         </p>
       </header>
 
@@ -17,32 +17,36 @@
 
       <!-- ============ 群聊 ============ -->
       <section v-show="tab === 'chat'" class="clsd__chat">
-        <div ref="chatBox" class="clsd__msgs">
+        <div class="clsd__chat-card surface-standard">
+          <div ref="chatBox" class="clsd__msgs">
           <div
             v-for="m in messages"
             :key="m.id"
             class="clsd__msg"
-            :class="{ 'clsd__msg--mine': m.user_id === session.userId && m.type === 'text' }"
+            :class="{ 'is-mine': isMine(m) }"
           >
-            <div v-if="m.type !== 'text'" class="clsd__sys">{{ m.type === 'feedback' ? '批改反馈' : '班级动态' }} · {{ m.content }}</div>
+            <div v-if="m.type !== 'text'" class="clsd__sys">{{ m.type === 'feedback' ? '批改反馈' : '班级动态' }} · <MathText :content="m.content" /></div>
             <template v-else>
-              <span class="clsd__msg-user">{{ m.user_id }}</span>
-              <div class="clsd__msg-bubble surface-elevated"><MathText :content="m.content" /></div>
+              <span class="clsd__avatar" :style="avatarStyle(m.user_id)">{{ letterOf(m.user_id) }}</span>
+              <div class="clsd__msg-main">
+                <span class="clsd__msg-user">{{ m.user_id }}</span>
+                <div class="clsd__msg-bubble"><MathText :content="m.content" /></div>
+              </div>
             </template>
           </div>
           <p v-if="!messages.length" class="t-label clsd__chat-empty">还没有消息，说点什么吧</p>
         </div>
-        <div class="clsd__chat-input">
-          <input
-            v-model="draft"
-            class="clsd__chat-text"
-            type="text"
-            placeholder="发消息…"
-            maxlength="500"
-            @keydown.enter="send"
-          />
-          <UiButton variant="primary" size="sm" :loading="sending" :disabled="!draft.trim()" @click="send">发送</UiButton>
-          <UiButton variant="ghost" size="sm" @click="loadMessages">刷新</UiButton>
+          <div class="clsd__chat-input">
+            <input
+              v-model="draft"
+              class="clsd__chat-text"
+              type="text"
+              placeholder="发消息…"
+              maxlength="500"
+              @keydown.enter="send"
+            />
+            <UiButton variant="primary" size="sm" :loading="sending" :disabled="!draft.trim()" @click="send">发送</UiButton>
+          </div>
         </div>
       </section>
 
@@ -61,20 +65,29 @@
             class="clsd__item surface-standard"
             @click="openHomework(hw)"
           >
-            <span class="clsd__item-main">
-              <span class="clsd__item-title">
-                {{ hw.title }}
-                <span v-if="hw.images_count" class="clsd__hw-imgtag">图 {{ hw.images_count }}</span>
-              </span>
-              <span class="t-label">
-                <template v-if="isTeacher">已交 {{ hw.submitted || 0 }}/{{ hw.total_students }} · 已批 {{ hw.graded || 0 }}</template>
-                <template v-else>
-                  {{ hw.my_submission ? (hw.my_submission.graded_at ? `已批 · ${hw.my_submission.score} 分` : '已提交，待批改') : '未提交' }}
-                  <template v-if="hw.due_at"> · 截止 {{ fmtDate(hw.due_at) }}</template>
-                </template>
-              </span>
+            <span class="clsd__item-head">
+              <span class="clsd__item-ic"><UiIcon name="clipboard" :size="16" /></span>
+              <span v-if="hw.images_count" class="clsd__hw-imgtag">图 {{ hw.images_count }}</span>
             </span>
-            <span class="clsd__arrow" aria-hidden="true">→</span>
+            <span class="clsd__item-title">{{ hw.title }}</span>
+            <template v-if="isTeacher">
+              <span class="clsd__bar">
+                <span class="clsd__bar-in" :style="{ width: pct(hw.graded || 0, hw.total_students) }" />
+              </span>
+              <span class="clsd__item-foot">
+                <span class="clsd__stat">已交 {{ hw.submitted || 0 }}/{{ hw.total_students }}</span>
+                <span
+                  class="clsd__stat"
+                  :class="{ 'is-hot': (hw.submitted || 0) > (hw.graded || 0) }"
+                >待批 {{ Math.max(0, (hw.submitted || 0) - (hw.graded || 0)) }}</span>
+              </span>
+            </template>
+            <span v-else class="clsd__item-foot">
+              <span class="clsd__stat">
+                {{ hw.my_submission ? (hw.my_submission.graded_at ? `已批 · ${hw.my_submission.score} 分` : '已提交，待批改') : '未提交' }}
+              </span>
+              <span v-if="hw.due_at" class="clsd__stat is-dim">截止 {{ fmtDate(hw.due_at) }}</span>
+            </span>
           </button>
         </div>
         <UiEmptyState v-else title="还没有作业" :description="isTeacher ? '点右上角布置第一份作业。' : '老师布置作业后会出现在这里。'" />
@@ -95,17 +108,15 @@
             class="clsd__item surface-standard"
             @click="openNoteView(nt)"
           >
-            <span class="clsd__item-main">
-              <span class="clsd__item-title">
-                {{ nt.title }}
-                <span v-if="nt.images_count" class="clsd__hw-imgtag">图 {{ nt.images_count }}</span>
-              </span>
-              <span class="t-label">
-                {{ nt.content ? plainSummary(nt.content, 40) : '查看详情' }}
-                <template v-if="nt.created_at"> · {{ fmtDate(nt.created_at) }}</template>
-              </span>
+            <span class="clsd__item-head">
+              <span class="clsd__item-ic is-note"><UiIcon name="book" :size="16" /></span>
+              <span v-if="nt.images_count" class="clsd__hw-imgtag">图 {{ nt.images_count }}</span>
             </span>
-            <span class="clsd__arrow" aria-hidden="true">→</span>
+            <span class="clsd__item-title">{{ nt.title }}</span>
+            <span class="clsd__item-desc">{{ nt.content ? plainSummary(nt.content, 44) : '查看详情' }}</span>
+            <span v-if="nt.created_at" class="clsd__item-foot">
+              <span class="clsd__stat is-dim">{{ fmtDate(nt.created_at) }}</span>
+            </span>
           </button>
         </div>
         <UiEmptyState v-else title="还没有笔记" :description="isTeacher ? '点右上角发布第一篇知识点或笔记。' : '老师发布笔记后会出现在这里，可一键存入错题学习。'" />
@@ -126,18 +137,19 @@
             class="clsd__item surface-standard"
             @click="openTest(t)"
           >
-            <span class="clsd__item-main">
-              <span class="clsd__item-title">{{ t.title }}</span>
-              <span class="t-label">
-                {{ t.question_count }} 题 · {{ t.total_score }} 分 · 限时 {{ Math.round(t.duration_sec / 60) }} 分钟
-                <template v-if="isTeacher"> · 已考 {{ t.attempt_count }} 人</template>
-                <template v-else-if="t.my_score !== null && t.my_score !== undefined">
-                  · 我的成绩 {{ t.my_score }} 分{{ t.my_timeout ? '（超时）' : '' }}
-                </template>
-                <template v-else> · 未参加</template>
+            <span class="clsd__item-head">
+              <span class="clsd__item-ic is-test"><UiIcon name="target" :size="16" /></span>
+              <span v-if="t.attempt_count !== undefined" class="clsd__hw-imgtag">
+                {{ isTeacher ? `已考 ${t.attempt_count} 人` : (t.my_score !== null && t.my_score !== undefined ? `我 ${t.my_score} 分` : '未参加') }}
               </span>
             </span>
-            <span class="clsd__arrow" aria-hidden="true">→</span>
+            <span class="clsd__item-title">{{ t.title }}</span>
+            <span class="clsd__item-desc">{{ t.question_count }} 题 · {{ t.total_score }} 分 · 限时 {{ Math.round(t.duration_sec / 60) }} 分钟</span>
+            <span v-if="!isTeacher && t.my_score !== null && t.my_score !== undefined" class="clsd__item-foot">
+              <span class="clsd__stat" :class="{ 'is-hot': t.my_timeout }">
+                我的成绩 {{ t.my_score }} 分{{ t.my_timeout ? '（超时）' : '' }}
+              </span>
+            </span>
           </button>
         </div>
         <UiEmptyState v-else title="还没有测试" :description="isTeacher ? '点右上角发布第一场测试（自己出题或 AI 生成）。' : '老师发布测试后会出现在这里。'" />
@@ -341,6 +353,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import UiButton from '../ui/UiButton.vue'
+import UiIcon from '../ui/UiIcon.vue'
 import UiEmptyState from '../ui/UiEmptyState.vue'
 import UiModal from '../ui/UiModal.vue'
 import UiSegmented from '../ui/UiSegmented.vue'
@@ -362,11 +375,11 @@ const router = useRouter()
 const classId = computed(() => String(route.params.id || ''))
 
 const TAB_OPTIONS = [
-  { label: '群聊', value: 'chat' },
-  { label: '作业', value: 'hw' },
-  { label: '笔记', value: 'notes' },
-  { label: '测试', value: 'tests' },
-  { label: '成员', value: 'members' },
+  { label: '群聊', value: 'chat', icon: 'chat' },
+  { label: '作业', value: 'hw', icon: 'clipboard' },
+  { label: '笔记', value: 'notes', icon: 'book' },
+  { label: '测试', value: 'tests', icon: 'target' },
+  { label: '成员', value: 'members', icon: 'users' },
 ]
 const tab = ref('chat')
 
@@ -786,6 +799,27 @@ function fmtDate(ts) {
   return `${d.getMonth() + 1}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
+/* ---------- 群聊气泡与头像（与小组/讲解页统一） ---------- */
+function isMine(m) {
+  return m.type === 'text' && !!session.userId && m.user_id === session.userId
+}
+const AVATAR_TONES = ['#7c5cff', '#3a78c0', '#2f7a4d', '#d0762a', '#c9503a', '#5b5bd6']
+function avatarStyle(name) {
+  const s = String(name || '?')
+  let h = 0
+  for (let i = 0; i < s.length; i += 1) h = (h * 31 + s.charCodeAt(i)) % 997
+  return { background: AVATAR_TONES[h % AVATAR_TONES.length] }
+}
+function letterOf(name) {
+  return String(name || '?').trim().charAt(0).toUpperCase() || '?'
+}
+/** 作业进度条百分比（已批 / 总人数） */
+function pct(a, b) {
+  const total = Number(b) || 0
+  if (!total) return '0%'
+  return `${Math.min(100, Math.round(((Number(a) || 0) / total) * 100))}%`
+}
+
 watch(tab, (v) => {
   if (v === 'chat') startChatStream()
   else stopChatStream()
@@ -799,6 +833,10 @@ watch(tab, (v) => {
   flex-direction: column;
   gap: var(--sp-4);
   max-width: var(--col-main);
+}
+/* 板块切换宽度自适应，别被 flex 容器拉满整行 */
+.clsd > .ui-seg {
+  align-self: flex-start;
 }
 .clsd__head {
   display: flex;
@@ -827,23 +865,55 @@ watch(tab, (v) => {
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);
+  align-items: center; /* 群聊卡片水平居中 */
+}
+/* 群聊整块卡片：居中、加宽加高，与背景拉开层次 */
+.clsd__chat-card {
+  width: 100%;
+  max-width: 960px;
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
 }
 .clsd__msgs {
-  height: 340px;
+  height: 460px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: var(--sp-2);
+  gap: var(--sp-3);
   padding: var(--sp-1);
 }
+/* 气泡行：头像 + 昵称 + 气泡（自己的靠右紫底） */
 .clsd__msg {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  max-width: 78%;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  max-width: 86%;
 }
-.clsd__msg--mine {
+.clsd__msg.is-mine {
+  flex-direction: row-reverse;
   align-self: flex-end;
+}
+.clsd__avatar {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  font-weight: var(--fw-medium);
+}
+.clsd__msg-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.clsd__msg.is-mine .clsd__msg-main {
   align-items: flex-end;
 }
 .clsd__msg-user {
@@ -852,11 +922,22 @@ watch(tab, (v) => {
 }
 .clsd__msg-bubble {
   padding: 8px 12px;
-  border-radius: var(--radius-lg);
-  font-size: var(--fs-body);
-  line-height: var(--lh-body);
+  border-radius: 12px;
+  border-top-left-radius: 4px;
+  background: var(--surface-1);
+  border: var(--border-subtle);
+  color: var(--text-primary);
+  font-size: var(--fs-body-2);
+  line-height: var(--lh-relaxed);
   word-break: break-word;
   white-space: pre-wrap;
+}
+.clsd__msg.is-mine .clsd__msg-bubble {
+  background: var(--primary);
+  border-color: transparent;
+  color: var(--text-on-primary);
+  border-radius: 12px;
+  border-top-right-radius: 4px;
 }
 .clsd__sys {
   align-self: center;
@@ -876,15 +957,23 @@ watch(tab, (v) => {
 .clsd__chat-input {
   display: flex;
   gap: var(--sp-2);
+  align-items: center;
+  padding-top: var(--sp-3);
+  border-top: var(--border-divider-soft);
 }
 .clsd__chat-text {
   flex: 1;
-  border: 1px solid var(--border);
+  min-width: 0;
+  border: var(--border-subtle);
   border-radius: var(--radius-pill);
   padding: 8px 14px;
   font-size: var(--fs-body);
   color: var(--text-primary);
   background: var(--surface-unit);
+}
+.clsd__chat-text:focus {
+  outline: none;
+  border-color: var(--primary-line);
 }
 .clsd__hw-head {
   display: flex;
@@ -892,37 +981,104 @@ watch(tab, (v) => {
   justify-content: space-between;
   gap: var(--sp-3);
 }
+/* 作业 / 笔记 / 测试：卡片网格（图标块 + 标题 + 统计） */
 .clsd__list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+  gap: var(--sp-3);
 }
 .clsd__item {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-3);
-  padding: var(--sp-3) var(--sp-4);
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
   cursor: pointer;
   text-align: left;
-  transition: border-color var(--dur) var(--ease);
+  transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
 }
 .clsd__item:hover {
+  transform: translateY(-2px);
   border-color: var(--primary-line);
+  box-shadow: var(--shadow-elevated);
 }
-.clsd__item-main {
+.clsd__item-head {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+.clsd__item-ic {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-soft-2);
+  color: var(--primary-text);
+}
+.clsd__item-ic.is-note {
+  background: rgba(58, 120, 192, 0.12);
+  color: #3a78c0;
+}
+.clsd__item-ic.is-test {
+  background: rgba(201, 80, 58, 0.12);
+  color: #c9503a;
 }
 .clsd__item-title {
-  font-size: var(--fs-body-2);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-medium);
   color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.clsd__item-desc {
+  font-size: var(--fs-label);
+  color: var(--text-tertiary);
+  line-height: var(--lh-relaxed);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.clsd__item-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding-top: var(--sp-2);
+  border-top: var(--border-divider-soft);
+}
+.clsd__stat {
+  font-size: var(--fs-label);
+  color: var(--text-muted);
+}
+.clsd__stat.is-hot {
+  color: var(--primary-text);
+  font-weight: var(--fw-medium);
+}
+.clsd__stat.is-dim {
+  color: var(--text-disabled);
+}
+/* 作业进度条（已批 / 总人数） */
+.clsd__bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface-unit);
+  overflow: hidden;
+}
+.clsd__bar-in {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #7c5cff, #5b47d6);
+  transition: width var(--dur) var(--ease);
 }
 .clsd__hw-imgtag {
   display: inline-block;
-  margin-left: 6px;
   padding: 1px 7px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--primary) 14%, transparent);
@@ -977,9 +1133,6 @@ watch(tab, (v) => {
 }
 .clsd__file {
   display: none;
-}
-.clsd__arrow {
-  color: var(--text-disabled);
 }
 .clsd__member-list {
   display: grid;

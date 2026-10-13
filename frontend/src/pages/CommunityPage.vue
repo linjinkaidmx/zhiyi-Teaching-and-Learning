@@ -10,18 +10,12 @@
     <!-- ============ 论坛 ============ -->
     <template v-if="tab === 'forum'">
       <div class="comm__toolbar">
-        <div class="comm__sort" role="radiogroup" aria-label="排序">
-          <button
-            v-for="s in SORTS"
-            :key="s.key"
-            type="button"
-            class="comm__sort-btn"
-            :class="{ 'is-active': sort === s.key }"
-            @click="switchSort(s.key)"
-          >
-            {{ s.label }}
-          </button>
-        </div>
+        <UiSegmented
+          :model-value="sort"
+          :options="SORTS.map((s) => ({ label: s.label, value: s.key }))"
+          aria-label="排序"
+          @change="switchSort"
+        />
         <UiButton variant="primary" size="sm" @click="onNewPost">发帖</UiButton>
       </div>
 
@@ -33,7 +27,11 @@
           @click="openPost(p)"
         >
           <div class="comm__post-head">
-            <UiTag :variant="p.type === 'question' ? 'info' : 'neutral'">{{ p.type === 'question' ? '题目' : '感想' }}</UiTag>
+            <span class="comm__avatar" :style="avatarStyle(authorName(p.user_id))">{{ letterOf(authorName(p.user_id)) }}</span>
+            <span class="comm__type" :class="p.type === 'question' ? 'is-q' : 'is-t'">
+              <UiIcon :name="p.type === 'question' ? 'book' : 'pencil'" :size="11" />
+              {{ p.type === 'question' ? '题目' : '感想' }}
+            </span>
             <span class="comm__post-author">{{ authorName(p.user_id) }}</span>
             <span class="comm__post-time">{{ timeAgo(p.created_at) }}</span>
           </div>
@@ -44,10 +42,10 @@
               <UiTag v-for="k in (p.card.knowledgePoints || []).slice(0, 3)" :key="k" variant="brand-soft">{{ k }}</UiTag>
             </div>
           </template>
-          <p v-else class="comm__post-body">{{ clip(p.content, 120) }}</p>
+          <p v-else class="comm__post-body"><MathText :content="clip(p.content, 120)" /></p>
           <div class="comm__post-foot">
-            <span class="comm__stat">💬 {{ p.comment_count }}</span>
-            <span class="comm__stat">👍 {{ p.like_count }}</span>
+            <span class="comm__stat"><UiIcon name="chat" :size="14" /> {{ p.comment_count }}</span>
+            <span class="comm__stat"><UiIcon name="thumbUp" :size="14" /> {{ p.like_count }}</span>
           </div>
         </article>
 
@@ -60,20 +58,24 @@
 
     <!-- ============ 我的小组 ============ -->
     <template v-else>
-      <div class="comm__toolbar">
-        <UiButton variant="ghost" size="sm" @click="joinOpen = true">加入小组</UiButton>
-        <UiButton variant="primary" size="sm" @click="createOpen = true">创建小组</UiButton>
+      <div class="comm__toolbar comm__toolbar--end">
+        <UiButton variant="secondary" size="sm" icon="users" @click="joinOpen = true">加入小组</UiButton>
+        <UiButton variant="primary" size="sm" icon="plus" @click="createOpen = true">创建小组</UiButton>
       </div>
 
       <div v-if="groups.length" class="comm__groups">
         <button v-for="g in groups" :key="g.id" type="button" class="comm__group surface-standard" @click="openGroup(g)">
-          <div class="comm__group-main">
-            <span class="t-h3">{{ g.name }}</span>
-            <span v-if="g.description" class="comm__group-desc">{{ g.description }}</span>
+          <div class="comm__group-head">
+            <span class="comm__group-ic"><UiIcon name="users" :size="16" /></span>
+            <span v-if="g.my_role === 'owner'" class="comm__badge-owner">组长</span>
           </div>
-          <div class="comm__group-side">
-            <span class="comm__group-count">{{ g.member_count }} 人</span>
-            <span v-if="g.my_role === 'owner'" class="comm__group-owner">组长</span>
+          <div class="comm__group-main">
+            <span class="comm__group-name">{{ g.name }}</span>
+            <span v-if="g.description" class="comm__group-desc">{{ g.description }}</span>
+            <span v-else class="comm__group-desc is-empty">还没有小组简介</span>
+          </div>
+          <div class="comm__group-foot">
+            <span class="comm__group-count"><UiIcon name="users" :size="13" /> {{ g.member_count }} 人</span>
           </div>
         </button>
       </div>
@@ -95,7 +97,7 @@
               <span class="comm__post-author">{{ authorName(post.user_id) }}</span>
               <span class="comm__post-time">{{ timeAgo(post.created_at) }}</span>
             </div>
-            <button class="comm__drawer-close" type="button" aria-label="关闭" @click="closePost">✕</button>
+            <button class="comm__drawer-close" type="button" aria-label="关闭" @click="closePost"><UiIcon name="close" :size="15" /></button>
           </header>
 
           <div class="comm__drawer-body">
@@ -123,8 +125,8 @@
             <p v-else class="comm__drawer-content comm__pre"><MathText :content="post.content" /></p>
 
             <div class="comm__actions">
-              <UiButton variant="ghost" size="sm" @click="onLike(post)">
-                👍 {{ post.like_count }} {{ post.liked ? '已赞' : '点赞' }}
+              <UiButton variant="ghost" size="sm" icon="thumbUp" @click="onLike(post)">
+                {{ post.like_count }} {{ post.liked ? '已赞' : '点赞' }}
               </UiButton>
               <UiButton v-if="isOwn(post)" variant="ghost" size="sm" class="comm__danger" @click="deletePost">删除</UiButton>
             </div>
@@ -134,10 +136,11 @@
               <div v-if="comments.length" class="comm__comment-list">
                 <div v-for="c in comments" :key="c.id" class="comm__comment">
                   <div class="comm__comment-head">
+                    <span class="comm__avatar is-sm" :style="avatarStyle(authorName(c.user_id))">{{ letterOf(authorName(c.user_id)) }}</span>
                     <span class="comm__post-author">{{ authorName(c.user_id) }}</span>
                     <span class="comm__post-time">{{ timeAgo(c.created_at) }}</span>
                   </div>
-                  <p class="comm__comment-body">{{ c.content }}</p>
+                  <p class="comm__comment-body"><MathText :content="c.content" /></p>
                 </div>
               </div>
               <p v-else class="comm__empty">还没有评论，来说两句。</p>
@@ -168,7 +171,11 @@
               <span class="t-h3">{{ group.name }}</span>
               <span class="comm__group-count">{{ members.length }} 人</span>
             </div>
-            <button class="comm__drawer-close" type="button" aria-label="关闭" @click="closeGroup">✕</button>
+            <div class="comm__drawer-ops">
+              <UiButton v-if="group.my_role === 'owner'" variant="ghost" size="sm" class="comm__danger" @click="dissolveGroup">解散小组</UiButton>
+              <UiButton v-else variant="ghost" size="sm" class="comm__danger" @click="quitGroup">退出小组</UiButton>
+              <button class="comm__drawer-close" type="button" aria-label="关闭" @click="closeGroup"><UiIcon name="close" :size="15" /></button>
+            </div>
           </header>
 
           <div class="comm__drawer-body">
@@ -176,6 +183,9 @@
               <div class="comm__invite">
                 <span class="t-label">邀请码</span>
                 <code class="comm__code">{{ group.invite_code }}</code>
+                <button class="comm__copy" type="button" title="复制邀请码" @click="copyInvite">
+                  <UiIcon name="clipboard" :size="12" /> 复制
+                </button>
               </div>
               <UiButton v-if="group.my_role === 'owner'" variant="ghost" size="sm" @click="inviteOpen = true">按昵称邀请</UiButton>
             </div>
@@ -184,28 +194,67 @@
               <h3 class="t-h3">成员</h3>
               <div class="comm__member-list">
                 <span v-for="m in members" :key="m.user_id" class="comm__member">
-                  {{ m.user_id }}<span v-if="m.role === 'owner'" class="comm__group-owner">组长</span>
+                  <span class="comm__avatar is-mini" :style="avatarStyle(authorName(m.user_id))">{{ letterOf(authorName(m.user_id)) }}</span>
+                  <span class="comm__member-name">{{ m.user_id }}</span>
+                  <span v-if="m.role === 'owner'" class="comm__badge-owner">组长</span>
+                  <span v-else class="comm__member-time">{{ timeAgo(m.joined_at) }}加入</span>
+                  <button
+                    v-if="group.my_role === 'owner' && m.role !== 'owner'"
+                    class="comm__member-del"
+                    type="button"
+                    title="移出小组"
+                    @click="removeMember(m)"
+                  ><UiIcon name="close" :size="12" /></button>
                 </span>
               </div>
             </div>
 
             <div class="comm__msgs">
-              <h3 class="t-h3">讨论</h3>
-              <div v-if="messages.length" class="comm__msg-list">
-                <div v-for="m in messages" :key="m.id" class="comm__msg" :class="{ 'is-question': m.type === 'question' }">
-                  <div class="comm__msg-head">
-                    <span class="comm__post-author">{{ authorName(m.user_id) }}</span>
-                    <span class="comm__post-time">{{ timeAgo(m.created_at) }}</span>
+              <div class="comm__msgs-head">
+                <h3 class="t-h3">讨论（{{ msgTotal }}）</h3>
+                <UiButton
+                  v-if="messages.length < msgTotal"
+                  variant="text"
+                  size="sm"
+                  :loading="loadingMore"
+                  @click="loadEarlier"
+                >加载更早</UiButton>
+              </div>
+              <div ref="groupScroll" class="comm__msg-list">
+                <div v-if="!messages.length" class="comm__empty">还没有消息，分享一道题或打个招呼吧。</div>
+                <div
+                  v-for="m in messages"
+                  :key="m.id"
+                  class="comm__msg"
+                  :class="{ 'is-own': isOwnMsg(m), 'is-question': m.type === 'question' }"
+                >
+                  <span class="comm__avatar is-sm" :style="avatarStyle(authorName(m.user_id))">{{ letterOf(authorName(m.user_id)) }}</span>
+                  <div class="comm__msg-main">
+                    <div class="comm__msg-head">
+                      <span class="comm__post-author">{{ authorName(m.user_id) }}</span>
+                      <span class="comm__post-time">{{ timeAgo(m.created_at) }}</span>
+                    </div>
+                    <div class="comm__bubble">
+                      <template v-if="m.type === 'question'">
+                        <div class="comm__qmsg-q"><MathText :content="msgCard(m).question || ''" /></div>
+                        <div v-if="msgCard(m).answer" class="comm__qmsg-row">
+                          <span class="comm__qmsg-label">答案</span>
+                          <MathText :content="msgCard(m).answer" />
+                        </div>
+                        <div v-if="(msgCard(m).knowledgePoints || []).length" class="comm__post-tags">
+                          <UiTag v-for="k in msgCard(m).knowledgePoints" :key="k" variant="brand-soft">{{ k }}</UiTag>
+                        </div>
+                      </template>
+                      <p v-else class="comm__msg-body comm__pre"><MathText :content="m.content" /></p>
+                    </div>
                   </div>
-                  <template v-if="m.type === 'question'">
-                    <div class="comm__msg-q"><MathText :content="msgQuestion(m)" /></div>
-                  </template>
-                  <p v-else class="comm__msg-body comm__pre"><MathText :content="m.content" /></p>
                 </div>
               </div>
-              <p v-else class="comm__empty">还没有消息，分享一道题或打个招呼吧。</p>
 
               <div class="comm__comment-input">
+                <button class="comm__share-btn" type="button" title="分享错题到小组" @click="sharePickOpen = true">
+                  <UiIcon name="plus" :size="16" />
+                </button>
                 <input
                   v-model="msgDraft"
                   class="comm__input"
@@ -257,14 +306,36 @@
         <UiButton variant="primary" block :loading="submitting" :disabled="!inviteNickname.trim()" @click="submitInvite">邀请</UiButton>
       </template>
     </UiModal>
+
+    <!-- 分享错题到小组 -->
+    <UiModal v-model="sharePickOpen" title="分享错题到小组" size="md">
+      <p class="t-body-2">选一道错题，把题干和答案分享到小组讨论，大家一起看。</p>
+      <div v-if="shareItems.length" class="comm__share-list">
+        <button
+          v-for="it in shareItems"
+          :key="it.id"
+          type="button"
+          class="comm__share-item"
+          @click="shareToGroup(it)"
+        >
+          <MathText :content="it.question || ''" />
+        </button>
+      </div>
+      <p v-else class="t-body-2">错题本还是空的，先去拍题保存几道再来分享。</p>
+    </UiModal>
   </div>
+  <!-- 新手教程 -->
+  <UiTour v-model="tourOpen" tour-key="community" />
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, nextTick, onBeforeUnmount } from 'vue'
 import { recordAction } from '../statsStore'
 import { useRoute } from 'vue-router'
 import UiButton from '../ui/UiButton.vue'
+import UiTour from '../ui/UiTour.vue'
+import { useTour } from '../lib/useTour.js'
+import UiIcon from '../ui/UiIcon.vue'
 import UiTag from '../ui/UiTag.vue'
 import UiSegmented from '../ui/UiSegmented.vue'
 import UiModal from '../ui/UiModal.vue'
@@ -273,16 +344,18 @@ import MathText from '../components/MathText.vue'
 import { api } from '../api'
 import { session } from '../stores/sessionStore'
 import { openAuth } from '../stores/uiStore'
+import { bookRef } from '../stores/bookStore'
+import { ElMessageBox } from '../ui/notify.js'
 import { toast } from '../ui/toast.js'
 import { toastError } from '../lib/errors.js'
 
 const TABS = [
-  { label: '论坛', value: 'forum' },
-  { label: '我的小组', value: 'group' },
+  { label: '论坛', value: 'forum', icon: 'chat' },
+  { label: '我的小组', value: 'group', icon: 'users' },
 ]
 const SORTS = [
-  { label: '最新', key: 'latest' },
-  { label: '热门', key: 'hot' },
+  { label: '最新', key: 'latest', icon: 'clock' },
+  { label: '热门', key: 'hot', icon: 'flame' },
 ]
 
 const route = useRoute()
@@ -332,8 +405,13 @@ function loadMore() {
 watch(tab, (v) => {
   if (v === 'forum' && !posts.value.length) loadPosts(true)
   if (v === 'group' && !groups.value.length) loadGroups()
+  if (v === 'forum') stopGroupStream()   // 切走时断开小组实时流
 })
 loadPosts(true)
+
+onBeforeUnmount(() => {
+  stopGroupStream()
+})
 
 /* ---------- 帖子详情 ---------- */
 const post = ref(null)
@@ -405,7 +483,7 @@ function onNewPost() {
 async function submitPost() {
   submitting.value = true
   try {
-    await api.forum.post(session.token, 'thought', postTitle.value.trim(), postContent.value.trim(), null)
+    await api.forum.post(session.token, 'thought', postTitle.value.trim(), postContent.value.trim())
     postOpen.value = false
     postTitle.value = ''
     postContent.value = ''
@@ -442,6 +520,52 @@ const group = ref(null)
 const members = ref([])
 const messages = ref([])
 const msgDraft = ref('')
+const msgTotal = ref(0)
+const loadingMore = ref(false)
+const groupScroll = ref(null)
+let groupCtrl = null       // SSE 流的 AbortController
+let seenIds = new Set()    // 消息去重（流 + 初始拉取可能重叠）
+
+function scrollGroupBottom() {
+  const el = groupScroll.value
+  if (el) el.scrollTop = el.scrollHeight
+}
+function stopGroupStream() {
+  if (groupCtrl) { groupCtrl.abort(); groupCtrl = null }
+}
+/** 实时流：后端每 2s 推 since 之后的新消息；按 id 去重、贴底时才自动滚 */
+function startGroupStream(gid) {
+  stopGroupStream()
+  groupCtrl = new AbortController()
+  const last = messages.value[messages.value.length - 1]
+  const since = (last && last.created_at) || 0
+  api.group.messagesStream(
+    { token: session.token, group_id: gid, since },
+    {
+      signal: groupCtrl.signal,
+      onItems: (items) => {
+        const el = groupScroll.value
+        const stick = !el || el.scrollHeight - el.scrollTop - el.clientHeight < 60
+        let added = 0
+        for (const m of items) {
+          const k = String(m.id)
+          if (!seenIds.has(k)) { seenIds.add(k); messages.value.push(m); added += 1 }
+        }
+        if (added) {
+          msgTotal.value += added
+          if (stick) nextTick(scrollGroupBottom)
+        }
+      },
+      onEnd: () => {
+        // 300s 超时/断流：抽屉还开着就重连
+        if (group.value && group.value.id === gid) {
+          setTimeout(() => { if (group.value && group.value.id === gid) startGroupStream(gid) }, 800)
+        }
+      },
+    },
+  ).catch(() => {})
+}
+
 async function openGroup(g) {
   try {
     const [d, msgs] = await Promise.all([
@@ -451,33 +575,155 @@ async function openGroup(g) {
     group.value = { ...g, ...(d.group || {}) }
     members.value = d.members || []
     messages.value = msgs.items
+    msgTotal.value = msgs.total
+    seenIds = new Set(msgs.items.map((m) => String(m.id)))
+    startGroupStream(g.id)
+    nextTick(scrollGroupBottom)
   } catch (e) {
     toastError(e)
   }
 }
 function closeGroup() {
+  stopGroupStream()
   group.value = null
   members.value = []
   messages.value = []
   msgDraft.value = ''
+  msgTotal.value = 0
 }
+
+/** 本地追加一条自己发的消息（不等流回推，立即可见） */
+function appendOwn(msg) {
+  if (!msg) return
+  const k = String(msg.id)
+  if (seenIds.has(k)) return
+  seenIds.add(k)
+  messages.value.push(msg)
+  msgTotal.value += 1
+  nextTick(scrollGroupBottom)
+}
+
 async function sendMessage() {
-  if (!msgDraft.value.trim() || !group.value) return
+  const text = msgDraft.value.trim()
+  if (!text || !group.value) return
   try {
-    await api.group.send(session.token, group.value.id, 'text', msgDraft.value.trim())
+    const m = await api.group.send(session.token, group.value.id, 'text', text)
     msgDraft.value = ''
-    const r = await api.group.messages(session.token, group.value.id)
-    messages.value = r.items
+    appendOwn(m)
   } catch (e) {
     toastError(e)
   }
 }
-function msgQuestion(m) {
+
+/** 加载更早的消息（往上接） */
+async function loadEarlier() {
+  if (!group.value || loadingMore.value) return
+  loadingMore.value = true
+  try {
+    const r = await api.group.messages(session.token, group.value.id, 100, messages.value.length)
+    r.items.forEach((m) => seenIds.add(String(m.id)))
+    messages.value = [...r.items, ...messages.value]
+  } catch (e) {
+    toastError(e)
+  } finally {
+    loadingMore.value = false
+  }
+}
+
+/* ---------- 分享错题到小组 ---------- */
+const sharePickOpen = ref(false)
+const shareItems = computed(() =>
+  (bookRef().value || []).filter((it) => it && it.kind !== 'note').slice(0, 30),
+)
+async function shareToGroup(it) {
+  if (!group.value) return
+  const card = JSON.stringify({
+    question: it.question || '',
+    answer: it.answer || '',
+    steps: it.steps || [],
+    knowledgePoints: it.knowledgePoints || [],
+  })
+  try {
+    const m = await api.group.send(session.token, group.value.id, 'question', card)
+    sharePickOpen.value = false
+    appendOwn(m)
+  } catch (e) {
+    toastError(e)
+  }
+}
+
+/* ---------- 退出 / 解散 / 移除成员 ---------- */
+async function quitGroup() {
+  if (!group.value) return
+  ElMessageBox.confirm('退出后需要重新用邀请码才能加入，组内消息也不再对你可见。确定退出吗？', '退出小组', {
+    type: 'warning', confirmButtonText: '退出', cancelButtonText: '取消',
+  }).then(async () => {
+    try {
+      await api.group.quit(session.token, group.value.id)
+      toast.success('已退出小组')
+      closeGroup()
+      loadGroups()
+    } catch (e) {
+      toastError(e)
+    }
+  }).catch(() => {})
+}
+async function dissolveGroup() {
+  if (!group.value) return
+  ElMessageBox.confirm('解散后小组与全部讨论记录会被清除，无法恢复。确定解散吗？', '解散小组', {
+    type: 'warning', confirmButtonText: '解散', cancelButtonText: '取消',
+  }).then(async () => {
+    try {
+      await api.group.dissolve(session.token, group.value.id)
+      toast.success('小组已解散')
+      closeGroup()
+      loadGroups()
+    } catch (e) {
+      toastError(e)
+    }
+  }).catch(() => {})
+}
+async function removeMember(m) {
+  if (!group.value) return
+  ElMessageBox.confirm(`把 ${m.nickname || m.user_id} 移出小组？之后他可以重新用邀请码加入。`, '移除成员', {
+    type: 'warning', confirmButtonText: '移除', cancelButtonText: '取消',
+  }).then(async () => {
+    try {
+      await api.group.removeMember(session.token, group.value.id, m.user_id)
+      toast.success('已移除')
+      const d = await api.group.detail(session.token, group.value.id)
+      members.value = d.members || []
+    } catch (e) {
+      toastError(e)
+    }
+  }).catch(() => {})
+}
+/** 题目消息：解析卡片 JSON（题干/答案/知识点），解析失败退回纯文本 */
+function msgCard(m) {
   try {
     const c = JSON.parse(m.content)
-    return c.question || m.content
+    if (c && typeof c === 'object') return c
   } catch {
-    return m.content
+    /* 非 JSON：当纯文本 */
+  }
+  return { question: m.content }
+}
+function msgQuestion(m) {
+  return msgCard(m).question || m.content
+}
+/** 是不是自己发的（user_id 存的是昵称，与 session.userId 同源） */
+function isOwnMsg(m) {
+  return !!session.userId && m.user_id === session.userId
+}
+/** 复制邀请码（非 HTTPS 环境 clipboard 不可用时给出提示） */
+async function copyInvite() {
+  const code = (group.value && group.value.invite_code) || ''
+  if (!code) return
+  try {
+    await navigator.clipboard.writeText(code)
+    toast.success('邀请码已复制')
+  } catch {
+    toast.error('复制失败，请手动选中复制')
   }
 }
 
@@ -543,6 +789,18 @@ async function submitInvite() {
 function authorName(id) {
   return id || '已注销'
 }
+
+/* 作者字母头像：按名字哈希取一个稳定底色（与「我的」页头像同风格） */
+const AVATAR_TONES = ['#7c5cff', '#3a78c0', '#2f7a4d', '#d0762a', '#c9503a', '#5b5bd6']
+function avatarStyle(name) {
+  const s = String(name || '?')
+  let h = 0
+  for (let i = 0; i < s.length; i += 1) h = (h * 31 + s.charCodeAt(i)) % 997
+  return { background: AVATAR_TONES[h % AVATAR_TONES.length] }
+}
+function letterOf(name) {
+  return String(name || '?').trim().charAt(0).toUpperCase() || '?'
+}
 function timeAgo(ts) {
   if (!ts) return ''
   const diff = Date.now() - Number(ts)
@@ -561,6 +819,10 @@ function clip(text, n) {
   const s = String(text || '')
   return s.length > n ? s.slice(0, n) + '…' : s
 }
+
+/* 新手教程：首次进入本页自动弹（看过不再弹） */
+const { tourOpen } = useTour('community')
+
 </script>
 
 <style scoped>
@@ -581,23 +843,13 @@ function clip(text, n) {
   justify-content: space-between;
   gap: var(--sp-3);
 }
-.comm__sort {
-  display: flex;
-  gap: var(--sp-2);
+.comm__toolbar--end {
+  justify-content: flex-end;
 }
-.comm__sort-btn {
-  padding: 5px 14px;
-  border: var(--border-subtle);
-  border-radius: var(--radius-pill);
-  background: var(--surface-1);
-  color: var(--text-secondary);
-  font-size: var(--fs-body-2);
-  cursor: pointer;
-}
-.comm__sort-btn.is-active {
-  border-color: var(--primary-line);
-  background: var(--primary-soft-2);
-  color: var(--primary-text);
+/* 分段控件宽度自适应，别被 flex 容器拉满整行 */
+.comm > .ui-seg,
+.comm__toolbar > .ui-seg {
+  align-self: flex-start;
 }
 .comm__posts {
   display: flex;
@@ -610,11 +862,69 @@ function clip(text, n) {
   gap: var(--sp-2);
   padding: var(--sp-4) var(--sp-5);
   cursor: pointer;
+  transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+.comm__post:hover {
+  transform: translateY(-1px);
+  border-color: var(--primary-line);
+  box-shadow: var(--shadow-subtle);
 }
 .comm__post-head {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
+}
+/* 作者字母头像 */
+.comm__avatar {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+  font-weight: var(--fw-medium);
+}
+.comm__avatar.is-sm {
+  width: 22px;
+  height: 22px;
+  font-size: 11px;
+}
+.comm__avatar.is-mini {
+  width: 20px;
+  height: 20px;
+  font-size: 10px;
+}
+/* 组长徽标 */
+.comm__badge-owner {
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, #7c5cff, #5b47d6);
+  color: #fff;
+  font-size: 10px;
+  font-weight: var(--fw-medium);
+}
+/* 帖子类型 pill（带图标） */
+.comm__type {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+}
+.comm__type.is-q {
+  background: var(--primary-soft-3);
+  color: var(--primary-text);
+  border: 0.5px solid var(--primary-line);
+}
+.comm__type.is-t {
+  background: var(--surface-unit);
+  color: var(--text-tertiary);
+  border: 0.5px solid var(--border-subtle);
 }
 .comm__post-author {
   font-size: var(--fs-body-2);
@@ -652,49 +962,89 @@ function clip(text, n) {
   gap: var(--sp-4);
 }
 .comm__stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-size: var(--fs-body-2);
   color: var(--text-tertiary);
 }
 
+/* 小组卡片网格（替代一根长横条） */
 .comm__groups {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(256px, 1fr));
   gap: var(--sp-3);
 }
 .comm__group {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-4);
-  padding: var(--sp-4) var(--sp-5);
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
   cursor: pointer;
   text-align: left;
+  transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+.comm__group:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary-line);
+  box-shadow: var(--shadow-elevated);
+}
+.comm__group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+.comm__group-ic {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-soft-2);
+  color: var(--primary-text);
 }
 .comm__group-main {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-1);
+  gap: 3px;
+  min-height: 44px;
+}
+.comm__group-name {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .comm__group-desc {
-  font-size: var(--fs-body-2);
+  font-size: var(--fs-label);
   color: var(--text-tertiary);
+  line-height: var(--lh-relaxed);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
-.comm__group-side {
+.comm__group-desc.is-empty {
+  color: var(--text-disabled);
+}
+.comm__group-foot {
   display: flex;
   align-items: center;
-  gap: var(--sp-3);
-  flex-shrink: 0;
+  padding-top: var(--sp-2);
+  border-top: var(--border-divider-soft);
 }
 .comm__group-count {
-  font-size: var(--fs-body-2);
-  color: var(--text-tertiary);
-}
-.comm__group-owner {
-  padding: 1px 8px;
-  border-radius: var(--radius-pill);
-  background: var(--primary-soft-2);
-  color: var(--primary-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: var(--fs-label);
+  color: var(--text-muted);
 }
 
 /* 抽屉 */
@@ -804,7 +1154,7 @@ function clip(text, n) {
 .comm__comment-head {
   display: flex;
   gap: var(--sp-2);
-  align-items: baseline;
+  align-items: center;
 }
 .comm__comment-body {
   font-size: var(--fs-body);
@@ -815,9 +1165,31 @@ function clip(text, n) {
 .comm__comment-input {
   display: flex;
   gap: var(--sp-2);
+  align-items: center;
+}
+/* 分享错题：图标按钮（不占横向空间，输入框留足） */
+.comm__share-btn {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  border: 0.5px solid var(--primary-line);
+  background: var(--primary-soft-2);
+  color: var(--primary-text);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.comm__share-btn:hover {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
 }
 .comm__input {
   flex: 1;
+  min-width: 0;
   padding: var(--sp-2) var(--sp-3);
   border-radius: var(--radius-sm);
   border: var(--border-subtle);
@@ -844,6 +1216,13 @@ function clip(text, n) {
   color: var(--text-tertiary);
   margin: 0;
 }
+/* 抽屉分区：邀请码 / 成员 各自成块 */
+.comm__group-tools,
+.comm__members {
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius-md);
+  background: var(--surface-recess);
+}
 .comm__group-tools {
   display: flex;
   align-items: center;
@@ -863,6 +1242,23 @@ function clip(text, n) {
   font-size: var(--fs-body);
   letter-spacing: 0.08em;
 }
+.comm__copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  border: 0.5px solid var(--primary-line);
+  background: var(--surface-1);
+  color: var(--primary-text);
+  font-family: inherit;
+  font-size: var(--fs-label);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease);
+}
+.comm__copy:hover {
+  background: var(--primary-soft-2);
+}
 .comm__member-list {
   display: flex;
   flex-wrap: wrap;
@@ -872,42 +1268,166 @@ function clip(text, n) {
   display: inline-flex;
   align-items: center;
   gap: var(--sp-2);
-  padding: 4px 12px;
+  padding: 4px 8px 4px 12px;
   border-radius: var(--radius-pill);
   background: var(--surface-recess);
   color: var(--text-secondary);
   font-size: var(--fs-body-2);
+}
+.comm__member-name {
+  color: var(--text-primary);
+}
+.comm__member-time {
+  font-size: var(--fs-label);
+  color: var(--text-muted);
+}
+.comm__member-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.comm__member-del:hover {
+  background: rgba(201, 80, 58, 0.12);
+  color: #c9503a;
+}
+.comm__drawer-ops {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
 }
 .comm__msgs {
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
 }
+.comm__msgs-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
 .comm__msg-list {
   display: flex;
   flex-direction: column;
   gap: var(--sp-3);
+  max-height: 46vh;
+  overflow-y: auto;
+  padding-right: 4px;
 }
-.comm__msg {
+/* 分享错题选择列表 */
+.comm__share-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+  max-height: 52vh;
+  overflow-y: auto;
+}
+.comm__share-item {
+  display: block;
+  width: 100%;
+  text-align: left;
   padding: var(--sp-3) var(--sp-4);
   border-radius: var(--radius-md);
-  background: var(--surface-recess);
-}
-.comm__msg.is-question {
   border: var(--border-subtle);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--fs-body-2);
+  line-height: var(--lh-relaxed);
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.comm__share-item:hover {
+  border-color: var(--primary-line);
   background: var(--primary-soft-3);
+}
+/* 消息气泡化：自己的靠右紫底，别人的靠左白底 */
+.comm__msg {
+  display: flex;
+  gap: var(--sp-2);
+  align-items: flex-start;
+}
+.comm__msg.is-own {
+  flex-direction: row-reverse;
+}
+.comm__msg-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  max-width: 86%;
+}
+.comm__msg.is-own .comm__msg-main {
+  align-items: flex-end;
 }
 .comm__msg-head {
   display: flex;
   gap: var(--sp-2);
   align-items: baseline;
-  margin-bottom: var(--sp-1);
+}
+.comm__msg.is-own .comm__msg-head {
+  flex-direction: row-reverse;
+}
+.comm__bubble {
+  padding: 8px 12px;
+  border-radius: 12px;
+  border-top-left-radius: 4px;
+  background: var(--surface-1);
+  border: var(--border-subtle);
+  color: var(--text-primary);
+  font-size: var(--fs-body-2);
+  line-height: var(--lh-relaxed);
+}
+.comm__msg.is-own .comm__bubble {
+  border-radius: 12px;
+  border-top-right-radius: 4px;
+  background: var(--primary);
+  border-color: transparent;
+  color: #fff;
+}
+.comm__msg.is-question .comm__bubble {
+  background: var(--primary-soft-3);
+  border-color: var(--primary-line);
+  color: var(--text-primary);
 }
 .comm__msg-body {
-  font-size: var(--fs-body);
-  color: var(--text-primary);
+  font-size: var(--fs-body-2);
+  color: inherit;
   margin: 0;
   white-space: pre-wrap;
+}
+/* 分享的题目卡片：题干 + 答案 + 知识点 */
+.comm__qmsg-q {
+  font-size: var(--fs-body-2);
+  color: var(--text-primary);
+  line-height: var(--lh-relaxed);
+}
+.comm__qmsg-row {
+  display: flex;
+  gap: var(--sp-2);
+  align-items: baseline;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: var(--border-divider-soft);
+  font-size: var(--fs-body-2);
+  color: var(--text-secondary);
+}
+.comm__qmsg-label {
+  flex: none;
+  font-size: var(--fs-label);
+  color: var(--text-muted);
+}
+.comm__msg .comm__post-tags {
+  margin-top: 6px;
 }
 .comm__msg-q {
   font-size: var(--fs-body);

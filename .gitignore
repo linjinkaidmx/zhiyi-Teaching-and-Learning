@@ -71,3 +71,44 @@ _snapshot_*/
 # ---------- 本地存档（体积大 / 属交付材料，不进代码仓库）----------
 参赛素材/
 skills-export/
+
+# ---------- 工作区过程产物（2026-10-13 起源码走白名单导出：参赛素材/决赛/_export_source.py）----------
+# 根目录一次性脚本/日志/杂项
+/_*
+/processed_image_*.png
+/*.zip
+/移动端体检报告.md
+/知一网站二维码.png
+/知一3.0_产品分析与介绍优化方案.md
+/海报背景.png
+/公式渲染泄漏_检测报告与修复方案.md
+
+# 过程目录（探针/诊断/设计稿/内部文档等，均不属应用源码）
+_diag/
+_chrome_tmp_profile_*/
+poster/
+design/
+docs/
+migration/
+output/
+ppt-deck-frontend/
+generated-images/
+artifacts/
+scripts/
+.workbuddy/
+
+# backend 一次性脚本（离线回归 _test_*.py 保留入库）
+backend/_*
+!backend/_test_*.py
+backend/scripts_tmp/
+
+# frontend 一次性脚本（离线回归 _test_*.mjs 与端到端 _qa_*.mjs 保留入库）
+frontend/_*
+!frontend/_test_*.mjs
+!frontend/_qa_*.mjs
+
+# 默认隐藏的商业 IP 角色形象素材（代码定义保留，素材不入库）
+frontend/public/companions/nailong*
+frontend/public/companions/naiwa*
+frontend/public/companions/**/nailong*
+frontend/public/companions/**/naiwa*

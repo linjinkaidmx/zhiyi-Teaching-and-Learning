@@ -72,6 +72,35 @@
   --accent-glow-soft: rgba(124, 92, 255, 0.08);
   --accent-glow-shadow: rgba(80, 60, 200, 0.32);
 
+  /* ---------------- 旧 token 兼容别名（2026-10-11） ----------------
+     AI 课堂页与少量旧组件写的是 --brand / --line / --surface / --text-2 / --text-3，
+     这些名字从未在 tokens 里定义过 → var() 静默失效、样式整体降级（无描边、无主色）。
+     这里统一映射到现行 token，避免逐行改写 80+ 处引用。新代码请直接用现行名字。 */
+  --brand: var(--primary);
+  --brand-strong: var(--primary-active);
+  --brand-soft: var(--primary-soft-2);
+  --line: rgba(150, 175, 230, 0.13);
+  --surface: var(--surface-1);
+  --soft: var(--primary-soft-2);
+/* ---------------- 旧 token 兼容别名 · 第二批（2026-10-11） ----------------
+     AI 伴学页用了 --text-sub / --text-faint / --text / --card / --border* /
+     --surface-primary / --surface-secondary 这些名字，同批旧代码里它们从未定义，
+     var(..., #旧色) 的 fallback 因此生效 → 整页呈现旧设计系统配色（含发绿的主按钮）。 */
+  --text: var(--text-primary);
+  --text-sub: var(--text-muted);
+  --text-faint: var(--text-disabled);
+  --card: var(--surface-1);
+  --border: rgba(150, 175, 230, 0.13);
+  --border-strong: rgba(175, 198, 250, 0.22);
+  --border-secondary: rgba(150, 175, 230, 0.13);
+  --border-tertiary: rgba(150, 175, 230, 0.1);
+  --surface-primary: var(--surface-1);
+  --surface-secondary: var(--surface-recess);
+  --brand-contrast: #ffffff;
+
+  --text-2: var(--text-secondary);
+  --text-3: var(--text-tertiary);
+
   /* ---------------- Colors · 语义 ---------------- */
   --success: #46b26f;
   --success-soft: rgba(70, 178, 111, 0.16);

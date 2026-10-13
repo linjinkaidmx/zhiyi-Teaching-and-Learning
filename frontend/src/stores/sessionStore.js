@@ -12,6 +12,7 @@ import { api } from '../api'
 import { loadBook, saveBook } from '../book'
 import { mergeErrorbook, mergeExams } from '../lib/syncMerge.js'
 import { clearSession, getToken, getUserId, isLoggedIn, resetClientId, adoptSession } from '../auth'
+import { clearCustomCache } from '../lib/companions.js'
 import {
   initBook, getItems, getSettings, replaceItems, setPushHook, masteredCount, currentSpace,
 } from './bookStore'
@@ -125,6 +126,7 @@ export async function adoptLogin({ token, userId }) {
 /** 退出登录（silent = 不提示，用于 token 失效） */
 export function logout(silent = false) {
   clearSession()
+  clearCustomCache()   // 自定义角色属于账号：清本地缓存，避免换账号登录时首帧看到上个账号的角色
   session.space = 'guest'
   session.userId = ''
   session.token = ''
@@ -175,6 +177,12 @@ export function schedulePush() {
       session.token, getItems(), statsForCloud(), coursesCloudPayload(),
       sessionsCloudPayload(), examsCloudPayload(),
     )
+      .then((r) => {
+        // B1：后端如实返回丢弃数，不再"静默丢数据"——有丢弃时明确告知
+        if (r && r.dropped > 0) {
+          ElMessage.warning(`云同步：${r.dropped} 条数据因格式问题未保存，其余已同步`)
+        }
+      })
       .catch(() => {})
   }, 500)
 }

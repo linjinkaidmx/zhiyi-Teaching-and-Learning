@@ -20,6 +20,16 @@
       </div>
     </header>
 
+    <!-- 最新解锁横幅（近 30 天内最新一枚，仅展示一条） -->
+    <div v-if="latest" class="ach__latest surface-standard">
+      <BadgeMedal :rarity="latest.rarity" :totem="latest.totem" size="md" :name="latest.name" />
+      <div class="ach__latest-txt">
+        <b>最新解锁 · {{ latest.name }}</b>
+        <span>{{ latest.desc }} · {{ dateText(latest.at) }}</span>
+      </div>
+      <span class="ach__latest-go">已收下 ✓</span>
+    </div>
+
     <!-- 稀有度总览 -->
     <div class="ach__summary">
       <div v-for="r in rarityCards" :key="r.key" class="ach__sum surface-standard">
@@ -27,6 +37,7 @@
         <div class="ach__sum-txt">
           <b>{{ r.done }}<em>/{{ r.total }}</em></b>
           <span>{{ r.name }}奖章</span>
+          <div class="ach__sum-bar"><i :style="{ width: (r.total ? (r.done / r.total) * 100 : 0) + '%' }" /></div>
         </div>
       </div>
     </div>
@@ -34,6 +45,17 @@
     <!-- 筛选 -->
     <div class="ach__filters">
       <UiSegmented v-model="filter" :options="filterOptions" />
+      <div class="ach__rar-filters">
+        <button
+          v-for="r in rarityChips" :key="r.key"
+          type="button"
+          class="ach__rar-chip"
+          :class="[`is-${r.key}`, { 'is-on': rarFilter === r.key }]"
+          @click="rarFilter = rarFilter === r.key ? 'all' : r.key"
+        >
+          {{ r.name }} {{ r.done }}/{{ r.total }}
+        </button>
+      </div>
       <span class="t-label ach__hint">未解锁的奖章会显示当前进度，悬停或点开可看条件</span>
     </div>
 
@@ -57,6 +79,7 @@
             :totem="a.hidden && !a.done ? 'question' : a.totem"
             size="lg"
             :locked="!a.done"
+            :progress="a.done ? -1 : pct(a)"
             :name="a.name"
           />
           <b class="ach__cell-name">{{ a.hidden && !a.done ? '？？？' : a.name }}</b>
@@ -112,6 +135,7 @@ import { GROUPS, RARITY, RARITY_NAME } from '../achievements.js'
 
 const stats = statsRef()
 const filter = ref('all')
+const rarFilter = ref('all')
 const detailOpen = ref(false)
 const detail = ref(null)
 
@@ -126,6 +150,19 @@ const all = computed(() => (stats.value, achievementList()))
 const total = computed(() => all.value.length)
 const doneCount = computed(() => all.value.filter((a) => a.done).length)
 
+/** 最新解锁（近 30 天内最新一枚；没有则不显示横幅） */
+const latest = computed(() => {
+  const done = all.value.filter((a) => a.done && a.at).sort((x, y) => (x.at < y.at ? 1 : -1))
+  const first = done[0]
+  if (!first) return null
+  return (Date.now() - new Date(first.at).getTime()) <= 30 * 86400000 ? first : null
+})
+
+const rarityChips = computed(() => ['common', 'rare', 'epic', 'legend'].map((k) => {
+  const list = all.value.filter((a) => a.rarity === k)
+  return { key: k, name: RARITY_NAME[k], done: list.filter((a) => a.done).length, total: list.length }
+}))
+
 const rarityCards = computed(() => ['common', 'rare', 'epic', 'legend'].map((k) => {
   const list = all.value.filter((a) => a.rarity === k)
   return {
@@ -137,13 +174,14 @@ const rarityCards = computed(() => ['common', 'rare', 'epic', 'legend'].map((k) 
   }
 }))
 
-/** 分组展示：组内已解锁优先，其次按进度从高到低 */
+/** 分组展示：稀有度筛选 → 组内已解锁优先，其次按进度从高到低 */
 const groups = computed(() => {
   const f = filter.value
   return GROUPS.map((name) => {
     let list = all.value.filter((a) => a.group === name)
     if (f === 'done') list = list.filter((a) => a.done)
     if (f === 'todo') list = list.filter((a) => !a.done)
+    if (rarFilter.value !== 'all') list = list.filter((a) => a.rarity === rarFilter.value)
     const sorted = [...list].sort((a, b) => {
       if (a.done !== b.done) return a.done ? -1 : 1
       return pctNum(b) - pctNum(a)
@@ -192,6 +230,40 @@ function openDetail(a) {
   flex: none;
 }
 
+/* 最新解锁横幅 */
+.ach__latest {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  border-color: rgba(124, 92, 255, 0.28);
+  background: linear-gradient(120deg, var(--primary-soft-2), transparent 65%), var(--surface-1);
+}
+.ach__latest-txt {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ach__latest-txt b {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
+}
+.ach__latest-txt span {
+  font-size: var(--fs-label);
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ach__latest-go {
+  flex: none;
+  font-size: var(--fs-label);
+  color: var(--success);
+}
+
 /* 稀有度总览 */
 .ach__summary {
   display: grid;
@@ -223,6 +295,56 @@ function openDetail(a) {
 .ach__sum-txt span {
   font-size: var(--fs-label);
   color: var(--text-muted);
+}
+.ach__sum-bar {
+  width: 100%;
+  height: 4px;
+  margin-top: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-unit);
+  overflow: hidden;
+}
+.ach__sum-bar i {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, #7e68f7, var(--primary-cta));
+}
+
+/* 稀有度筛选 chips */
+.ach__rar-filters {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+.ach__rar-chip {
+  border: var(--border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--surface-1);
+  padding: 4px 12px;
+  font-size: var(--fs-label);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.ach__rar-chip:hover {
+  border-color: var(--primary-line);
+}
+.ach__rar-chip.is-on {
+  color: var(--primary-text-strong);
+  border-color: var(--primary-line);
+  background: var(--primary-soft-2);
+}
+.ach__rar-chip.is-epic.is-on {
+  color: #96650f;
+  border-color: rgba(242, 191, 78, 0.5);
+  background: rgba(242, 191, 78, 0.14);
+}
+.ach__rar-chip.is-legend.is-on {
+  color: var(--primary-text-strong);
+  border-color: var(--primary-line);
+  background: var(--primary-soft-2);
 }
 
 .ach__filters {
@@ -277,6 +399,10 @@ function openDetail(a) {
 .ach__cell.is-done {
   border-color: rgba(124, 92, 255, 0.24);
   background: linear-gradient(180deg, var(--primary-soft-3), transparent 60%), var(--surface-1);
+}
+/* 已解锁"点亮"：奖章顶部一道柔光 */
+.ach__cell.is-done :deep(.bm) {
+  filter: drop-shadow(0 0 10px rgba(124, 92, 255, 0.28));
 }
 .ach__cell-name {
   font-size: var(--fs-body);
@@ -373,8 +499,22 @@ function openDetail(a) {
   .ach__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .ach__head-ring {
-    display: none;
+  /* 进度环不再整只隐藏：缩小放头部右侧，总览信息不丢 */
+  .ach__head {
+    align-items: center;
+  }
+  .ach__head-ring svg {
+    width: 52px;
+    height: 52px;
+  }
+  .ach__head-ring circle {
+    stroke-width: 6;
+  }
+  .ach__head-ring text {
+    font-size: 13px;
+  }
+  .ach__latest-txt span {
+    white-space: normal;
   }
 }
 

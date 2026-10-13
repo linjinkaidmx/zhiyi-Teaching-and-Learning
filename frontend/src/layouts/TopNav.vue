@@ -106,7 +106,11 @@ onBeforeUnmount(() => window.removeEventListener('scroll', onScroll))
   position: relative;
   background: none;
   border: 0;
-  padding: 4px 0;
+  padding: 4px 2px;
+  /* 触控目标 ≥44px（2026-10-13，Apple HIG；原先只有 ~35px） */
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   font-size: 16px;
   font-weight: var(--fw-medium);
   color: var(--text-quaternary);

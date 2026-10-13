@@ -2,7 +2,7 @@
   <div class="zy-page">
     <div class="zy-container trun">
       <header class="trun__head">
-        <UiButton variant="ghost" size="sm" class="zy-back" @click="goBack">← 返回班级</UiButton>
+        <UiButton variant="soft" size="sm" class="zy-back" @click="goBack" icon="left">返回班级</UiButton>
         <h1 class="t-h1">{{ title || '班级测试' }}</h1>
         <p v-if="loaded" class="t-label">{{ questions.length }} 题 · 满分 {{ totalScore }} 分 · 限时 {{ Math.round(durationSec / 60) }} 分钟</p>
       </header>
@@ -13,12 +13,25 @@
       <template v-else-if="submitted">
         <section class="trun__card surface-standard">
           <h2 class="t-h3">我的成绩</h2>
-          <div class="trun__result">
-            <span class="trun__score">{{ result.score }}<i>/{{ totalScore }}</i></span>
-            <span class="t-body-2">
-              对 {{ resultCorrect }} 题 · 用时 {{ result.duration_sec }} 秒
-              <template v-if="resultRank"> · 第 {{ resultRank }} 名</template>
-            </span>
+          <div class="trun__scorecard">
+            <div class="trun__score-main">
+              <span class="trun__score">{{ result.score }}</span>
+              <span class="trun__score-total">/ {{ totalScore }}</span>
+            </div>
+            <div class="trun__score-stats">
+              <div class="trun__score-stat">
+                <b>{{ correctRate }}%</b>
+                <span class="t-label">正确率</span>
+              </div>
+              <div class="trun__score-stat">
+                <b>{{ fmtDuration(result.duration_sec) }}</b>
+                <span class="t-label">用时</span>
+              </div>
+              <div class="trun__score-stat">
+                <b>{{ resultRank ? `第 ${resultRank} 名` : '—' }}</b>
+                <span class="t-label">班级排名</span>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -43,9 +56,9 @@
               />
               <span class="trun__wrong-body">
                 <b>{{ it.title }}</b>
-                <i>
-                  我的答案：{{ it.given || '未作答' }}
-                  <em>正确答案：{{ it.answer }}</em>
+                <i class="trun__wrong-ans">
+                  <span class="is-wrong">我的答案：{{ it.given || '未作答' }}</span>
+                  <span class="is-right">正确答案：<MathText :content="it.answer" /></span>
                 </i>
               </span>
             </label>
@@ -67,11 +80,32 @@
       <!-- 未开始：说明页 -->
       <template v-else-if="!started">
         <section class="trun__card surface-standard trun__intro">
-          <p class="t-body-2">
-            共 {{ questions.length }} 题，限时 {{ Math.round(durationSec / 60) }} 分钟。
-            点「开始答题」后立即计时，倒计时结束会自动交卷（已作答内容会计分）。
-            每人只有一次作答机会，请确认有足够时间再开始。
-          </p>
+          <div class="trun__intro-head">
+            <span class="trun__intro-ic"><UiIcon name="target" :size="20" /></span>
+            <div class="trun__intro-title">
+              <h2 class="t-h3">准备开始</h2>
+              <p class="t-label">确认信息后点击开始，计时立即生效</p>
+            </div>
+          </div>
+          <div class="trun__intro-stats">
+            <div class="trun__intro-stat">
+              <b>{{ questions.length }}</b>
+              <span class="t-label">题数</span>
+            </div>
+            <div class="trun__intro-stat">
+              <b>{{ totalScore }}</b>
+              <span class="t-label">满分</span>
+            </div>
+            <div class="trun__intro-stat">
+              <b>{{ Math.round(durationSec / 60) }}</b>
+              <span class="t-label">分钟</span>
+            </div>
+          </div>
+          <ul class="trun__intro-notes">
+            <li>开始后立即计时，倒计时结束会自动交卷（已作答内容会计分）</li>
+            <li>每人只有一次作答机会，请确认有足够时间再开始</li>
+            <li>答题卡可快速跳转检查，提交后不能修改</li>
+          </ul>
           <UiButton variant="primary" block :loading="starting" @click="begin">开始答题</UiButton>
         </section>
       </template>
@@ -106,6 +140,12 @@
             >
               <span class="trun__opt-letter">{{ letter(oi) }}</span>
               <span class="trun__opt-text">{{ o }}</span>
+              <UiIcon
+                v-if="answers[q.index] === letter(oi)"
+                name="check"
+                :size="15"
+                class="trun__opt-check"
+              />
             </button>
           </div>
           <input
@@ -170,6 +210,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { recordAction } from '../statsStore'
 import { useRoute, useRouter } from 'vue-router'
 import UiButton from '../ui/UiButton.vue'
+import UiIcon from '../ui/UiIcon.vue'
 import UiErrorState from '../ui/UiErrorState.vue'
 import MathText from '../components/MathText.vue'
 import TestRank from '../components/TestRank.vue'
@@ -201,6 +242,18 @@ const resultCorrect = ref(0)
 const resultRank = ref(0)
 /** 逐题明细（后端返回）→ 用于「答错的题」勾选沉淀进个人错题本 */
 const resultItems = ref([])
+/** 结果页成绩卡：正确率（用后端 correct_count 除以总题数） */
+const correctRate = computed(() => {
+  const total = questions.value.length || 0
+  if (!total) return 0
+  return Math.round(((Number(resultCorrect.value) || 0) / total) * 100)
+})
+function fmtDuration(sec) {
+  const s = Math.max(0, Number(sec) || 0)
+  const m = Math.floor(s / 60)
+  const r = s % 60
+  return m ? `${m} 分 ${r} 秒` : `${r} 秒`
+}
 const wrongPicked = ref(new Set())
 const savedWrong = ref(false)
 const savedCount = ref(0)
@@ -442,8 +495,65 @@ onBeforeUnmount(stopTimer)
   padding: var(--sp-4) var(--sp-5);
   margin-bottom: var(--sp-4);
 }
-.trun__intro .t-body-2 {
-  margin-bottom: var(--sp-4);
+/* 未开始页：三个指标 + 注意事项 */
+.trun__intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.trun__intro-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.trun__intro-ic {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-soft-2);
+  color: var(--primary-text);
+}
+.trun__intro-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.trun__intro-title .t-h3 {
+  margin: 0;
+}
+.trun__intro-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-3);
+  padding: var(--sp-3) 0;
+  border-top: var(--border-divider-soft);
+  border-bottom: var(--border-divider-soft);
+}
+.trun__intro-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.trun__intro-stat b {
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-semibold);
+  color: var(--primary-text);
+  font-variant-numeric: tabular-nums;
+}
+.trun__intro-notes {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--fs-body-2);
+  color: var(--text-secondary);
+  line-height: var(--lh-relaxed);
 }
 .trun__timer-bar {
   display: flex;
@@ -495,6 +605,13 @@ onBeforeUnmount(stopTimer)
   border-color: var(--primary);
   background: var(--primary-soft-1, rgba(124, 92, 255, 0.12));
 }
+/* 选中态：右侧勾选图标 */
+.trun__opt-check {
+  flex: none;
+  margin-left: auto;
+  align-self: center;
+  color: var(--primary);
+}
 .trun__opt-letter {
   flex: none;
   font-weight: var(--fw-medium);
@@ -511,20 +628,50 @@ onBeforeUnmount(stopTimer)
   color: var(--warning-text, #b5722a);
   margin-bottom: var(--sp-2);
 }
-.trun__result {
+/* 结果页成绩卡：大分数 + 三项指标 */
+.trun__scorecard {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  flex-wrap: wrap;
+  padding: var(--sp-4);
+  border-radius: var(--radius-md);
+  background: var(--primary-soft-3);
+  border: 0.5px solid var(--primary-line);
+}
+.trun__score-main {
   display: flex;
   align-items: baseline;
-  gap: var(--sp-3);
+  gap: 4px;
 }
 .trun__score {
-  font-size: 40px;
+  font-size: 44px;
   font-weight: var(--fw-semibold);
   color: var(--primary-text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
-.trun__score i {
-  font-style: normal;
+.trun__score-total {
   font-size: var(--fs-body);
   color: var(--text-tertiary);
+}
+.trun__score-stats {
+  display: flex;
+  gap: var(--sp-5);
+  padding-left: var(--sp-5);
+  border-left: var(--border-divider-soft);
+  flex: 1;
+  min-width: 220px;
+}
+.trun__score-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.trun__score-stat b {
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-medium);
+  color: var(--text-primary);
 }
 
 /* ---------------- 桌面端（≥1024px）：试卷 + 答题卡双栏 ---------------- */
@@ -684,9 +831,16 @@ onBeforeUnmount(stopTimer)
   color: var(--text-muted);
   line-height: 1.6;
 }
-.trun__wrong-body i em {
-  font-style: normal;
-  color: var(--success);
-  margin-left: var(--sp-2);
+/* 答错题对比着色：我的答案红 / 正确答案绿 */
+.trun__wrong-ans {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+.trun__wrong-ans .is-wrong {
+  color: #c0392b;
+}
+.trun__wrong-ans .is-right {
+  color: #2e7a4f;
 }
 </style>

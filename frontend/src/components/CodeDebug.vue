@@ -1,7 +1,12 @@
 <template>
   <div class="cd surface-standard">
-    <h3 class="t-h2 cd__title">代码诊断</h3>
-    <p class="t-body-2 cd__desc">贴上你的代码（和报错信息），AI 帮你定位错误、解释原因、给出修正后的代码。</p>
+    <div class="cd__head">
+      <span class="cd__head-ic"><UiIcon name="settings" :size="16" /></span>
+      <div class="cd__head-txt">
+        <h3 class="t-h3 cd__title">代码诊断</h3>
+        <p class="t-label cd__desc">贴上你的代码（和报错信息），AI 帮你定位错误、解释原因、给出修正后的代码</p>
+      </div>
+    </div>
 
     <!-- 代码输入 -->
     <p class="t-label cd__label">你的代码</p>
@@ -27,46 +32,52 @@
     <div class="cd__ops">
       <UiButton variant="primary" :loading="loading" @click="doDebug">开始诊断</UiButton>
     </div>
+  </div>
 
-    <!-- 诊断结果 -->
-    <div v-if="result" class="cd__result">
-      <div class="cd__result-head">
-        <h3 class="t-h2 cd__title">诊断结果</h3>
-        <UiTag v-if="result.error_type" :variant="typeTag(result.error_type)">{{ result.error_type }}</UiTag>
-      </div>
+  <!-- ② 诊断结果卡（独立卡片，未出结果时不占位） -->
+  <div v-if="result" class="cd surface-standard">
+    <div class="cd__head">
+      <span class="cd__head-ic is-accent"><UiIcon name="sparkle" :size="16" /></span>
+      <h3 class="t-h3 cd__title">诊断结果</h3>
+      <UiTag v-if="result.error_type" :variant="typeTag(result.error_type)" class="cd__head-tag">{{ result.error_type }}</UiTag>
+    </div>
 
       <section v-if="result.error_location" class="cd__block">
-        <p class="t-label cd__label">错误位置</p>
+        <div class="cd__block-head"><UiIcon name="location" :size="14" /> 错误位置</div>
         <MathText :content="result.error_location" />
       </section>
 
       <section v-if="result.reason" class="cd__block">
-        <p class="t-label cd__label">错误原因</p>
+        <div class="cd__block-head"><UiIcon name="bell" :size="14" /> 错误原因</div>
         <MathText :content="result.reason" />
       </section>
 
       <section v-if="result.fix" class="cd__block">
-        <p class="t-label cd__label">修改建议</p>
+        <div class="cd__block-head"><UiIcon name="pencil" :size="14" /> 修改建议</div>
         <MathText :content="result.fix" />
       </section>
 
       <section v-if="result.corrected_code" class="cd__block">
-        <p class="t-label cd__label">修正后的代码</p>
-        <MathText :content="result.corrected_code" />
+        <div class="cd__block-head">
+          <UiIcon name="clipboard" :size="14" /> 修正后的代码
+          <button class="cd__copy" type="button" title="复制代码" @click="copyCode">
+            <UiIcon name="clipboard" :size="12" /> 复制
+          </button>
+        </div>
+        <pre class="cd__codeblock">{{ result.corrected_code }}</pre>
       </section>
 
       <section v-if="result.knowledge_points && result.knowledge_points.length" class="cd__block">
-        <p class="t-label cd__label">涉及知识点</p>
+        <div class="cd__block-head"><UiIcon name="book" :size="14" /> 涉及知识点</div>
         <div class="cd__tags">
           <UiTag v-for="k in result.knowledge_points" :key="k" variant="neutral">{{ k }}</UiTag>
         </div>
       </section>
 
       <section v-if="result.tips" class="cd__block">
-        <p class="t-label cd__label">避坑建议</p>
+        <div class="cd__block-head"><UiIcon name="info" :size="14" /> 避坑建议</div>
         <MathText :content="result.tips" />
       </section>
-    </div>
   </div>
 </template>
 
@@ -82,6 +93,7 @@ import UiButton from '../ui/UiButton.vue'
 import UiInput from '../ui/UiInput.vue'
 import UiSelect from '../ui/UiSelect.vue'
 import UiTag from '../ui/UiTag.vue'
+import UiIcon from '../ui/UiIcon.vue'
 import { api } from '../api'
 import { recordAction } from '../statsStore'
 
@@ -132,6 +144,20 @@ function typeTag(t) {
   return 'info'
 }
 
+/** 复制修正后的代码 */
+function copyCode() {
+  const text = (result.value && result.value.corrected_code) || ''
+  if (!text) return
+  try {
+    navigator.clipboard.writeText(text).then(
+      () => ElMessage.success('代码已复制'),
+      () => ElMessage.warning('复制失败，请手动选中复制'),
+    )
+  } catch {
+    ElMessage.warning('复制失败，请手动选中复制')
+  }
+}
+
 async function doDebug() {
   const startedAt = Date.now()
   const code = cm ? cm.getValue() : ''
@@ -151,19 +177,56 @@ async function doDebug() {
 </script>
 
 <style scoped>
+/* 卡片：补内边距（此前完全没有 padding，内容直接贴着边框） */
+.cd {
+  padding: var(--sp-6);
+}
+.cd + .cd {
+  margin-top: var(--sp-4);
+}
+/* 卡片头：图标块 + 标题 + 说明 */
+.cd__head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+.cd__head-ic {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-soft-2);
+  color: var(--primary-text);
+}
+.cd__head-ic.is-accent {
+  background: rgba(201, 80, 58, 0.12);
+  color: #c9503a;
+}
+.cd__head-txt {
+  min-width: 0;
+}
 .cd__title {
   margin: 0;
 }
 .cd__desc {
-  margin: var(--sp-2) 0 var(--sp-4);
+  margin: 2px 0 0;
+}
+.cd__head-tag {
+  margin-left: auto;
+  flex: none;
 }
 .cd__label {
   display: block;
   margin: var(--sp-3) 0 var(--sp-2);
 }
+/* 两列自适应（原来写死 200px + 1fr，宽屏下不平衡） */
 .cd__grid {
   display: grid;
-  grid-template-columns: 200px minmax(0, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: var(--sp-4);
   margin-top: var(--sp-2);
 }
@@ -175,33 +238,69 @@ async function doDebug() {
   margin-top: var(--sp-2);
 }
 .cd__ops {
-  margin-top: var(--sp-4);
+  margin-top: var(--sp-5);
 }
 :deep(.CodeMirror) {
   height: auto;
   min-height: 200px;
-  border: var(--border-default);
+  border: var(--border-subtle);
   border-radius: var(--radius-md);
   font-size: var(--fs-body-2);
   font-family: var(--font-mono);
   background: var(--surface-recess);
   color: var(--text-primary);
 }
-.cd__result {
-  margin-top: var(--sp-6);
-  border-top: var(--border-divider);
-  padding-top: var(--sp-4);
-}
-.cd__result-head {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
-}
+/* 结果区分块：图标小标题 + 内容 */
 .cd__block {
-  margin-top: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3) 0;
+  border-top: var(--border-divider-soft);
   font-size: var(--fs-body);
   line-height: var(--lh-body);
   color: var(--text-secondary);
+}
+.cd__block-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-medium);
+  color: var(--primary-text);
+}
+/* 修正后的代码：真代码块（等宽 + 浅底）+ 右上角复制 */
+.cd__codeblock {
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius-sm);
+  border: var(--border-subtle);
+  background: var(--surface-recess);
+  font-family: var(--font-mono);
+  font-size: var(--fs-body-2);
+  line-height: 1.6;
+  color: var(--text-primary);
+  overflow-x: auto;
+  white-space: pre;
+}
+.cd__copy {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  border: var(--border-subtle);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: var(--fs-label);
+  cursor: pointer;
+  transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.cd__copy:hover {
+  color: var(--primary-text);
+  border-color: var(--primary-line);
 }
 .cd__tags {
   display: flex;

@@ -2,7 +2,7 @@
   <div class="zy-page">
     <div class="zy-container er">
       <header class="er__head">
-        <UiButton variant="ghost" size="sm" class="zy-back" @click="onBack">← 返回</UiButton>
+        <UiButton variant="soft" size="sm" class="zy-back" @click="onBack" icon="left">返回</UiButton>
         <h1 class="t-h1">{{ headTitle }}</h1>
         <p class="t-body-2">{{ headDesc }}</p>
       </header>
@@ -35,17 +35,17 @@
               <span class="t-label">分</span>
               <span class="er__custom-sub">= {{ (Number(r.count) || 0) * (Number(r.score) || 0) }} 分</span>
             </div>
-            <div class="er__custom-sum" :class="{ 'is-bad': !customOk }">
-              <template v-if="customSum.total <= 0">请至少给一种题型填数量</template>
-              <template v-else-if="customSum.total > MAX_PAPER_QUESTIONS">
-                题目合计 {{ customSum.total }} 道，超过上限 {{ MAX_PAPER_QUESTIONS }} 道
-              </template>
-              <template v-else-if="customSum.score !== PAPER_TOTAL">
-                合计 {{ customSum.total }} 道题 · {{ customSum.score }} 分（总分需正好 {{ PAPER_TOTAL }} 分，可手改每题分值调整）
-              </template>
-              <template v-else>
-                合计 {{ customSum.total }} 道题 · {{ PAPER_TOTAL }} 分 ✓（数量为 0 的题型不会出题）
-              </template>
+            <!-- 配置状态条：题数 / 总分实时反馈，达标变绿 -->
+            <div class="er__status" :class="{ 'is-ok': customOk }">
+              <span class="er__status-item" :class="{ 'is-bad': !countOk }">
+                <i class="er__status-dot" />
+                题数 <b>{{ customSum.total }}</b> / {{ MAX_PAPER_QUESTIONS }}
+              </span>
+              <span class="er__status-item" :class="{ 'is-bad': !scoreOk }">
+                <i class="er__status-dot" />
+                总分 <b>{{ customSum.score }}</b> / {{ PAPER_TOTAL }}
+              </span>
+              <span class="er__status-msg">{{ customMsg }}</span>
             </div>
           </div>
         </section>
@@ -101,9 +101,15 @@
       <!-- ③ 作答 -->
       <template v-else-if="step === 'answering'">
         <div class="er__bar surface-standard">
-          <span class="t-label">第 {{ idx + 1 }} / {{ questions.length }} 题</span>
-          <span class="t-label">{{ typeLabel(current.type) }} · {{ current.score }} 分</span>
-          <span class="er__timer" :class="{ 'is-warn': remaining !== null && remaining <= 300 }">{{ timerText }}</span>
+          <span class="er__bar-info">
+            <span class="t-label">第 {{ idx + 1 }} / {{ questions.length }} 题</span>
+            <span class="t-label">{{ typeLabel(current.type) }} · {{ current.score }} 分</span>
+          </span>
+          <span class="er__timer" :class="{ 'is-warn': remaining !== null && remaining <= 300 }">
+            <UiIcon name="clock" :size="16" class="er__timer-icon" />
+            <span class="er__timer-label">{{ remaining !== null ? '剩余' : '已用' }}</span>
+            <span class="er__timer-num">{{ timerText }}</span>
+          </span>
         </div>
 
         <div class="er__nav">
@@ -174,7 +180,7 @@
       <template v-else-if="step === 'result'">
         <section class="er__score surface-standard">
           <div class="er__score-main">
-            <span class="er__score-num">{{ grade.total }}</span>
+            <span class="er__score-num" :class="scoreTone(grade.total)">{{ grade.total }}</span>
             <span class="er__score-full">/ 100</span>
           </div>
           <div class="er__score-meta t-label">
@@ -229,7 +235,7 @@
             </div>
             <div v-if="r.comment" class="er__review-row">
               <span class="t-label">AI 评语</span>
-              <span class="er__review-val">{{ r.comment }}</span>
+              <span class="er__review-val"><MathText :content="r.comment" /></span>
             </div>
             <details v-if="explanationOf(r.id)" class="er__review-exp">
               <summary class="t-label">看解析</summary>
@@ -252,6 +258,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { recordAction } from '../statsStore'
 import { useRoute, useRouter } from 'vue-router'
 import UiButton from '../ui/UiButton.vue'
+import UiIcon from '../ui/UiIcon.vue'
 import UiNumber from '../ui/UiNumber.vue'
 import MathText from '../components/MathText.vue'
 import { api } from '../api.js'
@@ -293,6 +300,13 @@ const plan = ref([])
 const paper = ref(null)                // 当前试卷（保存/复盘用）
 const grade = ref({ total: 0, rate: 0, correctCount: 0, wrongCount: 0, perQuestion: [], byType: {} })
 const durationSec = ref(0)
+/** 成绩色标三档（与模拟考试首页一致）：优秀 ≥85 绿 / 及格 60~84 橙 / 偏低 <60 红 */
+function scoreTone(total) {
+  const t = Number(total) || 0
+  if (t >= 85) return 'is-high'
+  if (t >= 60) return 'is-mid'
+  return 'is-low'
+}
 const photoBusy = ref(null)
 const pickedWrong = ref([])
 const savedToBook = ref(0)
@@ -333,6 +347,17 @@ const customSum = computed(() => customSummary(customRows.value))
 const customOk = computed(() => customSum.value.total > 0
   && customSum.value.total <= MAX_PAPER_QUESTIONS
   && customSum.value.score === PAPER_TOTAL)
+/** 配置提示：给「下一步做什么」，不是单纯报错 */
+const customMsg = computed(() => {
+  const { total, score } = customSum.value
+  if (total <= 0) return '至少给一种题型填数量'
+  if (total > MAX_PAPER_QUESTIONS) return `题数超上限了，减到 ${MAX_PAPER_QUESTIONS} 道以内`
+  if (score !== PAPER_TOTAL) return `总分要正好 ${PAPER_TOTAL} 分，可微调每题分值`
+  return '配置没问题，可以开始考试'
+})
+/** 题数 / 总分是否各自合规（状态条分项标色用） */
+const countOk = computed(() => customSum.value.total > 0 && customSum.value.total <= MAX_PAPER_QUESTIONS)
+const scoreOk = computed(() => customSum.value.total > 0 && customSum.value.score === PAPER_TOTAL)
 
 /** 数量变化 → 全部回到「自动分值」（重新找整齐解） */
 function onCountChange() {
@@ -384,8 +409,8 @@ const wrongList = computed(() => {
 })
 const remaining = computed(() => remainingSeconds(startedAt, limitMin.value, now.value))
 const timerText = computed(() => {
-  if (remaining.value !== null) return `剩余 ${formatDuration(remaining.value)}`
-  return `已用 ${formatDuration(Math.floor((now.value - startedAt) / 1000))}`
+  if (remaining.value !== null) return formatDuration(remaining.value)
+  return formatDuration(Math.floor((now.value - startedAt) / 1000))
 })
 
 function typeLabel(t) {
@@ -752,13 +777,51 @@ async function onPhoto(ev, qid) {
   font-size: var(--fs-label);
   color: var(--text-muted);
 }
-.er__custom-sum {
-  margin-top: 4px;
+/* 配置状态条：题数 / 总分实时反馈（达标绿、不合规红） */
+.er__status {
+  margin-top: var(--sp-2);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-sm);
+  background: var(--surface-recess);
+  border: var(--border-subtle);
   font-size: var(--fs-label);
-  color: var(--success, #2e7d32);
 }
-.er__custom-sum.is-bad {
-  color: var(--danger, #c0392b);
+.er__status.is-ok {
+  background: var(--primary-soft-3);
+  border-color: var(--primary-line);
+}
+.er__status-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+}
+.er__status-item b {
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.er__status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #2e7a4f;
+}
+.er__status-item.is-bad .er__status-dot {
+  background: #c0392b;
+}
+.er__status-item.is-bad b {
+  color: #c0392b;
+}
+.er__status-msg {
+  margin-left: auto;
+  color: var(--text-tertiary);
+}
+.er__status.is-ok .er__status-msg {
+  color: var(--primary-text);
 }
 .er__kps,
 .er__limits,
@@ -818,12 +881,43 @@ async function onPhoto(ev, qid) {
   padding: var(--sp-3) var(--sp-4);
   flex-wrap: wrap;
 }
+.er__bar-info {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
 .er__timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
+  background: var(--surface-recess);
   font-variant-numeric: tabular-nums;
   color: var(--text-secondary);
+}
+.er__timer-icon {
+  color: var(--text-muted);
+}
+.er__timer-label {
   font-size: var(--fs-label);
+  color: var(--text-muted);
+}
+.er__timer-num {
+  font-size: 20px;
+  font-weight: var(--fw-medium);
+  line-height: 1;
+  color: var(--text-primary);
 }
 .er__timer.is-warn {
+  background: rgba(200, 60, 60, 0.1);
+  color: var(--danger, #c0392b);
+}
+.er__timer.is-warn .er__timer-num {
+  color: var(--danger, #c0392b);
+}
+.er__timer.is-warn .er__timer-icon {
   color: var(--danger, #c0392b);
 }
 .er__nav {
@@ -832,23 +926,27 @@ async function onPhoto(ev, qid) {
   gap: 6px;
 }
 .er__navdot {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: var(--radius-sm);
   border: var(--border-subtle);
   background: var(--surface-recess);
   color: var(--text-muted);
   font-size: var(--fs-label);
   cursor: pointer;
+  transition: all var(--dur) var(--ease);
 }
 .er__navdot.is-done {
   color: var(--primary-text);
   border-color: var(--primary-line);
+  background: var(--primary-soft-2);
+  font-weight: var(--fw-medium);
 }
 .er__navdot.is-cur {
   background: var(--primary);
   border-color: var(--primary);
   color: #fff;
+  box-shadow: 0 0 0 3px var(--primary-soft-1);
 }
 .er__q {
   padding: var(--sp-4);
@@ -950,6 +1048,16 @@ async function onPhoto(ev, qid) {
   font-size: 40px;
   color: var(--primary-text);
   font-weight: var(--fw-medium);
+}
+/* 成绩色标三档（与首页一致） */
+.er__score-num.is-high {
+  color: #2f7a4d;
+}
+.er__score-num.is-mid {
+  color: #b5722a;
+}
+.er__score-num.is-low {
+  color: #c0392b;
 }
 .er__score-full {
   color: var(--text-muted);

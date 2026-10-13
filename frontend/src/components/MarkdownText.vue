@@ -8,7 +8,7 @@
 import { ref, watch, onMounted } from 'vue'
 import katex from 'katex'
 import 'katex/contrib/mhchem' // 化学：支持 \ce{} 方程式
-import { latexToPlain } from '../mathtext'
+import { latexToPlain, normalizeLatex, hasBareMath, wrapBareMath, sanitizePlain } from '../mathtext'
 import { profileRef } from '../profileStore'
 
 const props = defineProps({
@@ -57,22 +57,39 @@ function inlineHtml(text) {
   return wrap
 }
 
-/** 行内渲染：LaTeX 走 KaTeX，其余走加粗/代码；公式渲染失败时降级为可读纯文本（不打印 $ 号） */
+/** 行内渲染：LaTeX 走 KaTeX（含**裸公式**），其余走加粗/代码；失败/残留一律降级为可读文本（不打印 $ 与源码） */
+function isMathSeg(seg) {
+  return seg.length > 2 && (seg.startsWith('$') || seg.startsWith('\\('))
+}
+
+/** 渲染一个已定界的公式段（渲染失败 → 可读纯文本） */
+function appendMath(seg, display, el) {
+  const tex = seg.startsWith('$$') ? seg.slice(2, -2) : seg.startsWith('$') ? seg.slice(1, -1) : seg.slice(2, -2)
+  const node = mathNode(tex, display)
+  if (node.nodeType === 1) {
+    el.appendChild(node)
+    return
+  }
+  el.appendChild(inlineHtml(latexToPlain(tex)))
+}
+
 function renderInline(raw, el) {
   for (const seg of raw.split(INLINE_RE)) {
     if (!seg) continue
-    const isMath = seg.length > 2 && (seg.startsWith('$') || seg.startsWith('\\('))
-    if (isMath) {
-      const tex = seg.startsWith('$') ? seg.slice(1, -1) : seg.slice(2, -2)
-      const node = mathNode(tex, false)
-      if (node.nodeType === 1) {
-        el.appendChild(node)
-        continue
-      }
-      el.appendChild(inlineHtml(latexToPlain(tex)))
+    if (isMathSeg(seg)) {
+      appendMath(seg, false, el)
       continue
     }
-    el.appendChild(inlineHtml(seg))
+    // 非定界段：AI 常直接写 \overline{p} / \frac{a}{b} / x^2 而不加 $ —— 这里补做裸公式识别
+    if (!hasBareMath(seg)) {
+      el.appendChild(inlineHtml(sanitizePlain(seg)))
+      continue
+    }
+    for (const piece of wrapBareMath(seg).split(/(\$[^$\n]+?\$)/g)) {
+      if (!piece) continue
+      if (isMathSeg(piece)) appendMath(piece, false, el)
+      else el.appendChild(inlineHtml(sanitizePlain(piece)))
+    }
   }
 }
 
@@ -154,7 +171,7 @@ function render() {
   const el = host.value
   if (!el) return
   el.textContent = ''
-  const raw = props.content || ''
+  const raw = normalizeLatex(props.content || '')
   if (!raw) return
 
   // 1) 切代码块

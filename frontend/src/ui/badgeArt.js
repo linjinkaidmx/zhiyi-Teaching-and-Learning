@@ -64,6 +64,21 @@ export function legendHalo() {
   return s
 }
 
+/** 顶部高光弧：底座体积感（每档通用，画在 ring 之上） */
+export function highlightOf() {
+  return '<path d="M22 26C29 17 38 12 48 12" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" opacity=".55"/>'
+}
+
+/** 未解锁进度弧：外圈按进度描边（rotate 90 让起点落在正下方），引用 bm-g-progress 渐变 */
+export function progressArc(pct) {
+  const p = Math.min(100, Math.max(0, Number(pct) || 0))
+  if (p <= 0) return ''
+  const r = 43.5
+  const circ = 2 * Math.PI * r
+  const dash = (circ * p) / 100
+  return `<circle cx="48" cy="48" r="${r}" fill="none" stroke="url(#bm-g-progress)" stroke-width="3.6" stroke-linecap="round" stroke-dasharray="${dash.toFixed(1)} ${(circ - dash).toFixed(1)}" transform="rotate(90 48 48)"/>`
+}
+
 /** 图腾：24×24 线条图形（与站点 UiIcon 同一套语言），每个功能域 3 个变体 */
 export const TOTEM = {
   // 拍照搜题
@@ -97,6 +112,8 @@ export const TOTEM = {
   spark: '<path d="M12 3.6 13.9 9l5.4 1.9-5.4 1.9L12 18.2l-1.9-5.4L4.7 10.9 10.1 9z"/>',
   compass: '<circle cx="12" cy="12" r="8.2"/><path d="M15.6 8.4 13.7 13.7 8.4 15.6 10.3 10.3z"/>',
   rocket: '<path d="M12 3.2s4.6 2.4 4.6 8.4c0 3.4-1.6 6.4-1.6 6.4h-6s-1.6-3-1.6-6.4C7.4 5.6 12 3.2 12 3.2Z"/><circle cx="12" cy="9.6" r="1.7"/><path d="M9.4 18.4h5.2M10.2 20.8h3.6"/>',
+  // AI 课堂：黑板 + 粉笔槽 + 板书「A」（2026-10-13 成就扩展）
+  board: '<rect x="3.2" y="4.4" width="17.6" height="12.6" rx="1.8"/><path d="M5.4 19.6h13.2"/><path d="M8.2 8.2h5.2M8.2 11.4h7.6M8.2 14.2h4.4"/>',
 }
 
 /** 图腾缺省回退，避免定义里写错名字时奖章空白 */

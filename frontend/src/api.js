@@ -1,4 +1,15 @@
+import { getToken } from './auth.js'
+
 const BASE = import.meta.env.VITE_API_BASE || ''
+
+/** A2：受保护接口（AI/云同步等）需要登录态。调用方没显式传 token 且已登录时自动注入。 */
+function withToken(body) {
+  if (body && typeof body === 'object' && !('token' in body)) {
+    const t = getToken()
+    if (t) return { ...body, token: t }
+  }
+  return body
+}
 
 async function post(path, body, timeoutMs = 180000, outerSignal = null) {
   const ctrl = new AbortController()
@@ -12,11 +23,18 @@ async function post(path, body, timeoutMs = 180000, outerSignal = null) {
     const res = await fetch(BASE + path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify(withToken(body)),
       signal: ctrl.signal,
     })
     const data = await res.json()
-    if (!data.ok) throw new Error(data.error || '请求失败')
+    if (!data.ok) {
+      const err = new Error(data.error || '请求失败')
+      /* v8: 额度超额标记透传（伙伴页据此切角色人设化话术，不用系统报错） */
+      if (data.quota_exhausted) { err.quota_exhausted = true; err.quota_kind = data.quota_kind || '' }
+      /* 2026-10-10：旧版课程归档标记透传（AI 课堂据此提示重开新课） */
+      if (data.archived) err.archived = true
+      throw err
+    }
     return data
   } catch (e) {
     // 把浏览器/网络层的英文错误换成用户能看懂的中文：
@@ -50,10 +68,18 @@ async function streamPost(path, body, { onDelta, onDone, onEvent, signal, timeou
     const res = await fetch(BASE + path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify(withToken(body)),
       signal: ctrl.signal,
     })
-    if (!res.ok || !res.body) throw new Error(`请求失败（HTTP ${res.status}）`)
+    if (!res.ok || !res.body) {
+      // 鉴权/限流拒绝（401/429）等会返回 JSON 错误体，尽量把中文原因透传给页面
+      let msg = `请求失败（HTTP ${res.status}）`
+      try {
+        const j = await res.json()
+        if (j && j.error) msg = j.error
+      } catch (e) { /* 非 JSON 体，保持默认提示 */ }
+      throw new Error(msg)
+    }
     const reader = res.body.getReader()
     const decoder = new TextDecoder('utf-8')
     let buf = ''
@@ -100,6 +126,8 @@ export const api = {
   explainStream: (payload, handlers) => streamPost('/api/explain/stream', payload, handlers),
   // 批次4：错题本聚合摘要 → 学情建议（服务端 24h 缓存）
   analyze: (payload) => post('/api/analyze/errorbook', payload, 180000),
+  // 今日学习建议（2026-10-10 首页 Hero 入口；服务端 24h 缓存，点击才调）
+  analyzeDaily: (payload) => post('/api/analyze/daily', payload, 180000),
   judge: (question, reference, user_answer, steps = [], key_breakthrough = '', knowledge_points = []) =>
     post('/api/judge', { question, reference, user_answer, steps, key_breakthrough, knowledge_points }, 180000).then((d) => d.data),
 
@@ -140,6 +168,55 @@ export const api = {
 
   // 代码在线运行（python / c）
   run: (language, code, stdin = '') => post('/api/run', { language, code, stdin }, 60000),
+  // 伴学角色闲聊（M3）：doubao 闲聊位，登录 20 次/日，游客返回登录引导文案
+  companion: (payload) => post('/api/companion/chat', payload, 60000),
+  /** 伴学闲聊（流式）：逐字冒字。配额/落库副作用由服务端处理 */
+  companionStream: (payload, handlers) => streamPost('/api/companion/chat/stream', payload, handlers),
+  // 伙伴页：云端历史 + 偏好 + 轻量问答 + 语音转文字
+  companionStats: (character) => post('/api/companion/stats', { character }, 20000),
+  companionHistory: (character, session_id = '') =>
+    post('/api/companion/history', { character, session_id }, 15000)
+      .then((d) => ({ msgs: d.msgs || [], prefs: d.prefs || [], chat_left: d.chat_left ?? 0, quiz_left: d.quiz_left ?? 0, active_chain: d.active_chain || null })),
+  /* p20 多会话聊天记录：列表 / 新开 / 重命名 / 删除（记忆按会话隔离） */
+  companionSessions: (character) =>
+    post('/api/companion/sessions/list', { character }, 15000).then((d) => d.sessions || []),
+  companionSessionCreate: (character) =>
+    post('/api/companion/sessions/create', { character }, 15000).then((d) => d.session),
+  companionSessionRename: (session_id, title) =>
+    post('/api/companion/sessions/rename', { session_id, title }, 15000),
+  companionSessionDelete: (session_id) =>
+    post('/api/companion/sessions/delete', { session_id }, 15000),
+  companionPref: (character, patch = {}) =>
+    post('/api/companion/pref', { character, ...patch }, 15000).then((d) => d.pref),
+  companionQuiz: (payload) => post('/api/companion/quiz', payload, 120000),
+  companionAsr: (audio_base64, mime = 'wav') =>
+    post('/api/companion/asr', { audio_base64, mime }, 30000).then((d) => d.text),
+  /* 造角色二期：自定义伴学角色（token 由 withToken 自动注入） */
+  companionCustomList: () => post('/api/companion/custom/list', {}, 15000),
+  companionCustomCreate: (payload) => post('/api/companion/custom/create', payload, 120000),
+  companionCustomDelete: (char_id) => post('/api/companion/custom/delete', { char_id }, 15000),
+  /* AI 造角色（2026-10-09）：照片 → AI 画 Q 版立绘，每账号终身 3 次；预览满意才保存 */
+  companionAiGen: (image, mime, hint = '') =>
+    post('/api/companion/custom/ai-gen', { image, mime, hint }, 180000),
+  companionAiSave: (gen_id, name, template, extra = '') =>
+    post('/api/companion/custom/ai-save', { gen_id, name, template, extra }, 60000),
+  /* AI 造角色·编辑（2026-10-09）：char_id 不变原地更新；gen_id 空=不换形象不扣次 */
+  companionAiUpdate: (char_id, gen_id, name, template, extra = '') =>
+    post('/api/companion/custom/ai-update', { char_id, gen_id, name, template, extra }, 60000),
+  /* AI 教学老师（2026-10-09）：开课大纲 / 开讲讲义 / 交作业批改 / 疑问 / 推进 / 大纲编辑
+     2026-10-10 章节化：章末总结+单元测试、批改后逐选项分析 */
+  teachSyllabus: (payload) => post('/api/teach/syllabus', payload, 200000),
+  teachSyllabi: () => post('/api/teach/syllabi', {}, 20000),
+  teachStart: (payload) => post('/api/teach/start', payload, 240000),
+  /** 开讲（讲义字段级流式）：逐字段冒字，结束给完整讲义 */
+  teachStream: (payload, handlers) => streamPost('/api/teach/stream', payload, handlers),
+  teachAnswer: (payload) => post('/api/teach/answer', payload, 240000),
+  teachAsk: (payload) => post('/api/teach/ask', payload, 180000),
+  teachNext: (payload) => post('/api/teach/next', payload, 20000),
+  teachEdit: (payload) => post('/api/teach/syllabus/edit', payload, 20000),
+  teachExamAnalysis: (payload) => post('/api/teach/exam_analysis', payload, 180000),
+  teachChapter: (payload) => post('/api/teach/chapter', payload, 200000),
+  teachChapterAnswer: (payload) => post('/api/teach/chapter/answer', payload, 240000),
   // 批次2：变式题生成（后端带缓存，同题同策略不重复计费）
   variant: (payload) => post('/api/variant', payload, 120000),
   // 批次2：AI 对话流式
@@ -230,6 +307,10 @@ export const api = {
     send: (token, group_id, type, content) =>
       post('/api/group/send', { token, group_id, type, content }, 20000).then((d) => d.message),
     invite: (token, group_id, nickname) => post('/api/group/invite', { token, group_id, nickname }, 15000),
+    quit: (token, group_id) => post('/api/group/quit', { token, group_id }, 15000),
+    dissolve: (token, group_id) => post('/api/group/dissolve', { token, group_id }, 15000),
+    removeMember: (token, group_id, user_id) =>
+      post('/api/group/remove-member', { token, group_id, user_id }, 15000),
   },
 
   // 班级模块（均需 token；批改/报告走 AI，超时放宽）

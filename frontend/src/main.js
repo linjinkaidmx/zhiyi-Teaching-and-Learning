@@ -19,16 +19,15 @@ import App from './App.vue'
 
 const params = new URLSearchParams(window.location.search)
 
-/* 主题：默认浅色（移动/桌面一致），支持 ?theme=dark 预览深色；持久化到 zy_theme，后续接入「我的 → 系统设置」 */
-const savedTheme = (() => {
-  try {
-    return localStorage.getItem('zy_theme')
-  } catch {
-    return null
-  }
-})()
-const theme = params.get('theme') || savedTheme || 'light'
-document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'dark'
+/* 主题：仅浅色（2026-10-12 下线深色切换）。
+ * 固定 light，并清掉历史残留的 zy_theme（老用户存过 dark 的也回到浅色）；
+ * 各页面的 html[data-theme='dark'] 深色规则保留但不生效。 */
+document.documentElement.dataset.theme = 'light'
+try {
+  localStorage.removeItem('zy_theme')
+} catch {
+  /* 隐私模式忽略 */
+}
 
 /* 是否进入 Design System 自检页（P1 交付物，用 ?ds=1 访问） */
 const isDesignSystem = params.has('ds')

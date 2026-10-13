@@ -1,3 +1,9 @@
+<!--
+  @deprecated 2026-10-13 —— 本组件已无任何引用（Element Plus 时代的遗留文件）。
+  保留仅作历史参考。若将来要复用：
+    1) 先移除对 'element-plus' 的 import（依赖已不在 package.json，直接用会构建失败）
+    2) 文本类字段一律套 <MathText :content="..." />（prop 是 content，不是 text）
+-->
 <template>
   <div class="card rec">
     <div class="head">
@@ -18,7 +24,7 @@
           >
             {{ q.difficulty }}
           </el-tag>
-          <span class="q-text"><MathText :text="q.question" /></span>
+          <span class="q-text"><MathText :content="q.question" /></span>
         </div>
         <div class="ops">
           <el-button link type="primary" @click="toggle(q.id)">
@@ -30,8 +36,8 @@
           </el-button>
         </div>
         <div v-if="expanded === q.id" class="detail">
-          <div><b>思路：</b><MathText :text="q.hint" /></div>
-          <div class="ans"><b>答案：</b><MathText :text="q.answer" /></div>
+          <div><b>思路：</b><MathText :content="q.hint" /></div>
+          <div class="ans"><b>答案：</b><MathText :content="q.answer" /></div>
         </div>
       </div>
     </div>

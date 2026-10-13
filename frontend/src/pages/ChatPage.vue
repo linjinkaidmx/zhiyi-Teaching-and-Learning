@@ -19,11 +19,14 @@
         <ul v-else class="chat__items">
           <li v-for="c in conversations" :key="c.id">
             <div class="chat__item" :class="{ 'is-active': c.id === chatId }" @click="openChat(c.id)">
+              <span class="chat__item-ic"><UiIcon name="chatDots" :size="15" /></span>
               <div class="chat__item-body">
                 <div class="chat__item-title">{{ c.title }}</div>
                 <div class="t-label chat__item-meta">{{ c.messages.length }} 条 · {{ timeText(c.updatedAt) }}</div>
               </div>
-              <button class="chat__item-del" type="button" aria-label="删除对话" @click.stop="doRemove(c.id)">×</button>
+              <button class="chat__item-del" type="button" aria-label="删除对话" @click.stop="doRemove(c.id)">
+                <UiIcon name="trash" :size="14" />
+              </button>
             </div>
           </li>
         </ul>
@@ -32,7 +35,7 @@
       <!-- 对话详情 -->
       <section v-show="showDetail" class="chat__main">
         <header class="chat__main-head">
-          <UiButton v-show="isMobile" variant="ghost" size="sm" @click="backToList">← 对话</UiButton>
+          <UiButton v-show="isMobile" variant="soft" size="sm" class="zy-back" @click="backToList" icon="left">对话</UiButton>
           <h2 class="t-h3 chat__main-title">{{ conv ? conv.title : 'AI 对话' }}</h2>
           <UiButton v-if="conv" variant="ghost" size="sm" @click="pickerOpen = true">引用学习内容</UiButton>
         </header>
@@ -42,21 +45,38 @@
             v-if="!conv || !conv.messages.length"
             title="开始一段新对话"
             description="可以直接提问，也可以先「引用学习内容」把错题带进来一起问。"
-          />
+          >
+            <template #action>
+              <div class="chat__starter">
+                <span class="t-label chat__starter-head">试试问这些：</span>
+                <div class="chat__starter-grid">
+                  <button v-for="s in starters" :key="s" type="button" class="chat__starter-btn" @click="sendStarter(s)">
+                    <span class="chat__starter-ic"><UiIcon name="sparkle" :size="14" /></span>
+                    <span class="chat__starter-text">{{ s }}</span>
+                  </button>
+                </div>
+              </div>
+            </template>
+          </UiEmptyState>
 
           <div v-for="m in conv ? conv.messages : []" :key="m.id" class="chat__msg" :data-role="m.role">
-            <div class="chat__bubble">
-              <div v-if="m.context && m.context.length" class="chat__ctx">
-                <span class="t-label">引用 {{ m.context.length }} 条：</span>
-                <UiTag v-for="c in m.context" :key="c.id" variant="brand-soft">{{ c.title }}</UiTag>
+            <UiAiLogo v-if="m.role === 'assistant'" :state="m.streaming ? 'streaming' : 'completed'" size="sm" class="chat__avatar" />
+            <div class="chat__col">
+              <div class="chat__bubble">
+                <div v-if="m.context && m.context.length" class="chat__ctx">
+                  <span class="t-label">引用 {{ m.context.length }} 条：</span>
+                  <UiTag v-for="c in m.context" :key="c.id" variant="brand-soft">{{ c.title }}</UiTag>
+                </div>
+                <MarkdownText v-if="m.role === 'assistant' && !m.streaming" :content="m.text" />
+                <p v-else-if="m.role === 'user'" class="chat__plain chat__pre"><MathText :content="m.text" /></p>
+                <p v-else class="chat__plain">{{ m.text }}<span v-if="m.streaming" class="ai-caret" /></p>
+                <p v-if="m.error" class="t-label chat__err">{{ m.error }}</p>
               </div>
-              <MarkdownText v-if="m.role === 'assistant' && !m.streaming" :content="m.text" />
-              <p v-else-if="m.role === 'user'" class="chat__plain chat__pre"><MathText :content="m.text" /></p>
-              <p v-else class="chat__plain">{{ m.text }}<span v-if="m.streaming" class="ai-caret" /></p>
-              <p v-if="m.error" class="t-label chat__err">{{ m.error }}</p>
-            </div>
-            <div v-if="m.role === 'assistant' && !m.streaming" class="chat__msg-ops">
-              <UiButton variant="text" size="sm" @click="regenerate(m)">重新生成</UiButton>
+              <div v-if="m.role === 'assistant' && !m.streaming" class="chat__msg-ops">
+                <button class="chat__msg-op" type="button" title="重新生成" @click="regenerate(m)">
+                  <UiIcon name="refresh" :size="14" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -69,15 +89,15 @@
               <span v-if="suggestsLoading" class="t-label chat__suggests-loading">AI 正在生成更贴合的问题…</span>
             </div>
             <div class="chat__suggests-list">
-              <UiTag
+              <button
                 v-for="q in kpQuestions"
                 :key="q"
-                variant="brand-soft"
-                clickable
+                type="button"
+                class="chat__sugg"
                 @click="useSuggest(q)"
               >
                 {{ q }}
-              </UiTag>
+              </button>
             </div>
           </div>
           <div v-if="pendingContext.length" class="chat__pending">
@@ -133,7 +153,9 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import UiButton from '../ui/UiButton.vue'
+import UiIcon from '../ui/UiIcon.vue'
 import UiTag from '../ui/UiTag.vue'
+import UiAiLogo from '../ui/UiAiLogo.vue'
 import UiModal from '../ui/UiModal.vue'
 import UiEmptyState from '../ui/UiEmptyState.vue'
 import MarkdownText from '../components/MarkdownText.vue'
@@ -179,7 +201,7 @@ const contextOptions = computed(() =>
 )
 
 function updateIsMobile() {
-  isMobile.value = window.innerWidth < 900
+  isMobile.value = window.innerWidth < 640
 }
 
 // 会话存储由 sessionStore.initSession() 按空间初始化（App 启动时已执行）
@@ -268,6 +290,27 @@ function timeText(ts) {
   const today = new Date()
   const sameDay = d.toDateString() === today.toDateString()
   return sameDay ? `${p(d.getHours())}:${p(d.getMinutes())}` : `${d.getMonth() + 1}/${d.getDate()}`
+}
+
+/** 会话列表：最后一条消息预览 */
+function lastPreview(c) {
+  const msgs = c.messages || []
+  if (!msgs.length) return ''
+  const last = msgs[msgs.length - 1]
+  const t = latexToPlain(String(last.text || '')).replace(/\s+/g, ' ').trim()
+  return t.length > 26 ? t.slice(0, 26) + '…' : t
+}
+
+/** 空对话态建议问题 */
+const starters = [
+  '帮我解释一个高数概念',
+  '总结我的错题薄弱点',
+  '推荐一个学习方法',
+  '结合一道错题讲讲',
+]
+function sendStarter(text) {
+  draft.value = text
+  send()
 }
 
 function newChat() {
@@ -422,13 +465,13 @@ onBeforeUnmount(() => {
 .chat {
   display: flex;
   flex-direction: column;
-  max-width: 1180px;
+  max-width: 1280px;
 }
 .chat__layout {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: 320px minmax(0, 1fr);
   gap: var(--sp-4);
-  align-items: start;
+  align-items: stretch;
 }
 .chat__list {
   display: flex;
@@ -470,6 +513,28 @@ onBeforeUnmount(() => {
 }
 .chat__item.is-active {
   background: var(--primary-soft-3);
+  box-shadow: inset 2px 0 0 var(--primary);
+}
+/* 会话图标块 */
+.chat__item-ic {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-unit);
+  color: var(--text-tertiary);
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.chat__item:hover .chat__item-ic {
+  background: var(--primary-soft-3);
+  color: var(--primary-text);
+}
+.chat__item.is-active .chat__item-ic {
+  background: var(--primary-soft-2);
+  color: var(--primary-text);
 }
 .chat__item-body {
   flex: 1;
@@ -482,27 +547,45 @@ onBeforeUnmount(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.chat__item.is-active .chat__item-title {
+  color: var(--text-primary);
+  font-weight: var(--fw-medium);
+}
 .chat__item-meta {
   color: var(--text-muted);
   margin-top: 2px;
 }
+/* 删除按钮：默认隐藏，悬停或当前项才出现（防误触） */
 .chat__item-del {
+  flex: none;
   border: 0;
   background: none;
   color: var(--text-muted);
-  font-size: 16px;
   line-height: 1;
   cursor: pointer;
-  padding: 0 2px;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: color var(--dur) var(--ease), background var(--dur) var(--ease),
+    opacity var(--dur) var(--ease);
+}
+.chat__item:hover .chat__item-del,
+.chat__item.is-active .chat__item-del {
+  opacity: 1;
 }
 .chat__item-del:hover {
-  color: var(--error);
+  color: var(--error, #c0392b);
+  background: var(--danger-soft, rgba(200, 60, 60, 0.12));
 }
 
 .chat__main {
   display: flex;
   flex-direction: column;
-  min-height: 62vh;
+  height: calc(100vh - 150px); /* 全高布局：占满视口，输入框贴底 */
+  min-height: 480px;
   border-radius: var(--radius-lg);
   border: var(--border-subtle);
   border-top: var(--border-top-subtle);
@@ -531,18 +614,29 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: var(--sp-4);
-  max-height: 56vh;
 }
 .chat__msg {
   display: flex;
-  flex-direction: column;
-  gap: var(--sp-1);
+  flex-direction: row;
+  gap: var(--sp-2);
+  align-items: flex-start;
 }
 .chat__msg[data-role='user'] {
+  flex-direction: row-reverse;
+}
+.chat__avatar {
+  margin-top: 2px;
+}
+.chat__col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  max-width: 78%;
+}
+.chat__msg[data-role='user'] .chat__col {
   align-items: flex-end;
 }
 .chat__bubble {
-  max-width: 84%;
   padding: var(--sp-3) var(--sp-4);
   border-radius: var(--radius-md);
   font-size: var(--fs-body);
@@ -555,6 +649,10 @@ onBeforeUnmount(() => {
   background: var(--primary);
   color: var(--text-on-primary);
   border-color: transparent;
+  border-top-right-radius: var(--radius-sm);
+}
+.chat__msg[data-role='assistant'] .chat__bubble {
+  border-top-left-radius: var(--radius-sm);
 }
 .chat__plain {
   white-space: pre-wrap;
@@ -569,9 +667,31 @@ onBeforeUnmount(() => {
   color: var(--error);
   margin-top: var(--sp-2);
 }
+/* 回答操作：悬停才出现，图标按钮不占视觉 */
 .chat__msg-ops {
   display: flex;
   gap: var(--sp-2);
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+}
+.chat__msg:hover .chat__msg-ops {
+  opacity: 1;
+}
+.chat__msg-op {
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.chat__msg-op:hover {
+  color: var(--primary-text);
+  background: var(--primary-soft-3);
 }
 .chat__foot {
   border-top: var(--border-divider-soft);
@@ -598,8 +718,77 @@ onBeforeUnmount(() => {
 }
 .chat__suggests-list {
   display: flex;
-  flex-wrap: wrap;
   gap: var(--sp-2);
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+.chat__sugg {
+  flex: none;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  border: 0.5px solid var(--primary-line);
+  background: var(--primary-soft-1);
+  color: var(--primary-text);
+  font-size: var(--fs-body-2);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.chat__sugg:hover {
+  background: var(--primary-soft-2);
+  border-color: var(--primary);
+}
+/* 空对话态建议问题：卡片网格（图标 + 文字） */
+.chat__starter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  align-items: center;
+}
+.chat__starter-head {
+  text-align: center;
+}
+.chat__starter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+  gap: var(--sp-2);
+  width: 100%;
+  max-width: 560px;
+}
+.chat__starter-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  border-radius: var(--radius-md);
+  border: var(--border-subtle);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  font-size: var(--fs-body-2);
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease),
+    background var(--dur) var(--ease);
+}
+.chat__starter-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--primary-line);
+  background: var(--primary-soft-3);
+  color: var(--text-primary);
+}
+.chat__starter-ic {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-soft-2);
+  color: var(--primary-text);
+}
+.chat__starter-text {
+  min-width: 0;
 }
 .chat__pending {
   display: flex;
@@ -672,12 +861,13 @@ onBeforeUnmount(() => {
   color: var(--text-muted);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 640px) {
   .chat__layout {
     grid-template-columns: minmax(0, 1fr);
   }
-  .chat__scroll {
-    max-height: none;
+  .chat__main {
+    height: auto;
+    min-height: 62vh;
   }
   .chat__bubble {
     max-width: 92%;

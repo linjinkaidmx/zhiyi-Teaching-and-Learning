@@ -18,39 +18,50 @@ export function goBackSmart(router, fallback = ROUTES.more) {
 /**
  * 桌面端左侧导航结构（≥1024px 使用；移动端不渲染）
  * ---------------------------------------------------------------------------
- * 分组与移动端首页的「主功能大卡 + 次入口」保持一致，只是改为常驻竖列，
- * 桌面端一键直达，不必先回首页再点卡片。
+ * 分类维度统一为「用户意图」：讲题学习 → 练习巩固 → 学情回顾 → 我的校园。
+ * 组内按使用频率排（高频在上），组间按学习动线排（学 → 练 → 看 → 校园事务）。
+ * 低频的账号/关于类不占主视觉，收在 DESKTOP_NAV_FOOT（底部小字区）。
  */
 export const DESKTOP_NAV = [
   {
-    title: '学习',
+    title: '讲题学习',
     items: [
       { label: '工作台', icon: 'home', path: ROUTES.home },
       { label: '拍照搜题', icon: 'camera', path: ROUTES.capture },
       { label: 'AI 讲题对话', icon: 'chat', path: ROUTES.chat },
+      { label: 'AI 课堂', icon: 'teacher', path: ROUTES.teacher },
+      { label: 'AI 伴学', icon: 'companion', path: ROUTES.companion },
+      { label: '学习工具', icon: 'settings', path: ROUTES.tools },
     ],
   },
   {
-    title: '巩固',
+    title: '练习巩固',
     items: [
       { label: '错题学习', icon: 'book', path: ROUTES.wrongbook, badge: 'review' },
+      { label: '自测练习', icon: 'target', path: '/practice/original' },
+      { label: '模拟考试', icon: 'clipboard', path: ROUTES.simExam },
+    ],
+  },
+  {
+    title: '学情回顾',
+    items: [
+      { label: '学情报告', icon: 'sparkle', path: ROUTES.report },
       { label: '学习数据', icon: 'data', path: ROUTES.data },
       { label: '学习记录', icon: 'history', path: ROUTES.records },
-      { label: '成就殿堂', icon: 'sparkle', path: ROUTES.achievements },
+      { label: '成就殿堂', icon: 'flame', path: ROUTES.achievements },
     ],
   },
   {
-    title: '教学与工具',
+    title: '我的校园',
     items: [
       { label: '班级课堂', icon: 'users', path: ROUTES.classPage },
-      { label: '课程表', icon: 'schedule', path: ROUTES.timetable },
-      { label: '考试安排', icon: 'clipboard', path: ROUTES.exams },
-      { label: '学习工具', icon: 'sparkle', path: ROUTES.tools },
       { label: '知一社区', icon: 'image', path: ROUTES.community },
+      { label: '课程表', icon: 'schedule', path: ROUTES.timetable },
+      { label: '考试安排', icon: 'calendar', path: ROUTES.exams },
     ],
   },
   {
-    title: '我的',
+    title: '账号与帮助',
     items: [
       { label: '账号与同步', icon: 'user', path: ROUTES.mine },
       { label: '产品介绍', icon: 'info', path: ROUTES.about },
@@ -74,13 +85,16 @@ export function matchNav(pathname = '') {
   const fallbackMap = [
     [/^\/q\//, ROUTES.capture],
     [/^\/wrongbook\//, ROUTES.wrongbook],
-    [/^\/practice\//, ROUTES.wrongbook],
+    [/^\/practice\//, '/practice/original'],
     [/^\/chat\//, ROUTES.chat],
     [/^\/class\//, ROUTES.classPage],
-    [/^\/exam\//, ROUTES.exams],
-    [/^\/exam$/, ROUTES.exams],
+    [/^\/exam\/run/, ROUTES.simExam],
+    [/^\/exam$/, ROUTES.simExam],
+    [/^\/exams$/, ROUTES.exams],
     [/^\/more$/, ROUTES.tools],
-    [/^\/achievements$/, ROUTES.achievements],
+    [/^\/companion/, ROUTES.companion],
+    [/^\/report/, ROUTES.report],
+    [/^\/data/, ROUTES.data],
   ]
   for (const [re, target] of fallbackMap) {
     if (re.test(p)) return matchNav(target)

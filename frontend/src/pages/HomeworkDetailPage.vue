@@ -2,12 +2,12 @@
   <div class="zy-page">
     <div class="zy-container hwd">
       <header class="hwd__head">
-        <UiButton variant="ghost" size="sm" class="zy-back" @click="goBack">← 返回班级</UiButton>
+        <UiButton variant="soft" size="sm" class="zy-back" @click="goBack" icon="left">返回班级</UiButton>
         <h1 class="t-h1">{{ hw?.title || '作业' }}</h1>
         <p v-if="hw" class="t-label">
-          {{ isTeacher ? '老师视角' : '学生视角' }}
-          <template v-if="hw.due_at"> · 截止 {{ fmtDate(hw.due_at) }}</template>
-          <template v-if="overdue && !isTeacher"> · 已过截止</template>
+          <template v-if="hw.due_at">截止 {{ fmtDate(hw.due_at) }}</template>
+          <template v-else>无截止时间</template>
+          <template v-if="overdue"> · 已过截止</template>
         </p>
       </header>
 
@@ -68,12 +68,17 @@
             </template>
 
             <template v-else>
-              <div class="hwd__mine">
-                <span class="t-label">已提交 {{ fmtDate(hw.my_submission.updated_at) }}</span>
-                <span v-if="hw.my_submission.graded_at" class="hwd__score">{{ hw.my_submission.score }}<i>/100</i></span>
-                <span v-else class="clsd__badge hwd__pending">待批改</span>
+              <div class="hwd__result">
+                <div class="hwd__result-main">
+                  <span class="t-label">已提交 {{ fmtDate(hw.my_submission.updated_at) }}</span>
+                  <p v-if="hw.my_submission.note" class="t-body-2 hwd__result-note">附言：{{ hw.my_submission.note }}</p>
+                </div>
+                <div v-if="hw.my_submission.graded_at" class="hwd__scorecard">
+                  <span class="hwd__score-num">{{ hw.my_submission.score }}</span>
+                  <span class="hwd__score-unit">/ 100</span>
+                </div>
+                <span v-else class="hwd__pending">待批改</span>
               </div>
-              <p v-if="hw.my_submission.note" class="t-body-2">附言：{{ hw.my_submission.note }}</p>
 
               <div v-if="hw.my_submission.feedback" class="hwd__feedback">
                 <p class="hwd__overall"><MathText :content="hw.my_submission.feedback.overall || ''" /></p>
@@ -84,7 +89,7 @@
                 >
                   <span class="hwd__fb-q"><MathText :content="it.question || ''" /></span>
                   <span class="hwd__fb-verdict" :class="`hwd__fb-verdict--${it.verdict}`">{{ it.verdict }}</span>
-                  <span class="hwd__fb-comment">{{ it.comment }}</span>
+                  <span class="hwd__fb-comment"><MathText :content="it.comment" /></span>
                 </div>
               </div>
 
@@ -121,6 +126,27 @@
             <div class="hwd__toolbar">
               <h2 class="t-h3">提交情况 · 已交 {{ submissions.length }}/{{ students.length }}</h2>
               <div class="hwd__toolbar-ops">
+                <button
+                  class="hwd__tool-ic"
+                  type="button"
+                  title="生成班级报告"
+                  :disabled="!gradedCount || grading"
+                  @click="makeReport"
+                ><UiIcon name="data" :size="16" /></button>
+                <button
+                  class="hwd__tool-ic"
+                  type="button"
+                  title="导出成绩表"
+                  :disabled="!students.length || grading"
+                  @click="exportScores"
+                ><UiIcon name="clipboard" :size="16" /></button>
+                <button
+                  class="hwd__tool-ic"
+                  type="button"
+                  title="打印报告"
+                  :disabled="!gradedCount || grading"
+                  @click="printReport"
+                ><UiIcon name="printer" :size="16" /></button>
                 <UiButton
                   variant="primary"
                   size="sm"
@@ -128,41 +154,25 @@
                   :disabled="!pendingCount || grading"
                   @click="gradeAll"
                 >AI 一键批改{{ pendingCount ? `（${pendingCount} 份待批）` : '' }}</UiButton>
-                <UiButton
-                  variant="ghost"
-                  size="sm"
-                  :loading="reportBusy"
-                  :disabled="!gradedCount || grading"
-                  @click="makeReport"
-                >生成班级报告</UiButton>
-                <UiButton
-                  variant="ghost"
-                  size="sm"
-                  :loading="exporting"
-                  :disabled="!students.length || grading"
-                  @click="exportScores"
-                >导出成绩表</UiButton>
-                <UiButton
-                  variant="ghost"
-                  size="sm"
-                  :disabled="!gradedCount || grading"
-                  @click="printReport"
-                >打印报告</UiButton>
               </div>
             </div>
             <p v-if="grading" class="t-label hwd__progress">{{ gradingTip }}</p>
 
             <div v-if="students.length" class="hwd__stu-list">
               <div v-for="st in studentRows" :key="st.user_id" class="hwd__stu surface-standard">
+                <span class="hwd__stu-av" :style="avatarStyle(st.user_id)">{{ letterOf(st.user_id) }}</span>
                 <div class="hwd__stu-main">
                   <span class="hwd__stu-name">{{ st.user_id }}</span>
-                  <span class="t-label">
-                    {{ st.sub ? (st.sub.graded_at ? `已批 · ${st.sub.score} 分` : '已交，待批改') : '未提交' }}
+                  <span v-if="st.sub && st.sub.feedback" class="t-label hwd__stu-brief">
+                    {{ latexToPlain(st.sub.feedback.overall || '').replace(/\s+/g, ' ').trim().slice(0, 46) }}
                   </span>
                 </div>
+                <span class="hwd__stu-badge" :class="statusClass(st)">{{ statusText(st) }}</span>
                 <div class="hwd__stu-ops">
                   <template v-if="st.sub">
-                    <UiButton variant="ghost" size="sm" @click="viewImage(st)">看图</UiButton>
+                    <button class="hwd__tool-ic" type="button" title="查看作业图片" @click="viewImage(st)">
+                      <UiIcon name="image" :size="15" />
+                    </button>
                     <UiButton
                       variant="primary"
                       size="sm"
@@ -170,17 +180,14 @@
                       :disabled="grading"
                       @click="gradeOne(st)"
                     >{{ st.sub.graded_at ? '重新批改' : 'AI 批改' }}</UiButton>
-                    <UiButton
+                    <button
                       v-if="st.sub.graded_at"
-                      variant="ghost"
-                      size="sm"
+                      class="hwd__tool-ic"
+                      type="button"
+                      title="发反馈到群"
                       @click="pushStudent(st)"
-                    >发反馈到群</UiButton>
+                    ><UiIcon name="chat" :size="15" /></button>
                   </template>
-                </div>
-                <div v-if="st.sub && st.sub.feedback" class="hwd__stu-fb">
-                  <span class="hwd__fb-verdict" :class="verdictClass(st.sub.score)">{{ brief(st.sub) }}</span>
-                  <span class="t-label">{{ latexToPlain(st.sub.feedback.overall || '').replace(/\s+/g, ' ').trim().slice(0, 80) }}</span>
                 </div>
               </div>
             </div>
@@ -239,6 +246,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import UiButton from '../ui/UiButton.vue'
+import UiIcon from '../ui/UiIcon.vue'
 import UiEmptyState from '../ui/UiEmptyState.vue'
 import UiErrorState from '../ui/UiErrorState.vue'
 import UiModal from '../ui/UiModal.vue'
@@ -549,6 +557,26 @@ function verdictClass(score) {
   return 'hwd__fb-verdict--错误'
 }
 
+/* ---------- 老师视角：学生行（头像 + 状态徽标） ---------- */
+function statusText(st) {
+  if (!st.sub) return '未提交'
+  return st.sub.graded_at ? `已批 ${st.sub.score} 分` : '待批改'
+}
+function statusClass(st) {
+  if (!st.sub) return 'is-none'
+  return st.sub.graded_at ? 'is-graded' : 'is-pending'
+}
+const AVATAR_TONES = ['#7c5cff', '#3a78c0', '#2f7a4d', '#d0762a', '#c9503a', '#5b5bd6']
+function avatarStyle(name) {
+  const s = String(name || '?')
+  let h = 0
+  for (let i = 0; i < s.length; i += 1) h = (h * 31 + s.charCodeAt(i)) % 997
+  return { background: AVATAR_TONES[h % AVATAR_TONES.length] }
+}
+function letterOf(name) {
+  return String(name || '?').trim().charAt(0).toUpperCase() || '?'
+}
+
 function bucketWidth(count) {
   const total = report.value?.stats?.submitted || 1
   return `${Math.round((count / total) * 100)}%`
@@ -626,7 +654,7 @@ function fmtDate(ts) {
   max-height: 280px;
   object-fit: contain;
   border-radius: var(--radius-md);
-  border: 1px solid var(--border);
+  border: var(--border-subtle);
   background: #fff;
 }
 .hwd__textarea {
@@ -634,29 +662,55 @@ function fmtDate(ts) {
 }
 .hwd__input {
   width: 100%;
-  border: 1px solid var(--border);
+  border: var(--border-subtle);
   border-radius: var(--radius-md);
   padding: 8px 10px;
   font-size: var(--fs-body);
   color: var(--text-primary);
   background: var(--surface-unit);
 }
-.hwd__mine {
+/* 学生视角：提交结果行 + 分数卡 */
+.hwd__result {
   display: flex;
   align-items: center;
-  gap: var(--sp-3);
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
 }
-.hwd__score {
-  font-size: var(--fs-h1);
+.hwd__result-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.hwd__result-note {
+  margin: 0;
+}
+.hwd__scorecard {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--radius-md);
+  background: var(--primary-soft-3);
+  border: 0.5px solid var(--primary-line);
+}
+.hwd__score-num {
+  font-size: 34px;
+  font-weight: var(--fw-medium);
+  line-height: 1.1;
   color: var(--primary-text);
 }
-.hwd__score i {
-  font-size: var(--fs-label);
-  font-style: normal;
-  color: var(--text-muted);
+.hwd__score-unit {
+  font-size: var(--fs-body-2);
+  color: var(--text-tertiary);
 }
 .hwd__pending {
-  align-self: center;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-unit);
+  color: var(--text-tertiary);
+  font-size: var(--fs-label);
 }
 .hwd__feedback {
   display: flex;
@@ -724,32 +778,92 @@ function fmtDate(ts) {
   flex-direction: column;
   gap: var(--sp-2);
 }
+/* 学生行：头像 + 名字/摘要 + 状态徽标 + 操作 */
 .hwd__stu {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  gap: var(--sp-3);
   padding: 10px var(--sp-3);
+}
+.hwd__stu-av {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 13px;
+  font-weight: var(--fw-medium);
 }
 .hwd__stu-main {
   display: flex;
-  align-items: baseline;
-  gap: var(--sp-2);
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
 }
 .hwd__stu-name {
   font-size: var(--fs-body);
   color: var(--text-primary);
-  font-weight: 600;
+  font-weight: var(--fw-medium);
+}
+.hwd__stu-brief {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* 状态徽标：已批=绿 / 待批=橙 / 未交=灰 */
+.hwd__stu-badge {
+  flex: none;
+  font-size: var(--fs-label);
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+}
+.hwd__stu-badge.is-graded {
+  color: #2e7a4f;
+  background: rgba(46, 122, 79, 0.12);
+}
+.hwd__stu-badge.is-pending {
+  color: #b5722a;
+  background: rgba(181, 114, 42, 0.12);
+}
+.hwd__stu-badge.is-none {
+  color: var(--text-tertiary);
+  background: var(--surface-unit);
 }
 .hwd__stu-ops {
-  display: flex;
-  gap: var(--sp-2);
-  flex-wrap: wrap;
-}
-.hwd__stu-fb {
+  flex: none;
   display: flex;
   align-items: center;
   gap: var(--sp-2);
   flex-wrap: wrap;
+}
+/* 图标按钮：次要操作收敛（hover 有提示） */
+.hwd__tool-ic {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  border: var(--border-subtle);
+  background: var(--surface-1);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease),
+    background var(--dur) var(--ease);
+}
+.hwd__tool-ic:hover:not(:disabled) {
+  color: var(--primary-text);
+  border-color: var(--primary-line);
+  background: var(--primary-soft-3);
+}
+.hwd__tool-ic:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 .hwd__stats {
   display: grid;

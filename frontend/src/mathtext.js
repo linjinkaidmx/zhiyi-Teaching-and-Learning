@@ -45,6 +45,17 @@ const CMD_LIST = [
   'infty', 'partial', 'nabla', 'prime', 'hbar', 'ell', 'Re', 'Im', 'aleph', 'wp', 'deg', 'S',
   'lfloor', 'rfloor', 'lceil', 'rceil', 'langle', 'rangle', 'lVert', 'rVert', 'Vert', 'vert',
   'quad', 'qquad', 'ldots', 'cdots', 'vdots', 'ddots', 'dots', 'space', 'textwidth',
+  // 长箭头（重积分符号 / 长等号箭头，2026-10-13 按真实内容补齐）
+  'Longrightarrow', 'Longleftarrow', 'Longleftrightarrow', 'longmapsto',
+  'oiint', 'oiiint', 'xrightarrow', 'xleftarrow', 'xleftrightarrow',
+  'overset', 'underset', 'stackrel',
+  // 常用算符名（避免降级时把英文名当正文打出来）
+  'sgn', 'rank', 'diag', 'trace', 'Tr', 'erf', 'sinc', 'argmax', 'argmin', 'arg',
+  'grad', 'curl', 'cov', 'var', 'median', 'mode', 'arcsinh', 'arccosh', 'arctanh',
+  // 排版/间距/颜色
+  'color', 'textcolor', 'phantom', 'hspace', 'vspace', 'mathstrut', 'smash', 'raisebox',
+  'rule', 'genfrac', 'mathord', 'mathbin', 'mathrel', 'mathop', 'mathopen', 'mathclose',
+  'mathpunct', 'mathinner', 'mod', 'bmod',
 ]
 
 export const KNOWN_CMDS = new Set(CMD_LIST)
@@ -52,25 +63,97 @@ export const KNOWN_CMDS = new Set(CMD_LIST)
 /** 裸文本里出现的 \cmd（且命令名已知） */
 const KNOWN_CMD_RE = new RegExp('\\\\(' + CMD_LIST.join('|') + ')(?![a-zA-Z])')
 
-/** 裸公式 token：\cmd{...} 或 x^2 / x_{i} 这类明确结构 */
+/**
+ * 「命令名被吞掉反斜杠」的识别：`overline{` / `Aoverline{B}` / `frac{1}{2}` 这类。
+ * 取长度 ≥3 的命令名（长的优先），避免 `pane{` 这种英文词被 `ne` 误伤。
+ */
+const CMD_BRACE_WORDS = CMD_LIST.filter((c) => c.length >= 3).sort((a, b) => b.length - a.length)
+const CMD_BRACE_SRC = '(?<!\\\\)(?:' + CMD_BRACE_WORDS.join('|') + ')(?=\\s*\\{)'
+const CMD_BRACE_RE = new RegExp(CMD_BRACE_SRC)
+const CMD_BRACE_RE_G = new RegExp(CMD_BRACE_SRC, 'g')
+/**
+ * 重音类命令的「空格写法」：`vec r` / `hat i` / `dot x` → `\vec r` / `\hat i`。
+ * 只认「命令 + 空格 + **单个**变量且其后不是字母」，所以
+ * `hat is`（后随 s）/ `dot com`（后随 o）都不会被误伤；`bar` 不入列（躲开 "bar chart"）。
+ */
+const ACCENT_SPACE_SRC = '(?<!\\\\)(?:vec|hat|dot|ddot|tilde|widehat|widetilde)(\\s+)(?=[A-Za-z](?![A-Za-z]))'
+const ACCENT_SPACE_RE = new RegExp(ACCENT_SPACE_SRC)
+const ACCENT_SPACE_RE_G = new RegExp(ACCENT_SPACE_SRC, 'g')
+
+/** 判断「这段纯文本里是否混进了 LaTeX 残留」（用于决定要不要走可读降级） */
+export function hasLatexNoise(s) {
+  const t = String(s == null ? '' : s)
+  if (/[\\$^_]/.test(t)) return true
+  if (CMD_BRACE_RE.test(t) || ACCENT_SPACE_RE.test(t)) return true
+  // 花括号落单（成对的是正常正文，如「集合 {a,b}」）
+  const braces = (t.match(/[{]/g) || []).length + (t.match(/[}]/g) || []).length
+  return braces % 2 === 1
+}
+
+/**
+ * 给「被吞掉反斜杠的命令名」补回反斜杠：overline{ → \overline{、Aoverline{B} → A\overline{B}、hat i → \hat i
+ *
+ * 关键：先把**已经正确**的 `\cmd` 屏蔽成占位符再补。
+ * 否则 `\dfrac{..}` 会被从中间认出 `frac` 而插成 `\d\frac{..}`（负向后顾只看紧邻一个字符，拦不住）。
+ */
+export function restoreCmdBackslash(s) {
+  const raw = String(s == null ? '' : s)
+  const holes = []
+  const masked = raw.replace(/\\([A-Za-z]+)/g, (m) => {
+    holes.push(m)
+    return '\u0000' + (holes.length - 1) + '\u0000'
+  })
+  const fixed = masked.replace(CMD_BRACE_RE_G, (m) => '\\' + m).replace(ACCENT_SPACE_RE_G, (m) => '\\' + m)
+  return fixed.replace(/\u0000(\d+)\u0000/g, (_, i) => holes[Number(i)])
+}
+
+/**
+ * 裸公式 token（2026-10-13 增强）：
+ *  - \cmd{...} / \cmd[n]{...} / \cmd_0^{...}（命令可带方括号参数、花括号参数、尾随上下标）
+ *  - x^2 / x^{n} / O(n^2)（上标）
+ *  - x_1 / x_{i} / F_x（下标；`_单字母` 要求后面不是字母数字，避免把 build_next / max_len 当公式）
+ */
+/** 一层嵌套的 {...}：让 `\frac{1}{\sqrt{1-x^2}}` 这类能整体成为公式 token（否则会切一半、把 { } 留在页面上） */
+const GRP = '\\{(?:[^{}]|\\{[^{}]*\\})*\\}'
+
 const BARE_TOKEN_RE = new RegExp(
   [
-    '(?<!\\\\)\\\\[a-zA-Z]+(?:\\{[^{}]*\\})*',                        // \frac{a}{b} / \theta
-    '[A-Za-z0-9)\\]]\\^(?:\\{[^{}]*\\}|[0-9A-Za-z]{1,3})',           // x^2 / x^{n} / e^{-x}
-    '[A-Za-z0-9)\\]]_(?:\\{[^{}]*\\}|[0-9]{1,3})',                   // x_1 / x_{i}（下标只认数字或花括号）
+    // 「重音命令 + 空格写法」要连参数一起收：\vec r / \hat i / \bar x（否则会切成 $\vec$ 让 KaTeX 报错）
+    '(?<!\\\\)\\\\(?:overrightarrow|widehat|widetilde|overline|underline|vec|hat|bar|dot|ddot|tilde)\\s?[A-Za-z](?![A-Za-z])',
+    // \frac{a}{b} / \theta / \sec^2x / \oiint_0^{n} / \int_0^\infty
+    '(?<!\\\\)\\\\[a-zA-Z]+(?:\\[[^\\]]*\\])*(?:' + GRP + ')*(?:[\\^_](?:' + GRP + '|[0-9]{1,3}|[a-zA-Z]|\\\\[a-zA-Z]+))*',
+    // x^2 / x^{n} / n^2（数字/花括号总是安全；单字母要求后面不是字母数字）
+    '[A-Za-z0-9)\\]]\\^(?:' + GRP + '|[0-9]{1,3}|[a-zA-Z](?![A-Za-z0-9])|\\\\[a-zA-Z]+)',
+    // x_1 / x_{i} / F_x
+    '[A-Za-z0-9)\\]]_(?:' + GRP + '|[0-9]{1,3}|[a-zA-Z](?![A-Za-z0-9])|\\\\[a-zA-Z]+)',
   ].join('|'),
   'g',
 )
 
-/** 该 token 是否值得当公式（命令必须是已知的；上下标必须紧贴变量且形态明确） */
+/** 该 token 是否值得当公式（\命令必须是已知的；上下标形态在正则里已收紧） */
 export function isMathToken(tok) {
   if (!tok) return false
   if (tok.startsWith('\\')) {
     const m = /^\\([a-zA-Z]+)/.exec(tok)
     return !!m && KNOWN_CMDS.has(m[1])
   }
-  // 下划线：只有 `_数字` 或 `_{...}` 才算下标，避免把 max_len / snake_case / __len__ 当公式
-  return /^[A-Za-z0-9)\]]\^/.test(tok) || /^[A-Za-z0-9)\]]_(?:\{|[0-9])/.test(tok)
+  // 下划线：`_数字` / `_{...}` / `_单字母`（正则已排除 snake_case）；上标同理
+  return /^[A-Za-z0-9)\]]\^/.test(tok) || /^[A-Za-z0-9)\]]_/.test(tok)
+}
+
+/**
+ * 归一化：JSON 链路双重转义残留的 `\\cmd` → `\cmd`。
+ * 只处理「`\\` 紧跟一个**已知命令名**（≥2 字母）」这一种形态：
+ *   - `\\overline{p}` → `\overline{p}`（双重转义 bug）
+ *   - `\begin{cases}a\\x_1\end{cases}` 里的 `\\x_1` **不动**（合法的换行 + 变量）
+ *   - `\\3` / `\\ b` / `\\\\` 也都不动
+ */
+export function normalizeLatex(text) {
+  if (!text) return text
+  // 1) 双重转义：\\cmd → \cmd（只认「\\ + 已知命令名」）
+  const step1 = String(text).replace(/(?<!\\)\\\\(?=([a-zA-Z]{2,}))/g, (mm, w) => (KNOWN_CMDS.has(w) ? '\\' : mm))
+  // 2) 丢了反斜杠的命令名：overline{ → \overline{、Aoverline{B} → A\overline{B}、vec r → \vec r
+  return restoreCmdBackslash(step1)
 }
 
 /** 文本里是否含有值得渲染的裸数学 */
@@ -143,8 +226,20 @@ const SYMBOLS = {
   Gamma: 'Γ', Delta: 'Δ', Theta: 'Θ', Lambda: 'Λ', Xi: 'Ξ', Pi: 'Π', Sigma: 'Σ', Upsilon: 'Υ',
   Phi: 'Φ', Psi: 'Ψ', Omega: 'Ω',
   log: 'log', ln: 'ln', lg: 'lg', exp: 'exp', lim: 'lim', sup: 'sup', inf: 'inf', max: 'max',
-  min: 'min', det: 'det', dim: 'dim', ker: 'ker', gcd: 'gcd', lcm: 'lcm', bmod: 'mod',
-  'space': ' ',
+  min: 'min', det: 'det', dim: 'dim', ker: 'ker', gcd: 'gcd', lcm: 'lcm',   bmod: 'mod',
+  space: ' ',
+  // 2026-10-13 补齐（原缺失 → 降级时会把英文命令名打到页面上）
+  Longrightarrow: '⟹', Longleftarrow: '⟸', Longleftrightarrow: '⟺', longmapsto: '⟼',
+  oiint: '∯', oiiint: '∰', xrightarrow: '→', xleftarrow: '←', xleftrightarrow: '↔',
+  sgn: 'sgn', rank: 'rank', diag: 'diag', trace: 'tr', Tr: 'tr', erf: 'erf', sinc: 'sinc',
+  argmax: 'argmax', argmin: 'argmin', arg: 'arg', grad: 'grad', curl: 'curl', cov: 'cov',
+  var: 'var', median: 'median', mode: 'mode', arcsinh: 'arsinh', arccosh: 'arcosh', arctanh: 'artanh',
+  mod: 'mod',
+  // 三角函数/双曲（原缺失 → 降级时会把函数名整段丢掉）
+  sin: 'sin', cos: 'cos', tan: 'tan', cot: 'cot', sec: 'sec', csc: 'csc',
+  arcsin: 'arcsin', arccos: 'arccos', arctan: 'arctan',
+  sinh: 'sinh', cosh: 'cosh', tanh: 'tanh',
+  sup: 'sup', inf: 'inf',
 }
 
 /** 需要“吃掉参数并原样输出内容”的命令（字体/文本/括号类） */
@@ -154,14 +249,37 @@ const PASSTHRU_CMDS = new Set([
   'bar', 'tilde', 'widetilde', 'dot', 'ddot', 'vec', 'underbrace', 'overbrace', 'cancel',
   'left', 'right', 'big', 'Big', 'bigg', 'Bigg', 'displaystyle', 'textstyle', 'limits', 'stackrel',
   'substack', 'begin', 'end', 'pmod',
+  // 2026-10-13 补齐：这些命令都「吃掉参数、只输出内容」，降级时不留英文名
+  'overset', 'underset', 'color', 'textcolor', 'phantom', 'hspace', 'vspace', 'mathstrut',
+  'smash', 'raisebox', 'rule', 'genfrac', 'mathord', 'mathbin', 'mathrel', 'mathop',
+  'mathopen', 'mathclose', 'mathpunct', 'mathinner', 'xrightarrow', 'xleftarrow', 'xleftrightarrow',
 ])
 
+/** 上/下标 → Unicode 映射（降级显示用，避免残留 ^ _ 符号） */
+const SUPS = {
+  '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+  '+': '⁺', '-': '⁻', '=': '⁼', '(': '⁽', ')': '⁾', '/': 'ᐟ', ' ': ' ',
+  a: 'ᵃ', b: 'ᵇ', c: 'ᶜ', d: 'ᵈ', e: 'ᵉ', f: 'ᶠ', g: 'ᵍ', h: 'ʰ', i: 'ⁱ', j: 'ʲ', k: 'ᵏ', l: 'ˡ',
+  m: 'ᵐ', n: 'ⁿ', o: 'ᵒ', p: 'ᵖ', r: 'ʳ', s: 'ˢ', t: 'ᵗ', u: 'ᵘ', v: 'ᵛ', w: 'ʷ', x: 'ˣ', y: 'ʸ', z: 'ᶻ',
+}
+const SUBS = {
+  '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+  '+': '₊', '-': '₋', '=': '₌', '(': '₍', ')': '₎', ' ': ' ',
+  a: 'ₐ', e: 'ₑ', h: 'ₕ', i: 'ᵢ', j: 'ⱼ', k: 'ₖ', l: 'ₗ', m: 'ₘ', n: 'ₙ', o: 'ₒ', p: 'ₚ', r: 'ᵣ',
+  s: 'ₛ', t: 'ₜ', u: 'ᵤ', v: 'ᵥ', x: 'ₓ',
+}
+
+/** 可以作为单字符上标的特殊符号（白名单，避免把 `^、` 这类运算符说明改坏） */
+const SUP_EXTRA = new Set(['∞', '*', "'", '+', '-', '°', '′', '‾', '¯'])
+
 /**
- * LaTeX → 可读纯文本（仅在 KaTeX 渲染失败时使用）：
- * \frac{a}{b} → a/b，\sqrt{x} → √(x)，\theta → θ，\text{中文} → 中文，去掉 {} 与残留 $、反斜杠。
+ * LaTeX → 可读纯文本（仅在 KaTeX 渲染失败时使用）
+ * \frac{a}{b} → a/b，\sqrt{x} → √(x)，\theta → θ，\text{中文} → 中文
+ * **保证不残留**：反斜杠、花括号、$ 号、^ _ 符号、以及任何英文命令名。
  */
 export function latexToPlain(tex) {
-  const src = String(tex == null ? '' : tex)
+  // 「命令名被 JS 转义吃掉反斜杠」的修复（overline{p} → \overline{p}、Aoverline{B} → A\overline{B}）
+  const src = restoreCmdBackslash(String(tex == null ? '' : tex))
   let i = 0
   let out = ''
 
@@ -186,6 +304,53 @@ export function latexToPlain(tex) {
   while (i < src.length) {
     const ch = src[i]
 
+    if (ch === '^' || ch === '_') {
+      const isSub = ch === '_'
+      i += 1 // 跳过 ^ / _ 本身
+      let content = null
+      let ok = false
+      let direct = null // 命中「\符号」时直接输出的字符（如 ^\infty → ∞）
+      if (src[i] === '{') {
+        content = readGroup()
+        ok = content !== null && content !== ''
+      } else if (/[0-9]/.test(src[i] || '')) {
+        const m = /^[0-9]{1,3}/.exec(src.slice(i))
+        content = m[0]
+        i += m[0].length
+        ok = true
+      } else if (/[A-Za-z]/.test(src[i] || '')) {
+        // 单字母上下标：下标要排除 snake_case —— F_x 该转，max_len / build_next / TIME_WAIT 不该转
+        const after = src[i + 1] || ''
+        const prev = src[i - 2] || ''
+        const prev2 = src[i - 3] || ''
+        const snake = isSub && (/[A-Za-z0-9]/.test(after) || (/[A-Za-z0-9]/.test(prev) && /[A-Za-z0-9]/.test(prev2)))
+        if (!snake) {
+          content = src[i]
+          i += 1
+          ok = true
+        }
+      } else if (src[i] === '\\') {
+        // ^\infty / _\alpha 这类：直接取符号本身
+        const m2 = /^\\([a-zA-Z]+)/.exec(src.slice(i))
+        if (m2 && SYMBOLS[m2[1]] !== undefined) {
+          direct = SYMBOLS[m2[1]]
+          i += m2[0].length
+          ok = true
+        }
+      } else if (!isSub && SUP_EXTRA.has(src[i])) {
+        // 上标后接特殊符号：1^∞ / A^* / x^' 这类（不吞标点，避免把 ^、 这种运算符说明改坏）
+        content = src[i]
+        i += 1
+        ok = true
+      }
+      if (!ok) { out += ch; continue } // 不是上下标（如标识符里的 _）→ 原样保留
+      if (direct !== null) { out += direct; continue }
+      const table = isSub ? SUBS : SUPS
+      const mapped = [...content].map((c) => table[c])
+      out += mapped.every((x) => x !== undefined) ? mapped.join('') : '(' + latexToPlain(content) + ')'
+      continue
+    }
+
     if (ch === '\\') {
       const m = /^\\([a-zA-Z]+)/.exec(src.slice(i))
       if (!m) {
@@ -207,7 +372,6 @@ export function latexToPlain(tex) {
         continue
       }
       if (name === 'sqrt') {
-        // \sqrt{x} 或 \sqrt[n]{x}（方括号里是指数）
         let idx = null
         while (src[i] === ' ') i++
         if (src[i] === '[') {
@@ -240,25 +404,38 @@ export function latexToPlain(tex) {
         out += SYMBOLS[name]
         continue
       }
-      // 未知命令：保留名字，至少仍可读
-      out += name
+      // 未知命令：**绝不把英文命令名打到页面上** —— 有参数就只保留参数内容，否则整段丢弃
+      while (src[i] === ' ') i++
+      let took = false
+      while (src[i] === '{') {
+        const g = readGroup()
+        if (g === null) break
+        out += latexToPlain(g)
+        took = true
+        while (src[i] === ' ') i++
+      }
+      if (!took) continue
       continue
     }
 
-    if (ch === '{' || ch === '}' || ch === '$') {
-      i++
-      continue
-    }
-    if (ch === '~') {
-      out += ' '
-      i++
-      continue
-    }
+    if (ch === '{' || ch === '}' || ch === '$') { i++; continue }
+    if (ch === '~') { out += ' '; i++; continue }
     out += ch
     i++
   }
 
   return out.replace(/[ \t]{2,}/g, ' ').trim()
+}
+
+/**
+ * 纯文本段兜底：含 LaTeX 噪声（反斜杠 / 花括号）时走可读降级，否则只清掉落单的 $。
+ * 用于「数学上下文里未被包成公式的残留片段」，保证任何情况下都不把源码打到页面。
+ */
+export function sanitizePlain(text) {
+  const s = String(text == null ? '' : text)
+  // 「确实混进了 LaTeX 残留」才走可读降级（判定见 hasLatexNoise），避免误伤正常正文
+  if (hasLatexNoise(s)) return latexToPlain(s)
+  return s
 }
 
 /** 供外部复用的裸公式 token 正则（测试用） */

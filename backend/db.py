@@ -7,6 +7,7 @@
 """
 import json
 import os
+import re
 import sqlite3
 import threading
 import time
@@ -148,6 +149,16 @@ def init_db():
         """
     )
     _conn.execute("CREATE INDEX IF NOT EXISTS idx_bank_subject ON question_bank(subject)")
+    # 2026-10-08 精准出题：用户知识点画像状态（伴学讲崩/讲通计数 + 方向轮换游标 + 近期去重）
+    _conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS user_kp_state (
+            user_id TEXT PRIMARY KEY,
+            data TEXT NOT NULL,
+            updated_at INTEGER DEFAULT 0
+        )
+        """
+    )
     # ---------------- 社区（学习小组 + 论坛） ----------------
     _conn.execute(
         """
@@ -340,6 +351,140 @@ def init_db():
         """
     )
     _conn.execute("CREATE INDEX IF NOT EXISTS idx_cta_test ON class_test_attempts(test_id)")
+    # ---------------- 伴学角色（聊天历史 + 个性化偏好） ----------------
+    _conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS companion_msgs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            character_id TEXT NOT NULL,
+            role TEXT NOT NULL,            -- 'user' | 'assistant'
+            kind TEXT DEFAULT 'chat',      -- 'chat' | 'quiz'
+            content TEXT NOT NULL,
+            meta TEXT DEFAULT '',          -- JSON：{source, question_id, ...}
+            created_at INTEGER DEFAULT 0
+        )
+        """
+    )
+    _conn.execute("CREATE INDEX IF NOT EXISTS idx_comp_msgs_user ON companion_msgs(user_id, character_id, created_at)")
+    _conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS companion_pref (
+            user_id TEXT NOT NULL,
+            character_id TEXT NOT NULL,
+            name TEXT DEFAULT '',
+            size_scale REAL DEFAULT 1.0,
+            updated_at INTEGER DEFAULT 0,
+            PRIMARY KEY (user_id, character_id)
+        )
+        """
+    )
+    _ensure_columns(_conn, "companion_pref", {"memory": "TEXT DEFAULT ''"})
+    _conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS companion_intimacy (
+            user_id TEXT NOT NULL,
+            character_id TEXT NOT NULL,
+            exp INTEGER DEFAULT 0,          -- 累计经验（每 50 点升一级，Lv1-7 封顶）
+            updated_at INTEGER DEFAULT 0,
+            PRIMARY KEY (user_id, character_id)
+        )
+        """
+    )
+    # ---------------- p20 多会话聊天记录（每次进入伙伴页新开一条，记忆按会话隔离） ----------------
+    _conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS companion_sessions (
+            id TEXT PRIMARY KEY,           -- uuid hex
+            user_id TEXT NOT NULL,
+            character_id TEXT NOT NULL,
+            title TEXT DEFAULT '',         -- 自动取首句前 18 字 / 用户重命名
+            msg_count INTEGER DEFAULT 0,   -- 冗余计数（抽屉列表展示 + 长期记忆触发）
+            created_at INTEGER DEFAULT 0,
+            updated_at INTEGER DEFAULT 0
+        )
+        """
+    )
+    _conn.execute("CREATE INDEX IF NOT EXISTS idx_comp_sess_user ON companion_sessions(user_id, character_id, updated_at)")
+    _conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS study_session (
+            id TEXT PRIMARY KEY,            -- chain uuid
+            uid TEXT NOT NULL,
+            character_id TEXT DEFAULT '',
+            question_id TEXT DEFAULT '',
+            layers INTEGER DEFAULT 0,       -- 总层数
+            good_layers INTEGER DEFAULT 0,  -- 讲通层数
+            wrong_layers TEXT DEFAULT '[]', -- JSON: [层下标]
+            scores TEXT DEFAULT '[]',       -- JSON: [{layer, concept, logic, expression, total}]
+            avg TEXT DEFAULT '{}',          -- JSON: {concept, logic, expression, total}
+            steps TEXT DEFAULT '[]',        -- JSON: 回放用层快照
+            passed INTEGER DEFAULT 0,
+            created_at INTEGER DEFAULT 0
+        )
+        """
+    )
+    _conn.execute("CREATE INDEX IF NOT EXISTS idx_study_session_uid ON study_session(uid, created_at)")
+    _conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS quiz_chains (
+            id TEXT PRIMARY KEY,           -- chain uuid
+            user_id TEXT NOT NULL,
+            question_id TEXT NOT NULL,     -- 锚定的错题本题目 id
+            steps TEXT DEFAULT '[]',       -- JSON: [{ask, expected, hint}]
+            progress INTEGER DEFAULT 0,    -- 已通过的层数（=当前层 idx）
+            streak INTEGER DEFAULT 0,      -- 当前层连续讲错次数
+            layer_tries INTEGER DEFAULT 0, -- 当前层累计未过次数（wrong+partial 都计，2026-10-08 同层2次跳层用）
+            wrong_steps TEXT DEFAULT '[]', -- 讲崩的层 idx JSON 数组
+            status TEXT DEFAULT 'active',  -- active | done
+            created_at INTEGER DEFAULT 0,
+            updated_at INTEGER DEFAULT 0
+        )
+        """
+    )
+    _conn.execute("CREATE INDEX IF NOT EXISTS idx_quiz_chains_user ON quiz_chains(user_id, status)")
+    # ---------------- AI 教学老师（2026-10-09）：大纲 + 教学线 ----------------
+    _conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS teaching_syllabus (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            subject TEXT DEFAULT '',        -- 学科名（可来自「我的课程」或手输）
+            course_id TEXT DEFAULT '',      -- 关联 user_courses 里的课程 id（可空）
+            teacher_id TEXT DEFAULT '',     -- 'chenli' | 'shentong'
+            title TEXT DEFAULT '',
+            items TEXT DEFAULT '[]',        -- JSON: [{name, brief}]
+            cursor INTEGER DEFAULT 0,       -- 讲到第几个知识点
+            kp_done TEXT DEFAULT '[]',      -- JSON: [int] 已确认掌握（点过"会了"）的知识点索引
+            level TEXT DEFAULT 'auto',      -- auto | basic | final | kaoyan
+            status TEXT DEFAULT 'active',   -- active | done
+            created_at INTEGER DEFAULT 0,
+            updated_at INTEGER DEFAULT 0
+        )
+        """
+    )
+    _conn.execute("CREATE INDEX IF NOT EXISTS idx_teach_syl_user ON teaching_syllabus(user_id, status)")
+    _conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS teaching_session (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            syllabus_id TEXT NOT NULL,
+            teacher_id TEXT DEFAULT '',
+            kp_index INTEGER DEFAULT 0,
+            state TEXT DEFAULT 'lecture',   -- lecture | exam | graded | done
+            kp_payload TEXT DEFAULT '{}',   -- JSON: {kp, example, exam} 三段（含参考答案）
+            answer TEXT DEFAULT '',         -- 学生最后一次作答原文
+            grade TEXT DEFAULT '{}',        -- JSON: 批改结果
+            ask_log TEXT DEFAULT '[]',      -- JSON: 疑问插队记录
+            turns INTEGER DEFAULT 0,
+            minutes INTEGER DEFAULT 0,      -- 本讲耗时（进学习记录）
+            created_at INTEGER DEFAULT 0,
+            updated_at INTEGER DEFAULT 0
+        )
+        """
+    )
+    _conn.execute("CREATE INDEX IF NOT EXISTS idx_teach_sess_user ON teaching_session(user_id, syllabus_id, updated_at)")
     # 轻量列迁移：SQLite 的 ALTER TABLE ADD COLUMN 无 IF NOT EXISTS，先查 PRAGMA 再补
     _ensure_columns(_conn, "profiles", {
         "is_teacher": "INTEGER DEFAULT 0",
@@ -352,8 +497,100 @@ def init_db():
     _ensure_columns(_conn, "homework_submissions", {
         "images": "TEXT DEFAULT ''",   # 学生提交的多张答卷图（JSON 数组，<=9 张）
     })
+    # p20 多会话：存量表补 session_id 列（幂等）——必须先补列再建 session 索引
+    _ensure_columns(_conn, "companion_msgs", {"session_id": "TEXT DEFAULT ''"})
+    _ensure_columns(_conn, "quiz_chains", {"session_id": "TEXT DEFAULT ''", "layer_tries": "INTEGER DEFAULT 0"})
+    # 教学大纲：每章"已确认掌握"标记（2026-10-09 章节目录）
+    _ensure_columns(_conn, "teaching_syllabus", {"kp_done": "TEXT DEFAULT '[]'"})
+    # 章节两级化（2026-10-10）：chapters 章分组、version、archived（旧课作废重开）、unit_tests 章末试卷
+    _ensure_columns(_conn, "teaching_syllabus", {
+        "chapters": "TEXT DEFAULT '[]'",
+        "version": "INTEGER DEFAULT 1",
+        "archived": "INTEGER DEFAULT 0",
+        "unit_tests": "TEXT DEFAULT '{}'",
+    })
+    # v1 旧课归档（用户拍板：作废重开；不物理删，反悔可手工翻回 archived=0）
+    try:
+        _conn.execute("UPDATE teaching_syllabus SET archived = 1 WHERE version < 2 AND archived = 0")
+    except Exception:
+        pass
+    _merge_dup_syllabi(_conn)
+    _conn.execute("CREATE INDEX IF NOT EXISTS idx_comp_msgs_sess ON companion_msgs(session_id)")
+    _migrate_companion_sessions(_conn)
     _conn.commit()
     return _conn
+
+
+def norm_subject_key(s: str) -> str:
+    """课程名归一化键：去空白与常见标点、转小写（同名课判重用）。"""
+    import re as _re
+    t = _re.sub(r"[\s，,。．\.、；;：:！!？?~～（）()\[\]【】]+", "", str(s or ""))
+    return t.lower()
+
+
+def _merge_dup_syllabi(conn) -> None:
+    """存量同名课合并（2026-10-10 用户拍板）：同一用户内 version>=2 且未归档的课，
+    按归一化课程名分组，保留「已确认节数最多」（平手取最近更新）的一门，其余连教学线一起删除。
+    幂等——合并后无重复；启动时执行一次。"""
+    try:
+        rows = conn.execute(
+            "SELECT id, user_id, subject, status, kp_done, updated_at FROM teaching_syllabus"
+            " WHERE version >= 2 AND archived = 0").fetchall()
+        groups = {}
+        for r in rows:
+            key = (r["user_id"], norm_subject_key(r["subject"] or r["title"]))
+            if not key[1]:
+                continue                       # 无名的课不参与合并
+            groups.setdefault(key, []).append(r)
+        for (uid, _k), lst in groups.items():
+            if len(lst) <= 1:
+                continue
+            def _rank(r):
+                try:
+                    done = len(json.loads(r["kp_done"] or "[]"))
+                except Exception:
+                    done = 0
+                return (done, int(r["updated_at"] or 0), 0 if r["status"] == "active" else 1)
+            keep = max(lst, key=_rank)
+            for r in lst:
+                if r["id"] == keep["id"]:
+                    continue
+                conn.execute("DELETE FROM teaching_session WHERE user_id = ? AND syllabus_id = ?",
+                             (uid, r["id"]))
+                conn.execute("DELETE FROM teaching_syllabus WHERE id = ? AND user_id = ?",
+                             (r["id"], uid))
+        conn.commit()
+    except Exception:
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+
+
+def _migrate_companion_sessions(conn) -> None:
+    """p20 存量迁移：把每个 (user, character) 的无会话消息归成一条「以前的聊天」记录。
+    幂等——只处理 session_id='' 的孤儿消息；旧 active 链无归属（quiz_chains 原本不分角色），
+    保持 session_id=''，对按会话过滤的续教查找不可见，即视为自动作废。"""
+    try:
+        rows = conn.execute(
+            "SELECT user_id, character_id, MIN(created_at) AS t0, COUNT(*) AS n"
+            " FROM companion_msgs WHERE session_id = '' GROUP BY user_id, character_id"
+        ).fetchall()
+        for r in rows:
+            sid = uuid.uuid4().hex[:16]
+            conn.execute(
+                "INSERT INTO companion_sessions (id, user_id, character_id, title, msg_count, created_at, updated_at)"
+                " VALUES (?, ?, ?, '以前的聊天', ?, ?, ?)",
+                (sid, r["user_id"], r["character_id"], int(r["n"] or 0), int(r["t0"] or 0), int(time.time() * 1000)),
+            )
+            conn.execute(
+                "UPDATE companion_msgs SET session_id = ?"
+                " WHERE user_id = ? AND character_id = ? AND session_id = ''",
+                (sid, r["user_id"], r["character_id"]),
+            )
+    except Exception:
+        # 迁移失败不阻塞启动（表结构已就绪，最多老消息暂不可见）
+        pass
 
 
 def _ensure_columns(conn, table: str, columns: dict) -> None:
@@ -434,20 +671,28 @@ def set_recovery_hash(nickname: str, recovery_hash: str) -> None:
 
 # ---------------------------------------------------------------- errorbook
 
-def save_errorbook(user_id: str, items: list) -> None:
-    """全量替换某账号的云端错题本。item 为错题条目对象，含 id 字段。"""
+def save_errorbook(user_id: str, items: list) -> dict:
+    """全量替换某账号的云端错题本。item 为错题条目对象，含 id 字段。
+
+    返回 {"saved": 实际入库条数, "dropped": 因格式非法被丢弃的条数}，
+    让调用方（sync/push）能如实告知客户端，杜绝"静默丢数据"（B1 修复）。
+    """
     now = int(__import__("time").time() * 1000)
+    saved = dropped = 0
     with _lock:
         conn = _conn_checked()
         conn.execute("DELETE FROM errorbook WHERE user_id = ?", (user_id,))
         for it in items:
             if not isinstance(it, dict) or it.get("id") is None:
+                dropped += 1
                 continue
             conn.execute(
                 "INSERT OR REPLACE INTO errorbook (id, user_id, data, updated_at) VALUES (?, ?, ?, ?)",
                 (str(it["id"]), user_id, json.dumps(it, ensure_ascii=False), now),
             )
+            saved += 1
         conn.commit()
+    return {"saved": saved, "dropped": dropped}
 
 
 def load_errorbook(user_id: str) -> list:
@@ -527,6 +772,9 @@ USER_SCOPED_TABLES = (
     "user_profile",
     "user_courses",
     "user_sessions",
+    "companion_msgs",
+    "companion_pref",
+    "companion_sessions",
 )
 
 # 社区中「以昵称作为 user_id 列、改名要迁移、注销要删除」的表（关系与私密消息）。
@@ -604,9 +852,22 @@ def update_recovery_hash(user_id: str, recovery_hash: str) -> None:
 
 # ---------------------------------------------------------------- question_bank（题库）
 
+_LEADING_NO_RE = re.compile(r"^\s*(?:[（(]\s*[0-9]{1,2}\s*[)）]|[0-9]{1,2}\s*[.．][ \t]+|[0-9]{1,2}\s*、)\s*")
+
+
+def strip_leading_no(q: str) -> str:
+    """无损剥除题干前导题号（“(2) ”/“12. ”/“3、”），序号对题目内容零贡献。
+    点号形式要求序号后有空白，避免误伤“3.14 是圆周率”这类以数字开头的正文。"""
+    return _LEADING_NO_RE.sub("", (q or "").strip(), count=1)
+
+
 def save_bank_item(question: str, normalized: str, subject: str,
                    knowledge_points: list, answer: str, result: dict) -> int:
-    """新增或更新一条题库记录（按归一化文本去重）。返回该条 id。"""
+    """新增或更新一条题库记录（按归一化文本去重）。返回该条 id。
+    2026-10-08 入库闸门：无损剥除题干前导题号（“(2) ”/“12. ”/“3、”）——拍题切分可能把
+    大题的小问单独成题入库，序号对内容零贡献，剥掉后题源保持干净。"""
+    question = strip_leading_no(question)
+    normalized = strip_leading_no(normalized)
     now = int(__import__("time").time() * 1000)
     with _lock:
         conn = _conn_checked()
@@ -649,12 +910,129 @@ def load_all_bank() -> list:
     return out
 
 
+def get_bank_by_id(bank_id) -> dict | None:
+    """按 id 取单条题库记录（小老师兜底抽题/链式判分复取用）。"""
+    with _lock:
+        r = _conn_checked().execute(
+            "SELECT id, question, normalized, subject, knowledge_points, answer, result "
+            "FROM question_bank WHERE id = ?", (str(bank_id),)).fetchone()
+    if not r:
+        return None
+    return {
+        "id": r["id"],
+        "question": r["question"],
+        "normalized": r["normalized"],
+        "subject": r["subject"],
+        "knowledge_points": json.loads(r["knowledge_points"]) if r["knowledge_points"] else [],
+        "answer": r["answer"],
+        "result": json.loads(r["result"]) if r["result"] else {},
+    }
+
+
+def random_bank_items(n: int = 5) -> list:
+    """随机抽 n 条题库记录（优先带完整解析的），错题本为空时兜底求教用。"""
+    sql = ("SELECT id, question, normalized, subject, knowledge_points, answer, result "
+           "FROM question_bank ")
+    with _lock:
+        rows = _conn_checked().execute(sql + "WHERE length(result) > 20 ORDER BY RANDOM() LIMIT ?",
+                                       (int(n),)).fetchall()
+        if not rows:
+            rows = _conn_checked().execute(sql + "ORDER BY RANDOM() LIMIT ?", (int(n),)).fetchall()
+    out = []
+    for r in rows:
+        out.append({
+            "id": r["id"],
+            "question": r["question"],
+            "normalized": r["normalized"],
+            "subject": r["subject"],
+            "knowledge_points": json.loads(r["knowledge_points"]) if r["knowledge_points"] else [],
+            "answer": r["answer"],
+            "result": json.loads(r["result"]) if r["result"] else {},
+        })
+    return out
+
+
+def _rows_to_bank(rows) -> list:
+    """题库行 → dict（统一 result/knowledge_points 反序列化）。"""
+    out = []
+    for r in rows:
+        try:
+            kps = json.loads(r["knowledge_points"]) if r["knowledge_points"] else []
+        except Exception:
+            kps = []
+        try:
+            res = json.loads(r["result"]) if r["result"] else {}
+        except Exception:
+            res = {}
+        out.append({
+            "id": r["id"],
+            "question": r["question"],
+            "normalized": r["normalized"],
+            "subject": r["subject"],
+            "knowledge_points": kps,
+            "answer": r["answer"],
+            "result": res,
+        })
+    return out
+
+
+def bank_by_keywords(keywords: list, limit: int = 20) -> list:
+    """按科目关键词抽题（方向兜底用）：subject LIKE 任一词，优先带完整解析的。"""
+    kws = [str(k).strip() for k in (keywords or []) if str(k).strip()]
+    if not kws:
+        return []
+    where = " OR ".join(["subject LIKE ?"] * len(kws))
+    params = ["%" + k + "%" for k in kws] + [int(limit)]
+    sql = ("SELECT id, question, normalized, subject, knowledge_points, answer, result "
+           "FROM question_bank ")
+    with _lock:
+        rows = _conn_checked().execute(
+            sql + "WHERE (" + where + ") AND length(result) > 20 ORDER BY RANDOM() LIMIT ?",
+            tuple(params)).fetchall()
+        if not rows:
+            rows = _conn_checked().execute(
+                sql + "WHERE (" + where + ") ORDER BY RANDOM() LIMIT ?", tuple(params)).fetchall()
+    return _rows_to_bank(rows)
+
+
+def bank_by_knowledge(kps: list, limit: int = 8) -> list:
+    """按知识点抽题：knowledge_points 是 JSON 数组文本，用 '\"知识点\"' 精确匹配元素，
+    避免「极限」误命中「极限环」这类子串问题。"""
+    kws = [str(k).strip() for k in (kps or []) if str(k).strip()]
+    if not kws:
+        return []
+    where = " OR ".join(["knowledge_points LIKE ?"] * len(kws))
+    params = ['%"' + k + '"%' for k in kws] + [int(limit)]
+    sql = ("SELECT id, question, normalized, subject, knowledge_points, answer, result "
+           "FROM question_bank ")
+    with _lock:
+        rows = _conn_checked().execute(
+            sql + "WHERE (" + where + ") AND length(result) > 20 ORDER BY RANDOM() LIMIT ?",
+            tuple(params)).fetchall()
+        if not rows:
+            rows = _conn_checked().execute(
+                sql + "WHERE (" + where + ") ORDER BY RANDOM() LIMIT ?", tuple(params)).fetchall()
+    return _rows_to_bank(rows)
+
+
 def increment_bank_hit(bank_id: int) -> None:
     with _lock:
         _conn_checked().execute(
             "UPDATE question_bank SET hit_count = hit_count + 1 WHERE id = ?", (bank_id,)
         )
         _conn_checked().commit()
+
+
+# ---------------------------------------------------------------- user_kp_state（精准出题画像状态）
+
+def kp_state_load(user_id: str) -> dict:
+    """知识点画像的持久化增量：伴学讲崩/讲通计数、方向轮换游标、近期出题去重。"""
+    data = _load_blob("user_kp_state", user_id, {})
+    return data if isinstance(data, dict) else {}
+
+
+def kp_state_save(user_id: str, data: dict) -> None:
+    _save_blob("user_kp_state", user_id, data if isinstance(data, dict) else {})
 
 
 def bank_count() -> int:
@@ -971,6 +1349,48 @@ def list_group_messages(gid: str, limit: int = 100, offset: int = 0) -> dict:
     return {"items": [dict(r) for r in rows], "total": total}
 
 
+def leave_group(gid: str, user_id: str) -> bool:
+    """退出小组（组长不能直接退出，需先解散）。成功返回 True。"""
+    with _lock:
+        conn = _conn_checked()
+        g = conn.execute("SELECT owner_id FROM groups WHERE id = ?", (gid,)).fetchone()
+        if not g or g["owner_id"] == user_id:
+            return False
+        cur = conn.execute(
+            "DELETE FROM group_members WHERE group_id = ? AND user_id = ?", (gid, user_id)
+        )
+        conn.commit()
+        return cur.rowcount > 0
+
+
+def remove_group_member(gid: str, owner_id: str, target_user_id: str) -> bool:
+    """组长移除成员（不能移除自己）。成功返回 True。"""
+    with _lock:
+        conn = _conn_checked()
+        g = conn.execute("SELECT owner_id FROM groups WHERE id = ?", (gid,)).fetchone()
+        if not g or g["owner_id"] != owner_id or target_user_id == owner_id:
+            return False
+        cur = conn.execute(
+            "DELETE FROM group_members WHERE group_id = ? AND user_id = ?", (gid, target_user_id)
+        )
+        conn.commit()
+        return cur.rowcount > 0
+
+
+def dissolve_group(gid: str, owner_id: str) -> bool:
+    """解散小组（仅组长）：连同成员与消息一起清掉。成功返回 True。"""
+    with _lock:
+        conn = _conn_checked()
+        g = conn.execute("SELECT owner_id FROM groups WHERE id = ?", (gid,)).fetchone()
+        if not g or g["owner_id"] != owner_id:
+            return False
+        conn.execute("DELETE FROM group_messages WHERE group_id = ?", (gid,))
+        conn.execute("DELETE FROM group_members WHERE group_id = ?", (gid,))
+        conn.execute("DELETE FROM groups WHERE id = ?", (gid,))
+        conn.commit()
+    return True
+
+
 # ---------------------------------------------------------------- 班级模块
 
 MAX_HOMEWORK_CONTENT = 8000
@@ -1045,6 +1465,31 @@ def list_classes_of_user(user_id: str) -> list:
         d["member_count"] = _group_member_count(d["id"])
         out.append(d)
     return out
+
+
+def class_todo_counts(class_id: str, user_id: str, is_teacher: bool) -> dict:
+    """班级待办统计：老师=待批改的提交数；学生=未提交的作业数。
+
+    列表页卡片用它给出「下一步动作」，避免每次点进详情才知道有没有活。
+    """
+    with _lock:
+        conn = _conn_checked()
+        if is_teacher:
+            row = conn.execute(
+                "SELECT COUNT(*) AS c FROM homework_submissions s"
+                " JOIN homework hw ON hw.id = s.homework_id"
+                " WHERE hw.class_id = ? AND s.graded_at = 0",
+                (class_id,),
+            ).fetchone()
+            return {"pending_grade": row["c"] if row else 0, "pending_submit": 0}
+        row = conn.execute(
+            "SELECT COUNT(*) AS c FROM homework hw"
+            " WHERE hw.class_id = ? AND NOT EXISTS ("
+            "   SELECT 1 FROM homework_submissions s"
+            "   WHERE s.homework_id = hw.id AND s.user_id = ?)",
+            (class_id, user_id),
+        ).fetchone()
+        return {"pending_grade": 0, "pending_submit": row["c"] if row else 0}
 
 
 def is_class_teacher(gid: str, user_id: str) -> bool:
@@ -1604,3 +2049,789 @@ def toggle_like(pid: str, user_id: str) -> dict:
             "SELECT COUNT(*) AS c FROM forum_likes WHERE post_id = ?", (pid,)
         ).fetchone()["c"]
     return {"liked": liked, "count": count}
+
+
+# ---------------------------------------------------------------- 伴学角色（聊天历史 + 偏好）
+
+MAX_SESSION_MSGS = 300        # 每条会话的消息保留上限（p20：从每角色 500 改为每会话 300）
+MAX_COMPANION_MSGS = 1500     # 每用户单角色全部会话合计保留上限，防无限膨胀
+MAX_COMPANION_SESSIONS = 30   # 每用户单角色的会话条数上限，超出自动清最旧
+MEMORY_MAX_CHARS = 400        # 长期印象滚动上限（追加新印象后裁剪）
+
+
+def _touch_session(conn, session_id: str) -> None:
+    """消息增删后同步会话冗余字段（msg_count + updated_at）。session_id 为空/不存在时静默。"""
+    if not session_id:
+        return
+    try:
+        cnt = conn.execute(
+            "SELECT COUNT(*) AS c FROM companion_msgs WHERE session_id = ?", (session_id,)
+        ).fetchone()["c"]
+        conn.execute(
+            "UPDATE companion_sessions SET msg_count = ?, updated_at = ? WHERE id = ?",
+            (int(cnt), int(time.time() * 1000), session_id),
+        )
+    except Exception:
+        pass
+
+
+def add_companion_msg(user_id: str, character_id: str, role: str,
+                      kind: str, content: str, meta: dict | None = None,
+                      session_id: str = "") -> int:
+    now = _now()
+    with _lock:
+        conn = _conn_checked()
+        cur = conn.execute(
+            "INSERT INTO companion_msgs (user_id, character_id, role, kind, content, meta, session_id, created_at)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (user_id, character_id, role, kind, content[:4000],
+             json.dumps(meta or {}, ensure_ascii=False), str(session_id or ""), now),
+        )
+        # 只留最近 MAX_SESSION_MSGS 条（按会话）+ 全角色合计 MAX_COMPANION_MSGS 条（防膨胀）
+        conn.execute(
+            """
+            DELETE FROM companion_msgs WHERE user_id = ? AND character_id = ? AND session_id = ? AND id NOT IN (
+                SELECT id FROM companion_msgs WHERE user_id = ? AND character_id = ? AND session_id = ?
+                ORDER BY created_at DESC, id DESC LIMIT ?
+            )
+            """,
+            (user_id, character_id, session_id, user_id, character_id, session_id, MAX_SESSION_MSGS),
+        )
+        conn.execute(
+            """
+            DELETE FROM companion_msgs WHERE user_id = ? AND character_id = ? AND id NOT IN (
+                SELECT id FROM companion_msgs WHERE user_id = ? AND character_id = ?
+                ORDER BY created_at DESC, id DESC LIMIT ?
+            )
+            """,
+            (user_id, character_id, user_id, character_id, MAX_COMPANION_MSGS),
+        )
+        _touch_session(conn, session_id)
+        conn.commit()
+        return cur.lastrowid
+
+
+def list_companion_msgs(user_id: str, character_id: str, limit: int = 200,
+                        session_id: str = "") -> list:
+    """某用户某角色的聊天历史（时间正序）；session_id 非空则只取该条会话。"""
+    sql = ("SELECT id, role, kind, content, meta, created_at FROM companion_msgs"
+           " WHERE user_id = ? AND character_id = ?")
+    args: list = [user_id, character_id]
+    if session_id:
+        sql += " AND session_id = ?"
+        args.append(session_id)
+    sql += " ORDER BY created_at ASC, id ASC LIMIT ?"
+    args.append(max(1, min(limit, 500)))
+    with _lock:
+        rows = _conn_checked().execute(sql, args).fetchall()
+    out = []
+    for r in rows:
+        try:
+            meta = json.loads(r["meta"] or "{}")
+        except Exception:
+            meta = {}
+        out.append({
+            "id": r["id"], "role": r["role"], "kind": r["kind"],
+            "content": r["content"], "meta": meta, "created_at": r["created_at"],
+        })
+    return out
+
+
+def companion_context(user_id: str, character_id: str, limit: int = 12,
+                      session_id: str = "") -> list:
+    """给模型当上下文的最近若干条（时间正序），只取 chat/quiz 文本。
+    p20：session_id 非空 = 记忆隔离（只带本会话），为空则兼容旧调用（全角色流水）。"""
+    sql = "SELECT role, content FROM companion_msgs WHERE user_id = ? AND character_id = ?"
+    args: list = [user_id, character_id]
+    if session_id:
+        sql += " AND session_id = ?"
+        args.append(session_id)
+    sql += " ORDER BY created_at DESC, id DESC LIMIT ?"
+    args.append(max(1, min(limit, 24)))
+    with _lock:
+        rows = _conn_checked().execute(sql, args).fetchall()
+    return [{"role": r["role"], "content": r["content"]} for r in reversed(rows)]
+
+
+# ---------------- p20 多会话聊天记录 CRUD ----------------
+
+def create_companion_session(user_id: str, character_id: str, title: str = "") -> dict:
+    """开一条新会话；每角色超过 MAX_COMPANION_SESSIONS 条时自动清最旧
+    （连同其消息一并删除、进行中的链作废为 done）。返回新会话快照。"""
+    now = int(time.time() * 1000)
+    sid = uuid.uuid4().hex[:16]
+    with _lock:
+        conn = _conn_checked()
+        rows = conn.execute(
+            "SELECT id FROM companion_sessions WHERE user_id = ? AND character_id = ?"
+            " ORDER BY updated_at ASC, created_at ASC",
+            (user_id, character_id),
+        ).fetchall()
+        overflow = len(rows) - (MAX_COMPANION_SESSIONS - 1)
+        for r in rows[:max(0, overflow)]:
+            old = r["id"]
+            conn.execute("DELETE FROM companion_msgs WHERE session_id = ? AND user_id = ?", (old, user_id))
+            conn.execute(
+                "UPDATE quiz_chains SET status = 'done' WHERE user_id = ? AND session_id = ? AND status = 'active'",
+                (user_id, old),
+            )
+            conn.execute("DELETE FROM companion_sessions WHERE id = ?", (old,))
+        conn.execute(
+            "INSERT INTO companion_sessions (id, user_id, character_id, title, msg_count, created_at, updated_at)"
+            " VALUES (?, ?, ?, ?, 0, ?, ?)",
+            (sid, user_id, character_id, (title or "").strip()[:18], now, now),
+        )
+        conn.commit()
+    return {"id": sid, "title": (title or "").strip()[:18], "msg_count": 0,
+            "created_at": now, "updated_at": now, "last": "", "has_chain": False}
+
+
+def list_companion_sessions(user_id: str, character_id: str, limit: int = 30) -> list:
+    """会话列表（按最近活跃倒序）：标题 / 计数 / 最后一句预览 / 是否有进行中的链。"""
+    with _lock:
+        rows = _conn_checked().execute(
+            "SELECT id, title, msg_count, created_at, updated_at FROM companion_sessions"
+            " WHERE user_id = ? AND character_id = ?"
+            " ORDER BY updated_at DESC, created_at DESC LIMIT ?",
+            (user_id, character_id, max(1, min(limit, MAX_COMPANION_SESSIONS))),
+        ).fetchall()
+        chain_sids = {r["session_id"] for r in _conn_checked().execute(
+            "SELECT session_id FROM quiz_chains WHERE user_id = ? AND status = 'active' AND session_id != ''",
+            (user_id,),
+        ).fetchall()}
+        out = []
+        for r in rows:
+            last_row = _conn_checked().execute(
+                "SELECT content FROM companion_msgs WHERE session_id = ? ORDER BY id DESC LIMIT 1",
+                (r["id"],),
+            ).fetchone()
+            out.append({
+                "id": r["id"], "title": r["title"] or "", "msg_count": int(r["msg_count"] or 0),
+                "created_at": int(r["created_at"] or 0), "updated_at": int(r["updated_at"] or 0),
+                "last": (last_row["content"] if last_row else "") or "",
+                "has_chain": r["id"] in chain_sids,
+            })
+    return out
+
+
+def companion_stats(user_id: str, character_id: str) -> dict:
+    """与某位伙伴的累计数据（2026-10-11，供伴学成就使用）：只读统计，不写库。
+    返回：msgs 累计对话句数 / sessions 会话数 / first_at 第一次聊 / last_at 最近一次 /
+          deeds 一起过过的题（讲题链）/ deeds_done 其中讲完的 / partners 聊过的伙伴数。
+    """
+    with _lock:
+        conn = _conn_checked()
+        row = conn.execute(
+            "SELECT COUNT(*) AS sessions, COALESCE(SUM(msg_count), 0) AS msgs,"
+            " COALESCE(MIN(created_at), 0) AS first_at, COALESCE(MAX(updated_at), 0) AS last_at"
+            " FROM companion_sessions WHERE user_id = ? AND character_id = ?",
+            (user_id, character_id),
+        ).fetchone()
+        deeds = 0
+        deeds_done = 0
+        try:
+            d1 = conn.execute(
+                "SELECT COUNT(*) AS n FROM quiz_chains c JOIN companion_sessions s ON s.id = c.session_id"
+                " WHERE c.user_id = ? AND s.character_id = ?", (user_id, character_id)).fetchone()
+            deeds = int(d1["n"] or 0) if d1 else 0
+            d2 = conn.execute(
+                "SELECT COUNT(*) AS n FROM quiz_chains c JOIN companion_sessions s ON s.id = c.session_id"
+                " WHERE c.user_id = ? AND s.character_id = ? AND c.status = 'done'",
+                (user_id, character_id)).fetchone()
+            deeds_done = int(d2["n"] or 0) if d2 else 0
+        except Exception:
+            deeds = 0
+            deeds_done = 0
+        p = conn.execute(
+            "SELECT COUNT(*) AS n FROM (SELECT character_id FROM companion_sessions"
+            " WHERE user_id = ? GROUP BY character_id HAVING COALESCE(SUM(msg_count), 0) > 0)",
+            (user_id,),
+        ).fetchone()
+    intim = get_intimacy(user_id, character_id)
+    return {
+        "msgs": int(row["msgs"] or 0) if row else 0,
+        "sessions": int(row["sessions"] or 0) if row else 0,
+        "first_at": int(row["first_at"] or 0) if row else 0,
+        "last_at": int(row["last_at"] or 0) if row else 0,
+        "deeds": deeds,
+        "deeds_done": deeds_done,
+        "partners": int(p["n"] or 0) if p else 0,
+        "level": int(intim.get("level") or 1),
+        "exp": int(intim.get("exp") or 0),
+    }
+
+
+def get_companion_session(user_id: str, session_id: str) -> dict | None:
+    with _lock:
+        row = _conn_checked().execute(
+            "SELECT id, title, msg_count, created_at, updated_at FROM companion_sessions"
+            " WHERE id = ? AND user_id = ?",
+            (session_id, user_id),
+        ).fetchone()
+    if not row:
+        return None
+    return {"id": row["id"], "title": row["title"] or "", "msg_count": int(row["msg_count"] or 0),
+            "created_at": int(row["created_at"] or 0), "updated_at": int(row["updated_at"] or 0)}
+
+
+def rename_companion_session(user_id: str, session_id: str, title: str) -> bool:
+    with _lock:
+        conn = _conn_checked()
+        cur = conn.execute(
+            "UPDATE companion_sessions SET title = ?, updated_at = ? WHERE id = ? AND user_id = ?",
+            ((title or "").strip()[:18], _now(), session_id, user_id),
+        )
+        conn.commit()
+    return cur.rowcount > 0
+
+
+def delete_companion_session(user_id: str, session_id: str) -> int:
+    """删除会话：消息一并删除、该会话进行中的链作废（done，不沉淀——调用方可先自行结算）。
+    返回删除前该会话是否有进行中的链（供前端提示）。"""
+    with _lock:
+        conn = _conn_checked()
+        chain = conn.execute(
+            "SELECT id FROM quiz_chains WHERE user_id = ? AND session_id = ? AND status = 'active'",
+            (user_id, session_id),
+        ).fetchone()
+        had_chain = 1 if chain else 0
+        conn.execute("DELETE FROM companion_msgs WHERE session_id = ? AND user_id = ?", (session_id, user_id))
+        conn.execute(
+            "UPDATE quiz_chains SET status = 'done' WHERE user_id = ? AND session_id = ? AND status = 'active'",
+            (user_id, session_id),
+        )
+        conn.execute("DELETE FROM companion_sessions WHERE id = ? AND user_id = ?", (session_id, user_id))
+        conn.commit()
+    return had_chain
+
+
+def auto_title_session(user_id: str, session_id: str, text: str) -> None:
+    """会话还没有标题时，用第一条用户消息的前 18 字自动命名（已命名则不动）。"""
+    t = (text or "").strip()[:18]
+    if not t or not session_id:
+        return
+    with _lock:
+        conn = _conn_checked()
+        conn.execute(
+            "UPDATE companion_sessions SET title = ? WHERE id = ? AND user_id = ? AND title = ''",
+            (t, session_id, user_id),
+        )
+        conn.commit()
+
+
+# ---------------- p20 长期印象（跨会话共享的轻量记忆，存 companion_pref.memory） ----------------
+
+def get_companion_memory(user_id: str, character_id: str) -> str:
+    with _lock:
+        row = _conn_checked().execute(
+            "SELECT memory FROM companion_pref WHERE user_id = ? AND character_id = ?",
+            (user_id, character_id),
+        ).fetchone()
+    return (row["memory"] if row and row["memory"] else "") or ""
+
+
+def append_companion_memory(user_id: str, character_id: str, text: str) -> str:
+    """追加一段印象并滚动裁剪到 MEMORY_MAX_CHARS（优先裁掉最旧的整行）。"""
+    old = get_companion_memory(user_id, character_id)
+    new = (old + "\n" + (text or "").strip()).strip()
+    while len(new) > MEMORY_MAX_CHARS and "\n" in new:
+        new = new[new.index("\n") + 1:]
+    if len(new) > MEMORY_MAX_CHARS:
+        new = new[-MEMORY_MAX_CHARS:]
+    with _lock:
+        conn = _conn_checked()
+        row = conn.execute(
+            "SELECT name, size_scale FROM companion_pref WHERE user_id = ? AND character_id = ?",
+            (user_id, character_id),
+        ).fetchone()
+        conn.execute(
+            "INSERT OR REPLACE INTO companion_pref (user_id, character_id, name, size_scale, memory, updated_at)"
+            " VALUES (?, ?, ?, ?, ?, ?)",
+            (user_id, character_id,
+             (row["name"] if row else "") or "", float(row["size_scale"]) if row and row["size_scale"] else 1.0,
+             new, _now()),
+        )
+        conn.commit()
+    return new
+
+
+def get_companion_pref(user_id: str, character_id: str) -> dict:
+    with _lock:
+        row = _conn_checked().execute(
+            "SELECT name, size_scale FROM companion_pref WHERE user_id = ? AND character_id = ?",
+            (user_id, character_id),
+        ).fetchone()
+    if not row:
+        return {"name": "", "size_scale": 1.0}
+    return {"name": row["name"] or "", "size_scale": float(row["size_scale"] or 1.0)}
+
+
+def list_companion_prefs(user_id: str) -> list:
+    with _lock:
+        rows = _conn_checked().execute(
+            "SELECT character_id, name, size_scale FROM companion_pref WHERE user_id = ?",
+            (user_id,),
+        ).fetchall()
+    return [{"character_id": r["character_id"], "name": r["name"] or "",
+             "size_scale": float(r["size_scale"] or 1.0)} for r in rows]
+
+
+def set_companion_pref(user_id: str, character_id: str,
+                       name: str | None = None, size_scale: float | None = None) -> dict:
+    """部分更新：name/size_scale 传 None 表示不改。返回更新后的完整偏好。"""
+    with _lock:
+        conn = _conn_checked()
+        row = conn.execute(
+            "SELECT name, size_scale FROM companion_pref WHERE user_id = ? AND character_id = ?",
+            (user_id, character_id),
+        ).fetchone()
+        cur_name = row["name"] if row else ""
+        cur_size = float(row["size_scale"]) if row and row["size_scale"] else 1.0
+        if name is not None:
+            cur_name = name.strip()[:12]
+        if size_scale is not None:
+            cur_size = max(0.6, min(2.0, float(size_scale)))
+        conn.execute(
+            "INSERT OR REPLACE INTO companion_pref (user_id, character_id, name, size_scale, updated_at)"
+            " VALUES (?, ?, ?, ?, ?)",
+            (user_id, character_id, cur_name, cur_size, _now()),
+        )
+        conn.commit()
+    return {"character_id": character_id, "name": cur_name, "size_scale": cur_size}
+
+
+# ---------------------------------------------------------------- quiz_chains（小老师模式问题链）
+
+def save_quiz_chain(user_id: str, chain: dict) -> None:
+    """Upsert 一条问题链。chain 需含 id/question_id/steps/progress/streak/wrong_steps/status。
+    p20：链绑定会话（session_id），断点续教只在同会话可见。"""
+    now = _now()
+    with _lock:
+        _conn_checked().execute(
+            "INSERT OR REPLACE INTO quiz_chains (id, user_id, question_id, steps, progress,"
+            " streak, layer_tries, wrong_steps, status, session_id, created_at, updated_at)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,"
+            " COALESCE((SELECT created_at FROM quiz_chains WHERE id = ?), ?), ?)",
+            (str(chain["id"]), user_id, str(chain["question_id"]),
+             json.dumps(chain.get("steps") or [], ensure_ascii=False),
+             int(chain.get("progress") or 0), int(chain.get("streak") or 0),
+             int(chain.get("layer_tries") or 0),
+             json.dumps(chain.get("wrong_steps") or [], ensure_ascii=False),
+             str(chain.get("status") or "active"),
+             str(chain.get("session_id") or ""),
+             str(chain["id"]), now, now),
+        )
+        _conn_checked().commit()
+
+
+def get_quiz_chain(user_id: str, chain_id: str) -> dict | None:
+    with _lock:
+        row = _conn_checked().execute(
+            "SELECT * FROM quiz_chains WHERE id = ? AND user_id = ?", (chain_id, user_id)
+        ).fetchone()
+    if not row:
+        return None
+    return {"id": row["id"], "question_id": row["question_id"],
+            "steps": json.loads(row["steps"] or "[]"),
+            "progress": int(row["progress"] or 0), "streak": int(row["streak"] or 0),
+            "layer_tries": int(row["layer_tries"] or 0) if "layer_tries" in row.keys() else 0,
+            "wrong_steps": json.loads(row["wrong_steps"] or "[]"),
+            "status": row["status"], "session_id": (row["session_id"] if "session_id" in row.keys() else "") or ""}
+
+
+def get_active_quiz_chain(user_id: str, session_id: str = "") -> dict | None:
+    """取该用户最近一条未完成链（断点续教用），无则 None。
+    p20：session_id 非空 = 只找绑定在该会话上的链（记忆/进度隔离）；为空兼容旧调用。"""
+    sql = "SELECT * FROM quiz_chains WHERE user_id = ? AND status = 'active'"
+    args: list = [user_id]
+    if session_id:
+        sql += " AND session_id = ?"
+        args.append(session_id)
+    sql += " ORDER BY updated_at DESC LIMIT 1"
+    with _lock:
+        row = _conn_checked().execute(sql, args).fetchone()
+    if not row:
+        return None
+    return {"id": row["id"], "question_id": row["question_id"],
+            "steps": json.loads(row["steps"] or "[]"),
+            "progress": int(row["progress"] or 0), "streak": int(row["streak"] or 0),
+            "layer_tries": int(row["layer_tries"] or 0) if "layer_tries" in row.keys() else 0,
+            "wrong_steps": json.loads(row["wrong_steps"] or "[]"),
+            "status": row["status"], "session_id": (row["session_id"] if "session_id" in row.keys() else "") or ""}
+
+
+# ---------- AI 教学老师：大纲 + 教学线（2026-10-09） ----------
+
+def _syl_row(row) -> dict:
+    keys = row.keys()
+    return {
+        "id": row["id"], "user_id": row["user_id"],
+        "subject": row["subject"] or "", "course_id": row["course_id"] or "",
+        "teacher_id": row["teacher_id"] or "", "title": row["title"] or "",
+        "items": json.loads(row["items"] or "[]"),
+        "chapters": json.loads((row["chapters"] if "chapters" in keys else "") or "[]"),
+        "cursor": int(row["cursor"] or 0),
+        "kp_done": json.loads((row["kp_done"] if "kp_done" in keys else "") or "[]"),
+        "level": row["level"] or "auto",
+        "status": row["status"] or "active",
+        "version": int((row["version"] if "version" in keys else 1) or 1),
+        "archived": int((row["archived"] if "archived" in keys else 0) or 0),
+        "unit_tests": json.loads((row["unit_tests"] if "unit_tests" in keys else "") or "{}"),
+        "created_at": int(row["created_at"] or 0), "updated_at": int(row["updated_at"] or 0),
+    }
+
+
+def save_syllabus(s: dict) -> None:
+    """Upsert 一条教学大纲（items 为小节平铺，chapters 为章分组 [{name,brief,count}]）。"""
+    now = _now()
+    with _lock:
+        _conn_checked().execute(
+            "INSERT OR REPLACE INTO teaching_syllabus"
+            " (id, user_id, subject, course_id, teacher_id, title, items, chapters, cursor, kp_done,"
+            "  level, status, version, archived, unit_tests,"
+            "  created_at, updated_at)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,"
+            "  COALESCE((SELECT created_at FROM teaching_syllabus WHERE id = ?), ?), ?)",
+            (str(s["id"]), str(s["user_id"]), str(s.get("subject") or ""),
+             str(s.get("course_id") or ""), str(s.get("teacher_id") or ""),
+             str(s.get("title") or ""),
+             json.dumps(s.get("items") or [], ensure_ascii=False),
+             json.dumps(s.get("chapters") or [], ensure_ascii=False),
+             int(s.get("cursor") or 0),
+             json.dumps(s.get("kp_done") or [], ensure_ascii=False),
+             str(s.get("level") or "auto"),
+             str(s.get("status") or "active"),
+             int(s.get("version") or 1),
+             int(s.get("archived") or 0),
+             json.dumps(s.get("unit_tests") or {}, ensure_ascii=False),
+             str(s["id"]), now, now),
+        )
+        _conn_checked().commit()
+
+
+def get_syllabus(user_id: str, syllabus_id: str) -> dict | None:
+    with _lock:
+        row = _conn_checked().execute(
+            "SELECT * FROM teaching_syllabus WHERE id = ? AND user_id = ?",
+            (syllabus_id, user_id)).fetchone()
+    return _syl_row(row) if row else None
+
+
+def list_syllabi(user_id: str) -> list:
+    """我的教学线（进行中优先、再按最近更新）。"""
+    with _lock:
+        rows = _conn_checked().execute(
+            "SELECT * FROM teaching_syllabus WHERE user_id = ?"
+            " ORDER BY (status = 'active') DESC, updated_at DESC LIMIT 50", (user_id,)).fetchall()
+    return [_syl_row(r) for r in rows]
+
+
+def update_syllabus(user_id: str, syllabus_id: str, fields: dict) -> dict | None:
+    """局部更新（cursor/kp_done/status/items/chapters/teacher_id/level/title/unit_tests）。返回更新后的大纲。"""
+    allow = {"cursor", "status", "teacher_id", "level", "title", "subject", "course_id",
+             "items", "kp_done", "chapters", "unit_tests", "archived", "version"}
+    json_keys = ("items", "kp_done", "chapters", "unit_tests")
+    sets, args = [], []
+    for k, v in (fields or {}).items():
+        if k not in allow:
+            continue
+        sets.append(k + " = ?")
+        args.append(json.dumps(v, ensure_ascii=False) if k in json_keys else v)
+    if not sets:
+        return get_syllabus(user_id, syllabus_id)
+    sets.append("updated_at = ?")
+    args.extend([_now(), syllabus_id, user_id])
+    with _lock:
+        _conn_checked().execute(
+            "UPDATE teaching_syllabus SET " + ", ".join(sets) + " WHERE id = ? AND user_id = ?",
+            tuple(args))
+        _conn_checked().commit()
+    return get_syllabus(user_id, syllabus_id)
+
+
+def delete_syllabus(user_id: str, syllabus_id: str) -> int:
+    """删课：连它的教学线一起清。返回删除的行数。"""
+    with _lock:
+        conn = _conn_checked()
+        conn.execute("DELETE FROM teaching_session WHERE user_id = ? AND syllabus_id = ?",
+                     (user_id, syllabus_id))
+        cur = conn.execute("DELETE FROM teaching_syllabus WHERE id = ? AND user_id = ?",
+                           (syllabus_id, user_id))
+        conn.commit()
+        return int(cur.rowcount or 0)
+
+
+def _sess_row(row) -> dict:
+    return {
+        "id": row["id"], "user_id": row["user_id"], "syllabus_id": row["syllabus_id"],
+        "teacher_id": row["teacher_id"] or "", "kp_index": int(row["kp_index"] or 0),
+        "state": row["state"] or "lecture",
+        "kp_payload": json.loads(row["kp_payload"] or "{}"),
+        "answer": row["answer"] or "", "grade": json.loads(row["grade"] or "{}"),
+        "ask_log": json.loads(row["ask_log"] or "[]"),
+        "turns": int(row["turns"] or 0), "minutes": int(row["minutes"] or 0),
+        "created_at": int(row["created_at"] or 0), "updated_at": int(row["updated_at"] or 0),
+    }
+
+
+def save_teach_session(s: dict) -> None:
+    """Upsert 一条教学线（一个知识点的状态机）。"""
+    now = _now()
+    with _lock:
+        _conn_checked().execute(
+            "INSERT OR REPLACE INTO teaching_session"
+            " (id, user_id, syllabus_id, teacher_id, kp_index, state, kp_payload, answer, grade,"
+            "  ask_log, turns, minutes, created_at, updated_at)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,"
+            "  COALESCE((SELECT created_at FROM teaching_session WHERE id = ?), ?), ?)",
+            (str(s["id"]), str(s["user_id"]), str(s["syllabus_id"]),
+             str(s.get("teacher_id") or ""), int(s.get("kp_index") or 0),
+             str(s.get("state") or "lecture"),
+             json.dumps(s.get("kp_payload") or {}, ensure_ascii=False),
+             str(s.get("answer") or ""),
+             json.dumps(s.get("grade") or {}, ensure_ascii=False),
+             json.dumps(s.get("ask_log") or [], ensure_ascii=False),
+             int(s.get("turns") or 0), int(s.get("minutes") or 0),
+             str(s["id"]), now, now),
+        )
+        _conn_checked().commit()
+
+
+def get_teach_session(user_id: str, session_id: str) -> dict | None:
+    with _lock:
+        row = _conn_checked().execute(
+            "SELECT * FROM teaching_session WHERE id = ? AND user_id = ?",
+            (session_id, user_id)).fetchone()
+    return _sess_row(row) if row else None
+
+
+def get_teach_session_by_kp(user_id: str, syllabus_id: str, kp_index: int) -> dict | None:
+    """取某条大纲某个知识点已有的教学线（幂等：同一知识点不重复生成讲义）。"""
+    with _lock:
+        row = _conn_checked().execute(
+            "SELECT * FROM teaching_session WHERE user_id = ? AND syllabus_id = ? AND kp_index = ?"
+            " ORDER BY updated_at DESC LIMIT 1", (user_id, syllabus_id, int(kp_index))).fetchone()
+    return _sess_row(row) if row else None
+
+
+def clear_teach_sessions(user_id: str, syllabus_id: str) -> int:
+    """清掉一条大纲下所有教学线（重置进度 / 删知识点后索引会错位时用）。"""
+    with _lock:
+        cur = _conn_checked().execute(
+            "DELETE FROM teaching_session WHERE user_id = ? AND syllabus_id = ?",
+            (user_id, syllabus_id))
+        _conn_checked().commit()
+        return int(cur.rowcount or 0)
+
+
+def list_teach_kp_indexes(user_id: str, syllabus_id: str) -> list:
+    """一条大纲下已生成过讲义的知识点索引（去重升序）——目录里标"学过"用。"""
+    with _lock:
+        rows = _conn_checked().execute(
+            "SELECT DISTINCT kp_index FROM teaching_session"
+            " WHERE user_id = ? AND syllabus_id = ?", (user_id, syllabus_id)).fetchall()
+    return sorted(int(r["kp_index"] or 0) for r in rows)
+
+
+# ---------- M4: 亲密度 + 讲题战报存档 ----------
+
+INTIMACY_PER_LEVEL = 50
+INTIMACY_MAX_LEVEL = 7
+
+
+def get_intimacy(user_id: str, character_id: str) -> dict:
+    with _lock:
+        row = _conn_checked().execute(
+            'SELECT exp FROM companion_intimacy WHERE user_id = ? AND character_id = ?',
+            (user_id, character_id),
+        ).fetchone()
+    exp = int(row['exp'] or 0) if row else 0
+    level = min(INTIMACY_MAX_LEVEL, 1 + exp // INTIMACY_PER_LEVEL)
+    in_level = 0 if level >= INTIMACY_MAX_LEVEL else exp % INTIMACY_PER_LEVEL
+    return {'exp': exp, 'level': level, 'exp_in_level': in_level,
+            'per_level': INTIMACY_PER_LEVEL, 'max_level': INTIMACY_MAX_LEVEL}
+
+
+def add_intimacy(user_id: str, character_id: str, delta: int) -> dict:
+    # 加经验（只增不减）；返回最新亲密度快照
+    if delta <= 0:
+        return get_intimacy(user_id, character_id)
+    now = int(time.time() * 1000)
+    with _lock:
+        _conn_checked().execute(
+            'INSERT INTO companion_intimacy (user_id, character_id, exp, updated_at) VALUES (?, ?, ?, ?) '
+            'ON CONFLICT (user_id, character_id) DO UPDATE SET exp = exp + excluded.exp, updated_at = excluded.updated_at',
+            (user_id, character_id, int(delta), now))
+        _conn_checked().commit()
+    return get_intimacy(user_id, character_id)
+
+
+def save_study_session(doc: dict) -> None:
+    with _lock:
+        _conn_checked().execute(
+            'INSERT OR REPLACE INTO study_session '
+            '(id, uid, character_id, question_id, layers, good_layers, wrong_layers, scores, avg, steps, passed, created_at) '
+            'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            (str(doc.get('id') or ''), str(doc.get('uid') or ''), str(doc.get('character_id') or ''),
+             str(doc.get('question_id') or ''), int(doc.get('layers') or 0), int(doc.get('good_layers') or 0),
+             json.dumps(doc.get('wrong_layers') or [], ensure_ascii=False),
+             json.dumps(doc.get('scores') or [], ensure_ascii=False),
+             json.dumps(doc.get('avg') or {}, ensure_ascii=False),
+             json.dumps(doc.get('steps') or [], ensure_ascii=False),
+             1 if doc.get('passed') else 0, int(doc.get('created_at') or 0)))
+        _conn_checked().commit()
+
+
+def list_study_sessions(user_id: str, limit: int = 50) -> list:
+    with _lock:
+        rows = _conn_checked().execute(
+            'SELECT id, character_id, question_id, layers, good_layers, wrong_layers, scores, avg, passed, created_at '
+            'FROM study_session WHERE uid = ? ORDER BY created_at DESC LIMIT ?',
+            (user_id, int(limit)),
+        ).fetchall()
+    out = []
+    for r in rows:
+        try:
+            wrong = json.loads(r['wrong_layers'] or '[]')
+            scores = json.loads(r['scores'] or '[]')
+            avg = json.loads(r['avg'] or '{}')
+        except Exception:
+            wrong, scores, avg = [], [], {}
+        out.append({'id': r['id'], 'character_id': r['character_id'], 'question_id': r['question_id'],
+                    'layers': r['layers'], 'good_layers': r['good_layers'], 'wrong_layers': wrong,
+                    'scores': scores, 'avg': avg, 'passed': bool(r['passed']), 'created_at': r['created_at']})
+    return out
+
+
+# ---------- 造角色二期: 用户自定义伴学角色 ----------
+
+_custom_ensured = False
+
+
+def _ensure_custom() -> None:
+    """懒建表（避免动 init_db 主块）：custom_companion 单表。"""
+    global _custom_ensured
+    if _custom_ensured:
+        return
+    with _lock:
+        _conn_checked().execute(
+            """
+            CREATE TABLE IF NOT EXISTS custom_companion (
+                char_id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                name TEXT NOT NULL DEFAULT '',
+                persona TEXT NOT NULL DEFAULT '',
+                ratio REAL NOT NULL DEFAULT 0.5,
+                image BLOB,
+                image_mime TEXT DEFAULT 'image/png',
+                lines TEXT DEFAULT '',
+                created_at INTEGER DEFAULT 0
+            )
+            """
+        )
+        _conn_checked().execute(
+            "CREATE INDEX IF NOT EXISTS idx_custom_user ON custom_companion (user_id)")
+        _conn_checked().commit()
+    _custom_ensured = True
+
+
+def save_custom_companion(doc: dict) -> None:
+    """新建/覆盖一个自定义角色。doc: char_id/user_id/name/persona/ratio/image(bytes)/image_mime/lines(dict)/created_at"""
+    _ensure_custom()
+    with _lock:
+        _conn_checked().execute(
+            "INSERT OR REPLACE INTO custom_companion "
+            "(char_id, user_id, name, persona, ratio, image, image_mime, lines, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (str(doc["char_id"]), str(doc["user_id"]), str(doc.get("name") or "")[:12],
+             str(doc.get("persona") or "")[:800], float(doc.get("ratio") or 0.5),
+             doc.get("image") or b"", str(doc.get("image_mime") or "image/png"),
+             json.dumps(doc.get("lines") or {}, ensure_ascii=False),
+             int(doc.get("created_at") or 0)))
+        _conn_checked().commit()
+
+
+def list_custom_companions(user_id: str) -> list:
+    """该用户全部自定义角色（不含 BLOB 图片，含台词 JSON）。"""
+    _ensure_custom()
+    with _lock:
+        rows = _conn_checked().execute(
+            "SELECT char_id, name, persona, ratio, lines, created_at FROM custom_companion "
+            "WHERE user_id = ? ORDER BY created_at DESC", (user_id,)).fetchall()
+    out = []
+    for r in rows:
+        try:
+            lines = json.loads(r["lines"] or "{}")
+        except Exception:
+            lines = {}
+        out.append({"id": r["char_id"], "name": r["name"], "persona": r["persona"],
+                    "ratio": float(r["ratio"] or 0.5), "lines": lines, "created_at": r["created_at"]})
+    return out
+
+
+def get_custom_companion(char_id: str, user_id: str = "") -> dict | None:
+    """按 char_id 取角色（user_id 传空则只按 id 查，仅供图片下发用）。"""
+    _ensure_custom()
+    with _lock:
+        if user_id:
+            row = _conn_checked().execute(
+                "SELECT char_id, user_id, name, persona, ratio, lines, created_at FROM custom_companion "
+                "WHERE char_id = ? AND user_id = ?", (char_id, user_id)).fetchone()
+        else:
+            row = _conn_checked().execute(
+                "SELECT char_id, user_id, name, persona, ratio, lines, created_at FROM custom_companion "
+                "WHERE char_id = ?", (char_id,)).fetchone()
+    if not row:
+        return None
+    try:
+        lines = json.loads(row["lines"] or "{}")
+    except Exception:
+        lines = {}
+    return {"id": row["char_id"], "user_id": row["user_id"], "name": row["name"],
+            "persona": row["persona"], "ratio": float(row["ratio"] or 0.5),
+            "lines": lines, "created_at": row["created_at"]}
+
+
+def get_custom_companion_image(char_id: str) -> tuple | None:
+    """取立绘 BLOB，返回 (bytes, mime)；无则 None。"""
+    _ensure_custom()
+    with _lock:
+        row = _conn_checked().execute(
+            "SELECT image, image_mime FROM custom_companion WHERE char_id = ?", (char_id,)).fetchone()
+    if not row or not row["image"]:
+        return None
+    return (row["image"], row["image_mime"] or "image/png")
+
+
+def count_custom_companions(user_id: str) -> int:
+    _ensure_custom()
+    with _lock:
+        row = _conn_checked().execute(
+            "SELECT COUNT(*) AS n FROM custom_companion WHERE user_id = ?", (user_id,)).fetchone()
+    return int(row["n"] or 0) if row else 0
+
+
+def delete_custom_companion(char_id: str, user_id: str) -> bool:
+    """仅限本人删除。返回是否真的删了。"""
+    _ensure_custom()
+    with _lock:
+        cur = _conn_checked().execute(
+            "DELETE FROM custom_companion WHERE char_id = ? AND user_id = ?", (char_id, user_id))
+        _conn_checked().commit()
+    return cur.rowcount > 0
+
+
+def purge_custom_companion(char_id: str, user_id: str) -> None:
+    """彻底删除自定义角色（2026-10-09）：角色行 + 聊天记录 + 名字/记忆偏好 + 亲密度 + 会话 + 讲解链。
+    此前只删 custom_companion 行，聊天/偏好/亲密度残留成死数据（用户拍板：删除=全清）。"""
+    _ensure_custom()
+    with _lock:
+        c = _conn_checked()
+        c.execute("DELETE FROM custom_companion WHERE char_id = ? AND user_id = ?", (char_id, user_id))
+        c.execute("DELETE FROM companion_msgs WHERE user_id = ? AND character_id = ?", (user_id, char_id))
+        c.execute("DELETE FROM companion_pref WHERE user_id = ? AND character_id = ?", (user_id, char_id))
+        c.execute("DELETE FROM companion_intimacy WHERE user_id = ? AND character_id = ?", (user_id, char_id))
+        c.execute("DELETE FROM companion_sessions WHERE user_id = ? AND character_id = ?", (user_id, char_id))
+        # study_session 的用户字段名是 uid（不是 user_id），讲解链也按角色锚定，一并清
+        c.execute("DELETE FROM study_session WHERE uid = ? AND character_id = ?", (user_id, char_id))
+        c.commit()

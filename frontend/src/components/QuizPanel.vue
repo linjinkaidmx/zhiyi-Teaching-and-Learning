@@ -1,3 +1,9 @@
+<!--
+  @deprecated 2026-10-13 —— 本组件已无任何引用（Element Plus 时代的遗留文件）。
+  保留仅作历史参考。若将来要复用：
+    1) 先移除对 'element-plus' 的 import（依赖已不在 package.json，直接用会构建失败）
+    2) 文本类字段一律套 <MathText :content="..." />（prop 是 content，不是 text）
+-->
 <template>
   <div class="quiz">
     <!-- 阶段一：组卷设置 -->
@@ -45,7 +51,7 @@
 
       <div class="stem-box">
         <div class="stem-t">题目</div>
-        <div class="stem"><MathText :text="cur.question" /></div>
+        <div class="stem"><MathText :content="cur.question" /></div>
       </div>
 
       <div class="hint-row">
@@ -75,7 +81,7 @@
         <div class="rev-head">答案与解析</div>
         <div v-if="cur.correct_answer" class="block">
           <div class="block-t">标准答案</div>
-          <div class="correct"><MathText :text="cur.correct_answer" /></div>
+          <div class="correct"><MathText :content="cur.correct_answer" /></div>
         </div>
         <div v-else class="nostd">
           这道题没有记录标准答案，请对照下面的解析自行判断。
@@ -83,7 +89,7 @@
         <div v-if="(cur.solution_steps || []).length" class="block">
           <div class="block-t">分步解析</div>
           <ol class="steps">
-            <li v-for="(s, i) in cur.solution_steps" :key="i"><MathText :text="s" /></li>
+            <li v-for="(s, i) in cur.solution_steps" :key="i"><MathText :content="s" /></li>
           </ol>
         </div>
 
@@ -94,8 +100,8 @@
               {{ AI_TEXT[ai.verdict].label }}
             </el-tag>
           </div>
-          <div class="ai-comment"><MathText :text="ai.comment" /></div>
-          <div v-if="ai.key_mistake" class="ai-mistake">关键问题：<MathText :text="ai.key_mistake" /></div>
+          <div class="ai-comment"><MathText :content="ai.comment" /></div>
+          <div v-if="ai.key_mistake" class="ai-mistake">关键问题：<MathText :content="ai.key_mistake" /></div>
           <div class="ai-note">AI 判定仅供参考，最终以你自己的判断为准。</div>
         </div>
 
@@ -136,7 +142,7 @@
         <div v-for="(it, i) in results" :key="it.id" class="rev-row">
           <span class="idx">{{ i + 1 }}</span>
           <span class="mk" :class="it.ok ? 'ok' : 'no'">{{ it.ok ? '答对' : '答错' }}</span>
-          <span class="rv-q">{{ it.question }}</span>
+          <span class="rv-q"><MathText :content="it.question" /></span>
           <span class="rv-s" :class="it.after === '已掌握' ? 'ok' : ''">
             {{ it.before }} → {{ it.after }}
           </span>

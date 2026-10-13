@@ -57,6 +57,8 @@ export const routes = [
   v1(ROUTES.simExam, 'sim-exam', () => import('../pages/ExamPage.vue')),
   v1(ROUTES.simExamRun, 'sim-exam-run', () => import('../pages/ExamRunPage.vue')),
   v1(ROUTES.data, 'data', () => import('../pages/DataPage.vue')),
+  // AI 学情报告（2026-10-10 首页 Hero 入口）：已掌握总结 + 薄弱点 AI 建议 + 接下来往哪学
+  v1(ROUTES.report, 'report', () => import('../pages/ReportPage.vue')),
   v1(ROUTES.records, 'records', () => import('../pages/RecordsPage.vue')),
   // 成就殿堂：51 枚奖章按 8 个功能域展示（数据来自本地统计，登录后云同步）
   v1(ROUTES.achievements, 'achievements', () => import('../pages/AchievementsPage.vue')),
@@ -72,6 +74,12 @@ export const routes = [
 
   // ---------------- 我的（P6 起 v1 外观；至此所有路由均为 v1） ----------------
   v1(ROUTES.mine, 'mine', () => import('../pages/MinePage.vue')),
+
+  // ---------------- 伙伴页（互学界面：角色舞台 + 气泡 + 工作台 + 语音输入） ----------------
+  v1(ROUTES.companion, 'companion', () => import('../pages/CompanionPage.vue')),
+
+  // ---------------- AI 课堂（教学老师：逐个知识点讲透 + 出题 + 批改） ----------------
+  v1(ROUTES.teacher, 'teacher', () => import('../pages/TeacherPage.vue')),
 
   // ---------------- 兜底 ----------------
   v1('/:pathMatch(.*)*', 'not-found', () => import('../pages/PlaceholderPage.vue'), {

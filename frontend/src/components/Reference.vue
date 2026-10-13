@@ -184,7 +184,7 @@ const TableItem = {
             props.table.rows.map((row) => h('tr', row.map((cell) => h('td', cell)))),
           ),
         ]),
-        props.table.note ? h('div', { class: 'zr-note' }, props.table.note) : null,
+        props.table.note ? h('div', { class: 'zr-note' }, [h(MathText, { content: props.table.note })]) : null,
       ])
   },
 }
