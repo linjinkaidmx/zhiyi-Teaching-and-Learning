@@ -28,6 +28,7 @@ function withToken(payload) {
 
 export async function request(path, payload = {}, options = {}) {
   const { timeout = 30000, signal } = options
+  const ownerToken = getToken()
   const controller = new AbortController()
   const timer = timeout ? setTimeout(() => controller.abort(), timeout) : null
   try {
@@ -39,6 +40,7 @@ export async function request(path, payload = {}, options = {}) {
     })
     if (!res.ok) throw new Error(`请求失败（${res.status}）`)
     const body = await res.json()
+    if (ownerToken !== getToken()) throw new DOMException('会话已切换', 'AbortError')
     if (body && body.ok === false) throw new Error(body.error || '请求失败')
     return body
   } finally {

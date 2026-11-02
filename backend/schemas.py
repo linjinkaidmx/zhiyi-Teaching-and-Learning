@@ -92,6 +92,7 @@ class FeedbackRequest(BaseModel):
 class SyncPushRequest(BaseModel):
     token: str = ""
     items: list = []
+    deleted_ids: list[str] = []  # 显式删除；缺少条目不再表示删除
     stats: dict = {}          # 打卡/连续/成就统计（老客户端不传也兼容）
     courses: dict = {}        # 课程/知识点/课表（批次1；老客户端不传也兼容）
     sessions: list = []       # 学习记录（批次1；老客户端不传也兼容）

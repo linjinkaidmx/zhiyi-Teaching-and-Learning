@@ -1,3 +1,4 @@
+import { personalKey } from './accountScope.js'
 /**
  * 伴学角色共享配置（CompanionLayer 行走层 与 CompanionPage 伙伴页共用）。
  * 字段说明：
@@ -188,8 +189,8 @@ export function subjectShort(subject) {
 
 /** zy-comp- 前缀的 localStorage 读写（行走层/伙伴页共用同一批 key） */
 export const compLs = {
-  get: (k, d) => { try { return localStorage.getItem('zy-comp-' + k) ?? d } catch { return d } },
-  set: (k, v) => { try { localStorage.setItem('zy-comp-' + k, v) } catch { /* ignore */ } },
+  get: (k, d) => { try { return localStorage.getItem(personalKey('zy-comp-' + k)) ?? d } catch { return d } },
+  set: (k, v) => { try { localStorage.setItem(personalKey('zy-comp-' + k), v) } catch { /* ignore */ } },
 }
 
 /* ---------------- 造角色二期：用户自定义伴学角色（2026-10-06） ----------------
@@ -207,12 +208,12 @@ import { isLoggedIn } from '../auth.js'
 const LS_CUSTOM_CACHE = 'zy-comp-custom-cache'
 
 function writeCustomCache() {
-  try { localStorage.setItem(LS_CUSTOM_CACHE, JSON.stringify(customChars.value)) } catch { /* 隐私模式等：跳过 */ }
+  try { localStorage.setItem(personalKey(LS_CUSTOM_CACHE), JSON.stringify(customChars.value)) } catch { /* 隐私模式等：跳过 */ }
 }
 
 /** 退出登录时清掉缓存（避免换个账号登录时，首帧先看到上一个账号的自定义角色） */
 export function clearCustomCache() {
-  try { localStorage.removeItem(LS_CUSTOM_CACHE) } catch { /* ignore */ }
+  customChars.value = []
 }
 
 export const customChars = ref([])
@@ -261,7 +262,7 @@ function lsValid(v) {
    云端 /api/companion/custom/list 到达后 setCustomChars 会整体覆盖（以云端为准）；缓存损坏则忽略。 */
 try {
   if (isLoggedIn() && isCustomId(activeId.value) && customChars.value.length === 0) {
-    const cached = JSON.parse(localStorage.getItem(LS_CUSTOM_CACHE) || 'null')
+    const cached = JSON.parse(localStorage.getItem(personalKey(LS_CUSTOM_CACHE)) || 'null')
     if (Array.isArray(cached) && cached.some((c) => c && c.id === activeId.value && typeof c.src === 'string' && c.src)) {
       customChars.value = cached
     }
@@ -291,4 +292,10 @@ export function companionMetaOf(id) {
 export function companionTitleOf(level) {
   const lv = Math.min(Math.max(Number(level) || 1, 1), COMPANION_TITLES.length)
   return COMPANION_TITLES[lv - 1]
+}
+
+export function initCompanionScope() {
+  customChars.value = []
+  try { const cached = JSON.parse(localStorage.getItem(personalKey(LS_CUSTOM_CACHE)) || '[]'); if (Array.isArray(cached)) customChars.value = cached } catch {}
+  activeId.value = effectiveActiveId(lsValid(compLs.get('active')))
 }

@@ -5,6 +5,8 @@
 背景：index.html 若不发 Cache-Control，浏览器会启发式缓存，
       发新版后用户（尤其手机）会继续用旧 JS，表现为"看不到新功能"。
 """
+
+import test_support  # isolated database, no credentials or network
 import os
 import sys
 import tempfile

@@ -1,3 +1,4 @@
+import { accountKey } from '../lib/accountScope.js'
 /**
  * recordsStore · 学习记录（LearningSession 形态，本地先行）
  * ---------------------------------------------------------------------------
@@ -28,7 +29,7 @@ export const RECORD_TYPES = {
 const records = ref([])
 let space = 'guest'
 
-const keyOf = (sp) => (sp === 'account' ? ACCOUNT_KEY : GUEST_KEY)
+const keyOf = (sp) => (sp === 'account' ? accountKey(ACCOUNT_KEY) : GUEST_KEY)
 
 function readStore(sp) {
   try {

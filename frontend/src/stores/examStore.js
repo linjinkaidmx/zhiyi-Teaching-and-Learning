@@ -1,3 +1,4 @@
+import { accountKey } from '../lib/accountScope.js'
 /**
  * examStore · 模拟考试试卷（localStorage 双空间 + 云同步）
  * ---------------------------------------------------------------------------
@@ -16,7 +17,7 @@ export const MAX_PAPERS = 60
 let space = 'guest'
 const state = ref({ papers: [] })
 
-const kk = (sp) => (sp === 'account' ? KEY_ACC : KEY)
+const kk = (sp) => (sp === 'account' ? accountKey(KEY_ACC) : KEY)
 const asArray = (x) => (Array.isArray(x) ? x : [])
 
 function _empty() {

@@ -3,6 +3,8 @@
 用法：python _test_extract_mode.py
 说明：Windows 下打桩 resource 模块；默认 MOCK=1，不调真实模型。
 """
+
+import test_support  # isolated database, no credentials or network
 import os
 import sys
 import types
@@ -20,6 +22,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from fastapi.testclient import TestClient  # noqa: E402
 import main  # noqa: E402
+main.AI_GUEST_DAILY_LIMIT = 10000  # Only this functional-test process; security tests retain real quotas.
 import service  # noqa: E402
 
 FAILS = []

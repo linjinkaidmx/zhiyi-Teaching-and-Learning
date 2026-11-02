@@ -40,11 +40,12 @@
     <AchievementReveal />
     <UiToastHost />
     <UiConfirmHost />
-    <CompanionLayer />
+    <CompanionLayer :key="session.epoch" />
   </div>
 </template>
 
 <script setup>
+import { session } from '../stores/sessionStore.js'
 import TopNav from './TopNav.vue'
 import DesktopSideNav from './DesktopSideNav.vue'
 import DesktopTopBar from './DesktopTopBar.vue'

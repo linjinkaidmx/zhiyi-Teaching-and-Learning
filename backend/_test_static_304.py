@@ -4,6 +4,8 @@
 立绘/差分 no-cache 头导致每次进页整张重下（线上实测 365KB×2/次）。
 用法：python _test_static_304.py   （离线，不起服务、不连网络）
 """
+
+import test_support  # isolated database, no credentials or network
 import os
 import sys
 import tempfile

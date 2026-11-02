@@ -102,7 +102,7 @@
             </div>
           </div>
           <ul class="trun__intro-notes">
-            <li>开始后立即计时，倒计时结束会自动交卷（已作答内容会计分）</li>
+            <li>开始后立即计时，截止前约 3 秒尝试自动交卷；网络异常可能提交失败，请尽早手动提交</li>
             <li>每人只有一次作答机会，请确认有足够时间再开始</li>
             <li>答题卡可快速跳转检查，提交后不能修改</li>
           </ul>
@@ -161,7 +161,7 @@
           <p class="t-body-2" :class="{ 'trun__warn': unansweredCount > 0 }">
             {{ unansweredCount > 0 ? `还有 ${unansweredCount} 题未作答，提交后不能修改。` : '全部作答完成，检查后提交。' }}
           </p>
-          <UiButton variant="primary" block :loading="submitting" @click="submit">
+          <UiButton variant="primary" block :loading="submitting" @click="submit(false)">
             一键提交
           </UiButton>
         </section>
@@ -194,8 +194,8 @@
 
           <div class="trun__sheet-card surface-standard trun__sheet-side">
             <span class="trun__timer" :class="{ 'is-low': remainingSec <= 60 }">{{ fmtClock(remainingSec) }}</span>
-            <span class="t-label">距自动交卷</span>
-            <UiButton variant="primary" block :loading="submitting" @click="submit">一键提交</UiButton>
+            <span class="t-label">距考试截止</span>
+            <UiButton variant="primary" block :loading="submitting" @click="submit(false)">一键提交</UiButton>
             <span class="t-label">每人仅一次机会 · 提交后不可修改</span>
           </div>
         </aside>
@@ -260,6 +260,8 @@ const savedCount = ref(0)
 const rankData = ref({})
 const remainingSec = ref(0)
 let timer = null
+let deadlineAt = 0
+let autoAttempted = false
 
 const answeredCount = computed(() => questions.value.filter((q) => {
   const v = answers[q.index]
@@ -370,20 +372,19 @@ function fmtClock(sec) {
 
 function startTimer() {
   stopTimer()
-  timer = setInterval(() => {
-    if (remainingSec.value <= 0) {
-      stopTimer()
-      toast.error('时间到，自动交卷')
-      submit(true)
-      return
-    }
-    remainingSec.value -= 1
-    if (remainingSec.value <= 0) {
-      stopTimer()
-      toast.error('时间到，自动交卷')
+  deadlineAt = Date.now() + remainingSec.value * 1000
+  autoAttempted = false
+  const tick = () => {
+    remainingSec.value = Math.max(0, Math.floor((deadlineAt - Date.now()) / 1000))
+    if (remainingSec.value <= 0) { stopTimer(); return }
+    if (remainingSec.value <= 3 && !autoAttempted) {
+      autoAttempted = true
+      toast.info('即将截止，正在尝试自动交卷')
       submit(true)
     }
-  }, 1000)
+  }
+  timer = setInterval(tick, 250)
+  tick()
 }
 
 function stopTimer() {
@@ -425,7 +426,8 @@ async function doStart(preview = false) {
 }
 
 async function submit(auto = false) {
-  if (submitting.value) return
+  if (submitting.value || submitted.value) return
+  if (deadlineAt && Date.now() >= deadlineAt) { toast.error('考试已截止，无法提交；当前作答仍保留在页面中'); return }
   if (!auto && unansweredCount.value > 0 && !window.confirm(`还有 ${unansweredCount.value} 题未作答，确定提交？`)) return
   submitting.value = true
   try {

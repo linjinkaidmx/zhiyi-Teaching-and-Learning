@@ -12,6 +12,7 @@ function withToken(body) {
 }
 
 async function post(path, body, timeoutMs = 180000, outerSignal = null) {
+  const requestToken = getToken()
   const ctrl = new AbortController()
   const timer = setTimeout(() => ctrl.abort(), timeoutMs)
   const onOuterAbort = () => ctrl.abort()
@@ -27,8 +28,12 @@ async function post(path, body, timeoutMs = 180000, outerSignal = null) {
       signal: ctrl.signal,
     })
     const data = await res.json()
+    if (!path.startsWith('/api/account/') && requestToken !== getToken()) { const err = new Error('会话已切换'); err.code = 'STALE_SESSION'; throw err }
+    if (res.status === 401) { const err = new Error(data.error || '登录已失效'); err.code = 'AUTH_INVALID'; throw err }
     if (!data.ok) {
       const err = new Error(data.error || '请求失败')
+      err.code = data.code || ''
+      err.status = res.status
       /* v8: 额度超额标记透传（伙伴页据此切角色人设化话术，不用系统报错） */
       if (data.quota_exhausted) { err.quota_exhausted = true; err.quota_kind = data.quota_kind || '' }
       /* 2026-10-10：旧版课程归档标记透传（AI 课堂据此提示重开新课） */
@@ -57,6 +62,8 @@ async function post(path, body, timeoutMs = 180000, outerSignal = null) {
  * handlers: { onDelta(text), onDone(), signal, timeoutMs }
  */
 async function streamPost(path, body, { onDelta, onDone, onEvent, signal, timeoutMs = 300000 } = {}) {
+  const requestToken = getToken()
+  const guardSession = () => { if (requestToken !== getToken()) { ctrl.abort(); throw new DOMException('会话已切换', 'AbortError') } }
   const ctrl = new AbortController()
   const timer = setTimeout(() => ctrl.abort(), timeoutMs)
   const onOuterAbort = () => ctrl.abort()
@@ -86,6 +93,7 @@ async function streamPost(path, body, { onDelta, onDone, onEvent, signal, timeou
     let finished = false
     for (;;) {
       const { value, done } = await reader.read()
+      guardSession()
       if (done) break
       buf += decoder.decode(value, { stream: true })
       const frames = buf.split('\n\n')
@@ -156,9 +164,9 @@ export const api = {
 
   // 错题本云同步（顺带同步打卡/成就统计）
   sync: {
-    push: (token, items, stats, courses, sessions, exams) =>
+    push: (token, items, stats, courses, sessions, exams, deleted_ids = []) =>
       post('/api/sync/push', {
-        token, items, stats: stats || {},
+        token, items, deleted_ids, stats: stats || {},
         courses: courses || {},       // 批次1：课程/知识点/课表（含删除墓碑）
         sessions: sessions || [],     // 批次1：学习记录
         exams: exams || [],           // 模拟考试试卷（含作答与成绩）

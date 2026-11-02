@@ -2,6 +2,8 @@
 """批次2 测试：③ AI 对话流式
 用法：python _test_chat_stream.py
 """
+
+import test_support  # isolated database, no credentials or network
 import json
 import os
 import sys

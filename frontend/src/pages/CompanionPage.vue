@@ -38,6 +38,7 @@
               @click="pokeChar"
               @load="onCharImgLoad"
             />
+            <img ref="ghostRef" class="cpage__char-ghost" :style="{ height: stageH + 'px' }" src="" alt="" />
             <div v-if="bubble.visible" class="cpage__bubble" title="点击显示全文" @click="finishTypewriter">
               <span class="cpage__bubble-text">{{ bubble.shown }}</span>
               <span v-if="bubble.shown.length < bubble.full.length" class="cpage__bubble-cursor">▍</span>
@@ -475,6 +476,18 @@ let blinkTimer = null
 const faceSrc = computed(() => {
   const f = cfg.value.faces || {}
   return f[faceState.value] || cfg.value.src
+})
+const ghostRef = ref(null)
+/* 换脸交叉淡出：说话嘴型/眨眼 260ms 硬切整图在镜头下是频闪 → 旧脸叠层 150ms 淡出（根因修复 2026-10-13） */
+watch(faceSrc, (nv, ov) => {
+  const g = ghostRef.value
+  if (!g || !ov || ov === nv) return
+  g.src = ov
+  g.style.transition = 'none'
+  g.style.opacity = '1'
+  void g.offsetWidth
+  g.style.transition = 'opacity .15s ease'
+  g.style.opacity = '0'
 })
 function setFace(state, ms = 1600) {
   faceState.value = state
@@ -1456,6 +1469,13 @@ const { tourOpen } = useTour('companion')
 .cpage__stage-box--guest { min-height: 300px; }
 /* max-width:none 豁免 base.css 全局 img{max-width:100%}——否则角色放大时宽度被容器钳住、横向压扁（同行走角色历史坑） */
 .cpage__char { width: auto; max-width: none; display: block; user-select: none; cursor: pointer; }
+/* 换脸淡出叠层：与主立绘同锚点居中，盖上层，opacity 由 JS 交叉淡出驱动 */
+.cpage__char-ghost {
+  position: absolute; left: 50%; bottom: 0;
+  transform: translateX(-50%);
+  width: auto; max-width: none; display: block;
+  pointer-events: none; opacity: 0;
+}
 .cpage__char--breath { animation: cpage-breathe 2.8s ease-in-out infinite; }
 @keyframes cpage-breathe {
   0%, 100% { transform: translateY(0) scale(1); }

@@ -11,3 +11,16 @@ services:
       - "3300:8000"
     env_file:
       - .env
+    environment:
+      ZHIYI_DB: /app/data/zhiyi.db
+      ZHIYI_TOKEN_KEY_FILE: /app/data/token-key.json
+      ZHIYI_CODE_RUNNER: disabled
+    volumes:
+      - zhiyi-data:/app/data
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+volumes:
+  zhiyi-data:

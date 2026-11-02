@@ -2,6 +2,8 @@
 
 用法：python _test_forum_null_card.py
 """
+
+import test_support  # isolated database, no credentials or network
 import os
 import sys
 import tempfile

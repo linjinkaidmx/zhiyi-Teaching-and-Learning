@@ -49,13 +49,23 @@ def init_db():
     _conn.execute(
         """
         CREATE TABLE IF NOT EXISTS errorbook (
-            id TEXT PRIMARY KEY,
+            id TEXT NOT NULL,
             user_id TEXT NOT NULL,
             data TEXT NOT NULL,
-            updated_at INTEGER DEFAULT 0
+            updated_at INTEGER DEFAULT 0,
+            PRIMARY KEY (user_id, id)
         )
         """
     )
+    # 原表以 id 全局唯一，会让不同账号相同 id 相互覆盖。事务迁移保留现存数据。
+    pk = [r['name'] for r in sorted(_conn.execute('PRAGMA table_info(errorbook)').fetchall(), key=lambda r: r['pk']) if r['pk']]
+    if pk != ['user_id', 'id']:
+        with _conn:
+            _conn.execute('CREATE TABLE errorbook_scoped (id TEXT NOT NULL, user_id TEXT NOT NULL, data TEXT NOT NULL, updated_at INTEGER DEFAULT 0, PRIMARY KEY(user_id,id))')
+            _conn.execute('INSERT INTO errorbook_scoped SELECT id,user_id,data,updated_at FROM errorbook')
+            _conn.execute('DROP TABLE errorbook')
+            _conn.execute('ALTER TABLE errorbook_scoped RENAME TO errorbook')
+    _conn.execute('CREATE TABLE IF NOT EXISTS errorbook_deleted (user_id TEXT NOT NULL, id TEXT NOT NULL, deleted_at INTEGER NOT NULL, PRIMARY KEY(user_id,id))')
     _conn.execute("CREATE INDEX IF NOT EXISTS idx_errorbook_user ON errorbook(user_id)")
     _conn.execute(
         """
@@ -671,42 +681,70 @@ def set_recovery_hash(nickname: str, recovery_hash: str) -> None:
 
 # ---------------------------------------------------------------- errorbook
 
-def save_errorbook(user_id: str, items: list) -> dict:
-    """全量替换某账号的云端错题本。item 为错题条目对象，含 id 字段。
+def save_errorbook(user_id: str, items: list, deleted_ids=None, *, from_client=False) -> dict:
+    """合并账号条目；缺项不删除。显式墓碑优先，旧客户端不能复活已删除题。
 
-    返回 {"saved": 实际入库条数, "dropped": 因格式非法被丢弃的条数}，
-    让调用方（sync/push）能如实告知客户端，杜绝"静默丢数据"（B1 修复）。
+    客户端同 id 按 updatedAt 冲突裁决；无版本旧客户端不能覆盖已有版本。
+    服务端批改更新使用当前时间，只更新实际变化的条目。恢复删除题需创建新 id。
     """
     now = int(__import__("time").time() * 1000)
     saved = dropped = 0
     with _lock:
         conn = _conn_checked()
-        conn.execute("DELETE FROM errorbook WHERE user_id = ?", (user_id,))
-        for it in items:
-            if not isinstance(it, dict) or it.get("id") is None:
-                dropped += 1
-                continue
-            conn.execute(
-                "INSERT OR REPLACE INTO errorbook (id, user_id, data, updated_at) VALUES (?, ?, ?, ?)",
-                (str(it["id"]), user_id, json.dumps(it, ensure_ascii=False), now),
-            )
-            saved += 1
-        conn.commit()
+        with conn:
+            for item_id in deleted_ids or []:
+                if not isinstance(item_id, (str, int)) or not str(item_id):
+                    continue
+                conn.execute('INSERT OR IGNORE INTO errorbook_deleted VALUES (?,?,?)', (user_id, str(item_id), now))
+                conn.execute('DELETE FROM errorbook WHERE user_id=? AND id=?', (user_id, str(item_id)))
+            dead = {r['id'] for r in conn.execute('SELECT id FROM errorbook_deleted WHERE user_id=?', (user_id,))}
+            for it in items:
+                if not isinstance(it, dict) or not isinstance(it.get('id'), (str, int)) or not str(it['id']):
+                    dropped += 1
+                    continue
+                item_id = str(it['id'])
+                if item_id in dead:
+                    continue
+                old = conn.execute('SELECT data,updated_at FROM errorbook WHERE user_id=? AND id=?', (user_id,item_id)).fetchone()
+                if old and json.loads(old['data']) == it:
+                    saved += 1
+                    continue
+                raw_stamp = it.get('updatedAt', 0)
+                stamp = min(int(raw_stamp), now) if isinstance(raw_stamp, (int, float)) and 0 <= raw_stamp < 1e16 else 0
+                if from_client and old and stamp <= old['updated_at']:
+                    continue
+                if not from_client and old and stamp and stamp < old['updated_at']:
+                    # A server worker may also hold a snapshot loaded before another write.
+                    continue
+                value = dict(it)
+                value['updatedAt'] = (stamp or now) if from_client else max(now, (old['updated_at'] + 1) if old else now)
+                conn.execute(
+                    'INSERT INTO errorbook (id,user_id,data,updated_at) VALUES (?,?,?,?) ON CONFLICT(user_id,id) DO UPDATE SET data=excluded.data,updated_at=excluded.updated_at',
+                    (item_id,user_id,json.dumps(value,ensure_ascii=False),value['updatedAt']),
+                )
+                saved += 1
     return {"saved": saved, "dropped": dropped}
 
 
 def load_errorbook(user_id: str) -> list:
     with _lock:
         rows = _conn_checked().execute(
-            "SELECT data FROM errorbook WHERE user_id = ? ORDER BY updated_at DESC", (user_id,)
+            "SELECT data, updated_at FROM errorbook WHERE user_id = ? ORDER BY updated_at DESC", (user_id,)
         ).fetchall()
     items = []
     for r in rows:
         try:
-            items.append(json.loads(r["data"]))
+            item = json.loads(r['data'])
+            item['updatedAt'] = r['updated_at']
+            items.append(item)
         except Exception:
             continue
     return items
+
+
+def errorbook_deleted_ids(user_id: str) -> list:
+    with _lock:
+        return [r['id'] for r in _conn_checked().execute('SELECT id FROM errorbook_deleted WHERE user_id=?', (user_id,))]
 
 
 # ---------------------------------------------------------------- user_stats（打卡/成就）
@@ -768,13 +806,21 @@ def load_profile_data(user_id: str) -> dict:
 # 导致批次1 新增的 user_courses / user_sessions 改昵称后变成孤儿数据（线上实测抓到）。
 USER_SCOPED_TABLES = (
     "errorbook",
+    "errorbook_deleted",
     "user_stats",
     "user_profile",
     "user_courses",
     "user_sessions",
+    "user_exams",
+    "user_kp_state",
     "companion_msgs",
     "companion_pref",
     "companion_sessions",
+    "companion_intimacy",
+    "quiz_chains",
+    "teaching_syllabus",
+    "teaching_session",
+    "class_test_attempts",
 )
 
 # 社区中「以昵称作为 user_id 列、改名要迁移、注销要删除」的表（关系与私密消息）。
@@ -797,6 +843,12 @@ def rename_user(old: str, new: str) -> None:
         # 小组 owner 单独一列；班级作业的 created_by 同理
         conn.execute("UPDATE groups SET owner_id = ? WHERE owner_id = ?", (new, old))
         conn.execute("UPDATE homework SET created_by = ? WHERE created_by = ?", (new, old))
+        conn.execute("UPDATE class_notes SET created_by = ? WHERE created_by = ?", (new, old))
+        conn.execute("UPDATE class_tests SET created_by = ? WHERE created_by = ?", (new, old))
+        conn.execute("UPDATE study_session SET uid = ? WHERE uid = ?", (new, old))
+        conn.execute("UPDATE feedback SET user_id = ? WHERE user_id = ?", (new, old))
+        if conn.execute("SELECT 1 FROM sqlite_master WHERE name='custom_companion'").fetchone():
+            conn.execute('UPDATE custom_companion SET user_id=? WHERE user_id=?', (new, old))
         conn.commit()
 
 
@@ -810,6 +862,10 @@ def delete_user(user_id: str) -> None:
         # 论坛帖子/评论是公开内容：匿名化保留（作者显示「已注销」），不删别人的评论线程
         conn.execute("UPDATE forum_posts SET user_id = '' WHERE user_id = ?", (user_id,))
         conn.execute("UPDATE forum_comments SET user_id = '' WHERE user_id = ?", (user_id,))
+        conn.execute("UPDATE feedback SET user_id = '' WHERE user_id = ?", (user_id,))
+        conn.execute('DELETE FROM study_session WHERE uid=?', (user_id,))
+        if conn.execute("SELECT 1 FROM sqlite_master WHERE name='custom_companion'").fetchone():
+            conn.execute('DELETE FROM custom_companion WHERE user_id=?', (user_id,))
         # 解散自己拥有的小组/班级（连带组消息、成员、作业、提交、报告）
         owned = conn.execute("SELECT id FROM groups WHERE owner_id = ?", (user_id,)).fetchall()
         for g in owned:

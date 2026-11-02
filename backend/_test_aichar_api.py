@@ -3,6 +3,8 @@
 覆盖：ai-gen 扣次/暂存 → ai-save 落库/替换旧角色 → 配额耗尽拒绝 → 过期 gen_id → 图片下发。
 用法：python _test_aichar_api.py   （zhiyi 环境）
 """
+
+import test_support  # isolated database, no credentials or network
 import base64
 import os
 import sys

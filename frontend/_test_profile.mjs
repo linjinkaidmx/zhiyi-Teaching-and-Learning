@@ -8,7 +8,7 @@ import path from 'node:path'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const TMP = path.join(here, '_profile_tmp.mjs')
-writeFileSync(TMP, readFileSync(path.join(here, 'src', 'profile.js'), 'utf8'))
+writeFileSync(TMP, readFileSync(path.join(here, 'src', 'profile.js'), 'utf8').replace("'./lib/accountScope.js'", "'./src/lib/accountScope.js'"))
 
 // 注入 localStorage 桩，覆盖持久化路径
 const store = new Map()

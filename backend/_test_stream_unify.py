@@ -3,6 +3,8 @@
 用法：python _test_stream_unify.py
 要点：SSE 帧序列、伴学配额/落库副作用、课堂首次生成 vs 幂等回放、降级链。
 """
+
+import test_support  # isolated database, no credentials or network
 import json
 import os
 import sys

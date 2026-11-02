@@ -5,6 +5,8 @@
 背景：/wrongbook、/more 这类前端路由在服务器上没有实体文件，
       StaticFiles(html=True) 对缺失路径返回 404，必须回退到 index.html。
 """
+
+import test_support  # isolated database, no credentials or network
 import os
 import sys
 import tempfile

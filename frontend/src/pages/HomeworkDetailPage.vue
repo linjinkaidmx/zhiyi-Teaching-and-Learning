@@ -156,7 +156,7 @@
                 >AI 一键批改{{ pendingCount ? `（${pendingCount} 份待批）` : '' }}</UiButton>
               </div>
             </div>
-            <p v-if="grading" class="t-label hwd__progress">{{ gradingTip }}</p>
+            <p v-if="gradingTip" class="t-label hwd__progress">{{ gradingTip }}</p>
 
             <div v-if="students.length" class="hwd__stu-list">
               <div v-for="st in studentRows" :key="st.user_id" class="hwd__stu surface-standard">
@@ -418,6 +418,10 @@ function fmtDur(secs) {
 function renderGradeTip() {
   const t = gradeTask.value
   if (!t) return
+  if (['interrupted', 'failed'].includes(t.status)) {
+    gradingTip.value = (t.error || '批改任务已中断') + '；可点击“一键批改”继续处理未完成的提交。'
+    return
+  }
   const elapsed = Math.max(1, Math.round((Date.now() - t.started_at) / 1000))
   const handled = t.done + t.failed.length
   const remain = Math.max(0, t.total - handled)
@@ -454,7 +458,7 @@ function startGradePolling() {
         stopGradePolling()
         grading.value = false
         gradingAll.value = false
-        gradingTip.value = ''
+        if (!['interrupted', 'failed'].includes(r.task.status)) gradingTip.value = ''
         await load()
         const f = r.task.failed.length
         if (f) toast.info(`批改完成：${r.task.done} 份成功，${f} 份失败（可对失败的学生单独点「AI 批改」重试）`)
@@ -487,6 +491,10 @@ async function gradeAll() {
 async function resumeGradeTask() {
   try {
     const r = await api.cls.gradeStatus(getToken(), hid())
+    if (r.task && ['interrupted', 'failed'].includes(r.task.status)) {
+      gradeTask.value = r.task
+      renderGradeTip()
+    }
     if (r.task && !r.task.finished) {
       gradeTask.value = r.task
       grading.value = true

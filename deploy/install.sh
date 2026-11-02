@@ -84,6 +84,11 @@ echo "      ✓ 完成"
 
 # ---------- 4. systemd 守护 ----------
 echo "[4/5] 配置 systemd 开机自启..."
+id -u zhiyi >/dev/null 2>&1 || useradd --system --user-group --home "$APP_DIR" --shell /usr/sbin/nologin zhiyi
+mkdir -p "$APP_DIR/backend/data"
+chown -R zhiyi:zhiyi "$APP_DIR/backend/data"
+chown root:zhiyi "$APP_DIR/backend/.env"
+chmod 640 "$APP_DIR/backend/.env"
 cat > /etc/systemd/system/zhiyi.service <<EOF
 [Unit]
 Description=ZhiYi - AI Error Diagnosis System
@@ -91,9 +96,17 @@ After=network.target
 
 [Service]
 Type=simple
+User=zhiyi
+Group=zhiyi
 WorkingDirectory=$APP_DIR/backend
 Environment=PYTHONUNBUFFERED=1
-ExecStart=$APP_DIR/backend/venv/bin/uvicorn main:app --host 0.0.0.0 --port $PORT
+Environment=ZHIYI_CODE_RUNNER=disabled
+ExecStart=$APP_DIR/backend/venv/bin/uvicorn main:app --host 0.0.0.0 --port $PORT --no-proxy-headers
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=$APP_DIR/backend/data
 Restart=always
 RestartSec=5
 StandardOutput=journal

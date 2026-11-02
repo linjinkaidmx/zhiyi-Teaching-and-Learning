@@ -4,6 +4,8 @@
 - 覆盖：资料读写 / 改昵称（含数据迁移与重签 token）/ 重置备份码（含用它找回密码）/ 反馈 / 注销账号
 用法：python _test_profile_api.py
 """
+
+import test_support  # isolated database, no credentials or network
 import os
 import sys
 import tempfile

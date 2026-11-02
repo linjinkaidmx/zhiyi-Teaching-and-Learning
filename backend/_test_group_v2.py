@@ -3,6 +3,8 @@
 用法：python _test_group_v2.py
 说明：独立临时库，不污染本地数据；默认 MOCK=1。
 """
+
+import test_support  # isolated database, no credentials or network
 import os
 import sys
 import tempfile

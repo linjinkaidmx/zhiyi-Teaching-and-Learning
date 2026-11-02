@@ -2,6 +2,8 @@
 """批次3 测试：/api/explain/stream 端点 + depth 参数
 用法：python _test_explain_stream.py
 """
+
+import test_support  # isolated database, no credentials or network
 import json
 import os
 import sys
@@ -21,6 +23,7 @@ if sys.platform == "win32":
 os.environ.setdefault("MOCK", "1")
 
 import main  # noqa: E402
+main.AI_GUEST_DAILY_LIMIT = 10000  # Only this functional-test process; security tests retain real quotas.
 import service  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 

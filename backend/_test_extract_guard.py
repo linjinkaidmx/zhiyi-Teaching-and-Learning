@@ -2,6 +2,8 @@
 """识别守卫（S1/S2 修复）回归：纯函数离线测试
 用法：python _test_extract_guard.py
 """
+
+import test_support  # isolated database, no credentials or network
 import base64
 import io
 import os

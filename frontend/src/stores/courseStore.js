@@ -1,3 +1,4 @@
+import { accountKey } from '../lib/accountScope.js'
 /**
  * courseStore · 课程表（重做版 v2）
  * ---------------------------------------------------------------------------
@@ -37,7 +38,8 @@ function normalizeCourses(arr) {
   return asArray(arr).map((c) => {
     if (!c || typeof c !== 'object') return c
     const color = LEGACY_TO_COLOR[c.color] || c.color || ''
-    return { ...c, color }
+    const { chapters, ...course } = c
+    return { ...course, color }
   })
 }
 
@@ -78,7 +80,7 @@ function _emptyState() {
   }
 }
 
-const kk = (sp) => (sp === 'account' ? KEY_ACC : KEY)
+const kk = (sp) => (sp === 'account' ? accountKey(KEY_ACC) : KEY)
 
 function read(sp) {
   try {
@@ -126,7 +128,7 @@ export function initCourses(sp) {
   state.value = read(space)
   // 清掉 v1 旧 key（不再读取；数据按需求清空、从零开始）
   try {
-    LEGACY_KEYS.forEach((k) => localStorage.removeItem(k))
+    // Legacy caches have no reliable owner; preserve them for manual recovery.
   } catch {
     /* 忽略 */
   }

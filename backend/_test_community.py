@@ -3,6 +3,8 @@
 用法：python _test_community.py
 说明：Windows 打桩 resource；用独立临时库，不污染本地数据；默认 MOCK=1。
 """
+
+import test_support  # isolated database, no credentials or network
 import json
 import os
 import sys

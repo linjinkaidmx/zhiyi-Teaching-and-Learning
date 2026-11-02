@@ -1,3 +1,4 @@
+import { accountKey } from './lib/accountScope.js'
 /**
  * 个人资料（纯逻辑层，可在 Node 中测试）：
  * 头像 / 昵称副本 / 学校专业年级 / 签名 / 偏好设置 + 备份包的构建与校验
@@ -157,7 +158,7 @@ export function exportFileName(now = new Date()) {
 }
 
 export function profileKey(space) {
-  return space === 'account' ? KEY_ACCOUNT : KEY_GUEST
+  return space === 'account' ? accountKey(KEY_ACCOUNT) : KEY_GUEST
 }
 
 export function loadProfile(space = 'guest') {

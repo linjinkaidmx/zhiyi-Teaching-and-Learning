@@ -3,6 +3,8 @@
 覆盖：白底抠图 / 终身配额落盘 / 生成图暂存往返 / gen_companion_art MOCK 全链路。
 用法：cd backend && python _test_aichar.py   （zhiyi 环境：PIL 可用，无 numpy 依赖）
 """
+
+import test_support  # isolated database, no credentials or network
 import base64
 import io
 import json

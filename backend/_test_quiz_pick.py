@@ -5,8 +5,10 @@
 / 指定 id 直取 / SRS 到期优先 / 伴学事件影响画像 / 考试倒计时加权。
 
 用法：cd backend && python _test_quiz_pick.py
-DB 用 data/zhiyi.db 的临时副本（307 题真实分布），绝不写真实库。
+DB 使用公开题库与种子字面量构建，不读取真实账号数据库。
 """
+
+import test_support  # isolated database, no credentials or network
 import os
 import random
 import shutil
@@ -18,8 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 _TMP = tempfile.mkdtemp(prefix="quizpick_test_")
 _DB = os.path.join(_TMP, "test.db")
-_SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "zhiyi.db")
-shutil.copy(_SRC, _DB)
+test_support.public_bank_fixture(_DB, include_seeds=True)
 os.environ["ZHIYI_DB"] = _DB
 
 import db            # noqa: E402

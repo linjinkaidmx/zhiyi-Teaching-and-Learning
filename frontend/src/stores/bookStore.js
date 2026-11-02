@@ -1,3 +1,4 @@
+import { accountKey } from '../lib/accountScope.js'
 /**
  * bookStore · 错题本与复习设置
  * ---------------------------------------------------------------------------
@@ -13,13 +14,23 @@ import { evaluateNow, recordAction } from './statsStore'
 const items = ref([])
 const settings = ref(loadSettings())
 let space = 'guest'
+let deletedIds = []
+const deletedKey = () => space === 'account' ? accountKey('zhiyi_book_deleted') : 'zhiyi_book_deleted_guest'
+export function getDeletedIds() { return deletedIds.slice() }
+export function mergeDeletedIds(ids = []) {
+  deletedIds = [...new Set([...deletedIds, ...ids].map(String))]
+  items.value = items.value.filter(it => !deletedIds.includes(String(it.id)))
+  localStorage.setItem(deletedKey(), JSON.stringify(deletedIds))
+}
 let pushHook = () => {}
 
 /** 进站 / 切换空间时调用（space: 'guest' | 'account'） */
 export function initBook(sp) {
   space = sp === 'account' ? 'account' : 'guest'
   items.value = loadBook(space)
-  settings.value = loadSettings()
+  settings.value = loadSettings(space)
+  try { deletedIds = JSON.parse(localStorage.getItem(deletedKey()) || '[]') } catch { deletedIds = [] }
+  items.value = items.value.filter(it => !deletedIds.includes(String(it.id)))
   return items.value
 }
 
@@ -69,6 +80,7 @@ export function upsert(item) {
 }
 
 export function remove(id) {
+  mergeDeletedIds([id])
   items.value = removeItem(items.value, id)
   persist()
 }
@@ -83,7 +95,7 @@ export function saveResult(item, courseId = '') {
 
 /** 覆盖式写入（云端拉取 / 导入 / 清空） */
 export function replaceItems(next, { persistNow = true } = {}) {
-  items.value = Array.isArray(next) ? next : []
+  items.value = (Array.isArray(next) ? next : []).filter(it => !deletedIds.includes(String(it.id)))
   if (persistNow) {
     saveBook(items.value, space)
     pushHook()
@@ -92,6 +104,6 @@ export function replaceItems(next, { persistNow = true } = {}) {
 
 export function updateSettings(patch) {
   settings.value = { ...settings.value, ...patch }
-  saveSettings(settings.value)
+  saveSettings(settings.value, space)
   return settings.value
 }

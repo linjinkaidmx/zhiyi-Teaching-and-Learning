@@ -1,3 +1,5 @@
+import { setAccountScope, accountKey } from './src/lib/accountScope.js'
+setAccountScope('test-user')
 /**
  * P7 AI 对话：存储 + 流式 Mock 的纯逻辑测试（Node，无需浏览器）
  * 用法：node _test_chat.mjs
@@ -86,7 +88,7 @@ initChat('account')
 ok(conversations.value.length === 0, '切到账号空间后看不到游客会话')
 const id2 = createChat()
 appendMessage(id2, { role: 'user', text: '账号空间的对话' })
-ok(store.get('zhiyi_chat_account_v1') && store.get('zhiyi_chat_account_v1').includes('账号空间的对话'), '账号空间写入独立 key')
+ok(store.get(accountKey('zhiyi_chat_account_v1')) && store.get(accountKey('zhiyi_chat_account_v1')).includes('账号空间的对话'), '账号空间写入独立 key')
 initChat('guest')
 ok(getChat(id1) && getChat(id1).messages.length === 3, '切回游客空间数据仍在')
 

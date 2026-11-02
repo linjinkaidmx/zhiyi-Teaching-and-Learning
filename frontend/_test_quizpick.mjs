@@ -14,7 +14,7 @@ import path from 'node:path'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const TMP = path.join(here, '_book_tmp.mjs')
-writeFileSync(TMP, readFileSync(path.join(here, 'src', 'book.js'), 'utf8'))
+writeFileSync(TMP, readFileSync(path.join(here, 'src', 'book.js'), 'utf8').replace("'./lib/accountScope.js'", "'./src/lib/accountScope.js'"))
 
 const B = await import('./_book_tmp.mjs')
 
@@ -39,7 +39,7 @@ const item = (id, mastered = false) => ({
 section('0. 复习池语义（防止测试前提搞错）')
 {
   const due = { id: 9, mastered: true, reviewAt: Date.now() - 1000 }
-  eq(B.quizPool([due], SRS).length, 1, '已掌握但已到复习期 → 回到池中（SRS 设计行为）')
+  eq(B.quizPool([due], SRS).length, 0, '已掌握不自动回炉')
   eq(B.quizPool([due], { ...SRS, srsEnabled: false }).length, 0, '关闭 SRS → 掌握即永久移出')
   eq(B.quizPool([item(9, true)], SRS).length, 0, '刚掌握（未到复习期）→ 不在池中')
 }
@@ -92,20 +92,13 @@ section('3. 部分失效与边界')
   eq(B.pruneCheckedIds(pool, ['2']).length, 0, '字符串 id 会被判定为失效并清理')
 }
 
-section('4. 静态检查：QuizPanel.vue 的声明顺序（防 TDZ 回归）')
+section('4. 当前原题练习：显式重做和自动组卷')
 {
-  const src = readFileSync(path.join(here, 'src', 'components', 'QuizPanel.vue'), 'utf8')
-  const iChecked = src.indexOf('const checked = ref([])')
-  const iWatch = src.indexOf('watch(() => props.focusId')
-  ok(iChecked > 0 && iWatch > 0, '两处代码都在文件中')
-  ok(iChecked < iWatch, 'checked 的声明在 immediate watch 之前（不会抛 Cannot access before initialization）')
-
-  const iStart = src.indexOf('function start()')
-  const startBody = src.slice(iStart, iStart + 700)
-  ok(startBody.includes('pruneCheckedIds') || startBody.includes('syncChecked'), 'start() 会先同步勾选状态')
-  ok(startBody.includes('if (!picked.length)'), 'start() 有空卷兜底（不会进入空白答题页）')
-  ok(src.includes('hasCurrent'), '答题区有 hasCurrent 渲染兜底')
-  ok(src.includes('progressPct'), '进度条用防 NaN 的 progressPct')
+  const list = [item(1, true), item(2), { ...item(3), kind: 'note' }]
+  eq(B.reviewSelection(list, '1').length, 1, '显式重做已掌握题可进入练习')
+  eq(B.reviewSelection(list, '').map(it => it.id).join(','), '2', '自动组卷不含已掌握题和笔记')
+  eq(B.reviewSelection(list, 'missing').length, 0, '不存在的指定题为空')
+  eq(B.reviewSelection(list, '3').length, 0, '笔记不参加指定题练习')
 }
 
 console.log('\n' + '='.repeat(46))

@@ -3,6 +3,8 @@
 背景：线上出现判定 JSON 原文上屏 + verdict 丢失导致同层无限追问。
 用法：python _test_chain_parse.py   （离线，不起服务、不调模型）
 """
+
+import test_support  # isolated database, no credentials or network
 import os
 import sys
 import tempfile

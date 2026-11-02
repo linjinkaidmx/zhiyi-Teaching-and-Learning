@@ -4,6 +4,8 @@
 核心场景：**同一道题**被不同方式写出来（拍照识别的空格、标点、题号、LaTeX 差异）
 应判为同题；**不同的题**（哪怕只差一个数字）不能误判。
 """
+
+import test_support  # isolated database, no credentials or network
 import os
 import sys
 

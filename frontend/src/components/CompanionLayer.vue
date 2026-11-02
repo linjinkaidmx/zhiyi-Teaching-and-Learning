@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- 角色活动层：不挡页面点击；桌面全站、移动仅首页 -->
-    <div v-show="visible" class="comp-layer" aria-hidden="true">
+    <div v-show="visible" class="comp-layer" :class="{ 'comp-layer--study': studyMode }" aria-hidden="true">
       <div
         ref="elRef"
         class="companion breathing"
@@ -13,6 +13,7 @@
         <div ref="shadowRef" class="shadow"></div>
         <div class="img-wrap">
           <img v-show="!walkOn" ref="imgRef" :src="curSrc" alt="" draggable="false" />
+          <img v-show="!walkOn" ref="ghostRef" class="face-ghost" src="" alt="" draggable="false" />
           <canvas v-show="walkOn" ref="walkCanvasRef" class="walk-canvas" :style="walkCanvasStyle"></canvas>
         </div>
         <div v-if="cfg && cfg.move === 'skate' && !cfg.walkFrames" ref="boardRef" class="skateboard"></div>
@@ -50,10 +51,10 @@
          2026-10-13 修移动端选点穿透：存活由 captureOn 独立管理（与 moveMode 解耦）——
          选完点多罩 450ms 再撤（覆盖移动端 tap 的 click/点按高亮派发窗口），
          并用 click/pointerup 的 stop+prevent 双保险吞掉透传；桌面行为不变 -->
-    <div v-if="captureOn && visible" class="comp-capture" @pointerdown.prevent.stop="onCaptureDown" @pointerup.stop.prevent @click.stop.prevent></div>
+    <div v-if="captureOn && visible && !studyMode" class="comp-capture" @pointerdown.prevent.stop="onCaptureDown" @pointerup.stop.prevent @click.stop.prevent></div>
 
     <!-- 迷你聊天面板 -->
-    <div v-show="chatOpen && visible" class="comp-chat" :style="chatPos">
+    <div v-show="chatOpen && visible && !studyMode" class="comp-chat" :style="chatPos">
       <div class="comp-chat__head">
         <span class="comp-chat__title">和 {{ activeName }} 聊天</span>
         <span style="flex: 1"></span>
@@ -154,7 +155,7 @@ const visible = computed(
  * 离开时走回进页前的原位；但贴边期间用户手动挪过角色，则尊重用户位置不回位。
  * 2026-10-09：/teacher（AI 课堂）也归入学习场景——教学页有自己的老师立绘，
  * 伴学角色贴边安静陪着即可（否则会飘到讲义卡上盖住内容）。 */
-const isStudyRoute = (p) => p === ROUTES.capture || p.startsWith('/q/') || p === ROUTES.teacher
+const isStudyRoute = (p) => p === ROUTES.capture || p.startsWith('/q/') || p === ROUTES.teacher || p.startsWith('/wrongbook') || p.startsWith('/practice') || p.startsWith('/exam') || p.startsWith('/class') || ['/me', '/timetable', '/course', '/tools', '/community', '/chat'].some(prefix => p === prefix || p.startsWith(prefix + '/'))
 const studyMode = computed(() => isStudyRoute(route.path))
 let savedPos = null          // 进学习场景前的位置（回位用）
 let userMovedInStudy = false // 学习场景中用户手动移动过 → 不自动回位
@@ -183,6 +184,8 @@ function moveBackTo(p) {
 watch(studyMode, (v) => {
   if (S.destroyed || !visible.value || !elRef.value) return
   if (v) {
+    cancelAwait()
+    chatOpen.value = false
     savedPos = { x: S.x, b: S.b == null ? 8 : S.b }
     userMovedInStudy = false
     clearTimeout(S.stateTimer)   // 挂起闲逛/台词（落定后的 scheduleNext 也会被 studyMode 守卫拦住）
@@ -423,6 +426,17 @@ watch([activeId, isDesktop], () => {
 }, { immediate: true })
 const style = ref(cfg.value.styles ? (ls.get('style-' + cfg.value.id) || 'sharp') : null)
 const curSrc = ref(cfg.value.src)
+/* 换脸交叉淡出：旧脸放上层叠层 150ms 淡出，新脸在下层顶上——说话嘴型/眨眼不再整图硬切（根因修复 2026-10-13） */
+watch(curSrc, (nv, ov) => {
+  const g = ghostRef.value
+  if (!g || !ov || ov === nv || walkOn.value) return
+  g.src = ov
+  g.style.transition = 'none'
+  g.style.opacity = '1'
+  void g.offsetWidth
+  g.style.transition = 'opacity .15s ease'
+  g.style.opacity = '0'
+})
 const bubbleText = ref('')
 const bubbleShow = ref(false)
 const chatOpen = ref(false)
@@ -519,6 +533,7 @@ watch(chatOpen, (v) => {
 /* ---------------- 引擎状态（命令式，操作模板 refs） ---------------- */
 const elRef = ref(null)
 const imgRef = ref(null)
+const ghostRef = ref(null) // 换脸交叉淡出的旧脸叠层（2026-10-13：说话嘴型 260ms 硬切整图在镜头下是频闪）
 const walkCanvasRef = ref(null) // 行走帧播放器画布（修复：此声明曾被环境回滚吞掉，导致 drawWalkFrame ReferenceError → 角色移动时隐形）
 const shadowRef = ref(null)
 const boardRef = ref(null)
@@ -1900,6 +1915,17 @@ const MOVERS = {
   pointer-events: none;
   z-index: 900;
 }
+/* Reading/answering controls remain clickable even if a manually moved character overlaps them.
+   Chat is available through the dedicated companion page while studying. */
+.comp-layer--study .companion,
+.comp-layer--study .companion * { pointer-events: none !important; }
+.comp-layer--study .companion { opacity: .35; }
+/* Dialogs are teleported to body. Hide all companion surfaces, including the
+   destination capture layer and mini chat, while any modal is mounted. */
+:global(body:has([aria-modal="true"]) .comp-layer),
+:global(body:has([aria-modal="true"]) .comp-capture),
+:global(body:has([aria-modal="true"]) .comp-chat) { display: none !important; }
+
 .comp-fx { position: absolute; inset: 0; pointer-events: none; }
 .companion {
   position: absolute;
@@ -1997,6 +2023,19 @@ const MOVERS = {
   pointer-events: none;
   transition: transform 0.35s ease;
   transform-origin: bottom center;
+}
+/* 换脸淡出叠层：与主 img 同尺寸同锚点，盖在上层，opacity 由 JS 交叉淡出驱动 */
+.face-ghost {
+  position: absolute;
+  left: 50%; bottom: 0;
+  height: 100%;
+  width: auto;
+  max-width: none;
+  display: block;
+  transform: translateX(-50%);
+  transform-origin: bottom center;
+  pointer-events: none;
+  opacity: 0;
 }
 .companion .shadow {
   position: absolute;

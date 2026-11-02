@@ -2,6 +2,8 @@
 """批次4 测试：/api/analyze/errorbook（含 24h 缓存与 TTL）
 用法：python _test_analyze.py
 """
+
+import test_support  # isolated database, no credentials or network
 import json
 import os
 import sys
@@ -22,6 +24,7 @@ if sys.platform == "win32":
 os.environ.setdefault("MOCK", "1")
 
 import main  # noqa: E402
+main.AI_GUEST_DAILY_LIMIT = 10000  # Only this functional-test process; security tests retain real quotas.
 import db  # noqa: E402
 import service  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402

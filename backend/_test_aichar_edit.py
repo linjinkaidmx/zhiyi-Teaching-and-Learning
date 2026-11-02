@@ -3,6 +3,8 @@
 覆盖：ai-update 原地更新（char_id 不变/聊天保留/换图与不换图两路）+ delete 彻底清五表 + 权限边界。
 用法：python _test_aichar_edit.py   （zhiyi 环境）
 """
+
+import test_support  # isolated database, no credentials or network
 import base64
 import os
 import sys

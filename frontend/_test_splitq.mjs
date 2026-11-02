@@ -6,7 +6,7 @@ import path from 'node:path'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const TMP = path.join(here, '_book_tmp.mjs')
-writeFileSync(TMP, readFileSync(path.join(here, 'src', 'book.js'), 'utf8'))
+writeFileSync(TMP, readFileSync(path.join(here, 'src', 'book.js'), 'utf8').replace("'./lib/accountScope.js'", "'./src/lib/accountScope.js'"))
 const B = await import('./_book_tmp.mjs')
 
 let pass = 0, fail = 0

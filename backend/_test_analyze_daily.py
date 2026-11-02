@@ -4,6 +4,8 @@
 覆盖：空上下文拒绝 / 正常生成 / 24h 缓存命中 / 数据不足引导文案。
 用法：cd backend && python _test_analyze_daily.py（zhiyi 环境的 python）
 """
+
+import test_support  # isolated database, no credentials or network
 import os
 import sys
 

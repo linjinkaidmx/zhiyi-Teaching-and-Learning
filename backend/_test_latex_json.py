@@ -7,6 +7,8 @@
 2) 正常转义（\\\\frac）与正常换行（\\n）不受影响
 3) 已经损坏的内容（换页符等控制字符）能被无损还原
 """
+
+import test_support  # isolated database, no credentials or network
 import service
 
 pass_n = 0

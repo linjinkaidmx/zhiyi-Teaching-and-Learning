@@ -58,7 +58,7 @@ section('3. 待复习 pendingReviewCount')
 const settings = { srsEnabled: true, srsMode: 'spaced', srsIntervals: [1, 3, 7], srsFixedDays: 7 }
 ok(pendingReviewCount([item({ mastered: false })], settings, NOW) === 1, '未掌握算待复习')
 ok(pendingReviewCount([item({ mastered: true, reviewAt: NOW + DAY })], settings, NOW) === 0, '已掌握且未到期不算')
-ok(pendingReviewCount([item({ mastered: true, reviewAt: NOW - 1000 })], settings, NOW) === 1, '已掌握但已到期算待复习')
+ok(pendingReviewCount([item({ mastered: true, reviewAt: NOW - 1000 })], settings, NOW) === 0, '已掌握不再自动回炉')
 ok(pendingReviewCount([], settings, NOW) === 0, '空错题本为 0')
 
 section('4. 权重与推荐知识点')
@@ -81,8 +81,8 @@ const plan = buildReviewPlan([
   item({ knowledgePoints: ['定积分'], mastered: false }),
 ], settings, NOW)
 ok(plan !== null && plan.items.length === 2, '按知识点分成 2 组', plan && plan.items.map((i) => i.title))
-ok(plan.items[0].count === 2 && plan.items[0].minutes === 5, '组内题数与估算时长（2 题 × 2.5 → 5）', plan.items[0])
-ok(plan.estimateMinutes === Math.round(3 * MINUTES_PER_REVIEW_ITEM), '总时长 = 各组之和', plan.estimateMinutes)
+ok(plan.items[0].count === 1 && plan.items[0].minutes === 3, '只统计未掌握题（1 题约 3 分钟）', plan.items[0])
+ok(plan.estimateMinutes === plan.items.reduce((n, it) => n + it.minutes, 0), '总时长 = 各组之和', plan.estimateMinutes)
 ok(buildReviewPlan([item({ mastered: true, reviewAt: NOW + DAY })], settings, NOW) === null, '没有到期题目时无复习计划')
 
 section('6. 学习总结 buildSummary（规则生成，不调模型）')
@@ -119,7 +119,7 @@ const read = (p) => {
 ok(!fs.existsSync(new URL('./src/lib/mock/data.js', import.meta.url)), 'mock/data.js 已删除')
 const adapter = read('./src/lib/adapter/home.js')
 ok(!adapter.includes('mockData') && !adapter.includes("MOCK.home"), 'adapter 不再读 mock')
-ok(adapter.includes('buildHomeStats'), 'adapter 走真实计算')
+ok(read('./src/pages/HomePage.vue').includes('pendingReviewCount(book.value'), '首页走当前真实错题计算')
 ok(read('./src/config/app.js').includes('home: false'), 'MOCK.home 已关闭')
 const hp = read('./src/pages/HomePage.vue')
 ok(!hp.includes('bundle.user'), '首页不再使用演示用户')

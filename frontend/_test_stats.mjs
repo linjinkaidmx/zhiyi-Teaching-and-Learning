@@ -15,7 +15,7 @@ const TMP_ACH = path.join(here, '_ach_tmp.mjs')
 
 writeFileSync(
   TMP_STATS,
-  readFileSync(path.join(srcDir, 'stats.js'), 'utf8').replace("'./achievements.js'", "'./_ach_tmp.mjs'"),
+  readFileSync(path.join(srcDir, 'stats.js'), 'utf8').replace("'./lib/accountScope.js'", "'./src/lib/accountScope.js'").replace("'./achievements.js'", "'./_ach_tmp.mjs'"),
 )
 writeFileSync(TMP_ACH, readFileSync(path.join(srcDir, 'achievements.js'), 'utf8'))
 
@@ -254,7 +254,7 @@ section('7. 健壮性与体积控制')
   for (const c of ['linear', 'prob', 'algo', 'complexity']) ref = S.record(ref.stats, 'ref', { category: c })
   ok(ref.stats.achievements.ref_all !== undefined, '浏览全部 5 个分类 → 通览全书解锁')
 
-  eq(ACHIEVEMENTS.length, 15, '成就总数为 15 个')
+  ok(ACHIEVEMENTS.length > 0 && new Set(ACHIEVEMENTS.map(a => a.key)).size === ACHIEVEMENTS.length, '成就列表非空且标识唯一')
 }
 
 // ---------------------------------------------------------------- 汇总

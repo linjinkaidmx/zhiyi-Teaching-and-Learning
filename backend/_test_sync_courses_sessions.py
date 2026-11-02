@@ -2,6 +2,8 @@
 """批次1 后端测试：课程 / 学习记录的云端同步
 用法：python _test_sync_courses_sessions.py
 """
+
+import test_support  # isolated database, no credentials or network
 import os
 import sys
 import tempfile

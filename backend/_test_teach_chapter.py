@@ -3,6 +3,8 @@
 
 命名约定：_test_* = 离线（MOCK=1，不调真实模型，不打服务器）。
 """
+
+import test_support  # isolated database, no credentials or network
 import os
 import sys
 import types

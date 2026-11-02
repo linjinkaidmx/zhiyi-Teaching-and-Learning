@@ -96,7 +96,7 @@ export function buildReviewPlan(book, settings, now = Date.now(), { maxGroups = 
       earliest: Math.min(...list.map((x) => Number(x.reviewAt) || 0)),
     }))
     .sort((a, b) => a.earliest - b.earliest || b.count - a.count)
-    .slice(0, Math.maxGroups)
+    .slice(0, maxGroups)
     .map(({ id, title, count, minutes }) => ({ id, title, count, minutes }))
 
   const estimateMinutes = items.reduce((s, i) => s + i.minutes, 0)
@@ -126,8 +126,8 @@ export function buildSummary({ book = [], records = [], settings, now = Date.now
   const sentence = parts.join('，') + '。'
 
   let todo = ''
-  if (due > 0) todo = `今天有 ${due} 道到期，先过一轮。`
-  else todo = '今天没有到期复习，可以拍新题。'
+  if (due > 0) todo = `有 ${due} 道待巩固，可以开始练习。`
+  else todo = '目前没有待巩固的题，可以拍新题。'
 
   return { text: sentence + todo, updatedAt: '刚刚更新' }
 }

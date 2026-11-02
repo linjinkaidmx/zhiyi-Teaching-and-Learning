@@ -2,6 +2,8 @@
 """班级笔记 / 知识点接口回归（老师发布→学生浏览→保存格式→删除权限→级联）。MOCK 离线跑。
 用法：zhiyi 环境 python _test_class_notes.py
 """
+
+import test_support  # isolated database, no credentials or network
 import os
 import sys
 import tempfile

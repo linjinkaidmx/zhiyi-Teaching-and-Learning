@@ -2,6 +2,8 @@
 """班级测试接口回归（发布→开始→判分→排名→防重复→超时→AI 生成 MOCK）。MOCK 离线跑。
 用法：zhiyi 环境 python _test_class_tests.py
 """
+
+import test_support  # isolated database, no credentials or network
 import os
 import sys
 import tempfile

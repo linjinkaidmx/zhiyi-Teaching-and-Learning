@@ -7,3 +7,6 @@ __pycache__/
 venv/
 .venv/
 .git/
+data/
+*.db
+token-key.json

@@ -9,12 +9,12 @@ import { reactive } from 'vue'
 import { ElMessage } from '../ui/notify.js'
 import { openAuth } from './uiStore'
 import { api } from '../api'
-import { loadBook, saveBook } from '../book'
+import { loadBook, saveBook, nextId } from '../book'
 import { mergeErrorbook, mergeExams } from '../lib/syncMerge.js'
-import { clearSession, getToken, getUserId, isLoggedIn, resetClientId, adoptSession } from '../auth'
-import { clearCustomCache } from '../lib/companions.js'
+import { clearSession, getToken, getUserId, isLoggedIn, resetClientId, adoptSession, getAccountId } from '../auth'
+import { clearCustomCache, initCompanionScope } from '../lib/companions.js'
 import {
-  initBook, getItems, getSettings, replaceItems, setPushHook, masteredCount, currentSpace,
+  initBook, getItems, getSettings, replaceItems, setPushHook, masteredCount, currentSpace, getDeletedIds, mergeDeletedIds,
 } from './bookStore'
 import {
   initStats, setContextProvider, mergeFromCloud as mergeStatsFromCloud,
@@ -30,293 +30,182 @@ import { initRecords, sessionsCloudPayload, applyCloudSessions } from './records
 import { initCourses, coursesCloudPayload, applyCloudCourses, setCoursePushHook } from './courseStore'
 import { initExams, setExamPushHook, examsCloudPayload, replacePapers } from './examStore'
 
-export const session = reactive({
-  space: 'guest', // 'guest' | 'account'
-  userId: '',
-  token: '',
-  registeredAt: 0,
-  syncing: false,
-})
-
+import { setAccountScope, accountKey } from '../lib/accountScope.js'
+import { clearCompanionStats } from './companionStatsStore.js'
+export const session = reactive({ space: 'guest', userId: '', accountId: '', token: '', registeredAt: 0, syncing: false, epoch: 0 })
 let pushTimer = null
 let profileTimer = null
+const stamp = () => ({ epoch: session.epoch, token: session.token })
+const valid = s => s.epoch === session.epoch && s.token === session.token
+const authError = e => e?.status === 401 || ['AUTH_INVALID', 'AUTH_REQUIRED'].includes(e?.code)
 
-/** 进站初始化：恢复会话（有 token）或进入游客空间 */
+function cancelPending() {
+  clearTimeout(pushTimer); clearTimeout(profileTimer)
+  pushTimer = profileTimer = null
+  session.epoch++
+}
+function initStores(space) {
+  initBook(space); initChat(space); initRecords(space); initCourses(space); initExams(space)
+  initStats(space, getItems()); initProfile(space)
+  clearCompanionStats(); initCompanionScope()
+}
+function enterAccount(id) {
+  session.accountId = String(id)
+  setAccountScope(id)
+  session.space = 'account'
+  initStores('account')
+}
+function applyCloud(r, overwrite = false) {
+  mergeDeletedIds(r.deleted_ids || [])
+  replaceItems(overwrite ? (r.items || []) : mergeErrorbook(getItems(), r.items || []), { persistNow: false })
+  saveBook(getItems(), 'account')
+  if (r.stats) mergeStatsFromCloud(r.stats)
+  if (r.courses) applyCloudCourses(r.courses, { merge: !overwrite })
+  if (r.sessions) applyCloudSessions(r.sessions)
+  if (r.exams) replacePapers(overwrite ? r.exams : mergeExams(examsCloudPayload(), r.exams))
+}
+function payload() {
+  return [session.token, getItems(), statsForCloud(), coursesCloudPayload(), sessionsCloudPayload(), examsCloudPayload(), getDeletedIds()]
+}
 export function initSession() {
-  setPushHook(schedulePush)
-  setCoursePushHook(schedulePush) // 课程 / 课表 / 考试安排改动同样防抖推送到云端
-  setExamPushHook(schedulePush) // 模拟考试试卷（含作答与成绩）同样防抖推云
-  bindVisibilitySync() // 从后台切回前台时自动拉取并合并（手机端常驻页面也能拿到另一端的改动）
-  // 成就判定需要「已掌握」数
+  setPushHook(schedulePush); setCoursePushHook(schedulePush); setExamPushHook(schedulePush)
+  bindVisibilitySync()
   setContextProvider(() => ({ mastered: masteredCount() }))
-
   if (isLoggedIn()) {
-    session.space = 'account'
-    session.userId = getUserId()
-    session.token = getToken()
-    initBook('account')
-    initChat('account')
-    initRecords('account')
-    initCourses('account')
-    initExams('account')
-    initStats('account', getItems())
-    initProfile('account')
-    loadMeta()
+    session.token = getToken(); session.userId = getUserId()
+    const id = getAccountId()
+    if (id) enterAccount(id)
+    else { setAccountScope(''); initStores('guest') }
     refreshCloud()
-  } else {
-    session.space = 'guest'
-    session.userId = ''
-    session.token = ''
-    initBook('guest')
-    initChat('guest')
-    initRecords('guest')
-    initCourses('guest')
-    initExams('guest')
-    initStats('guest', getItems())
-    initProfile('guest')
-  }
+  } else { setAccountScope(''); initStores('guest') }
 }
 
-/** 登录 / 注册成功：切到账号空间，同步云端数据 */
-export async function adoptLogin({ token, userId }) {
-  session.space = 'account'
-  session.userId = userId
-  session.token = token
-  const guest = loadBook('guest')
+export async function adoptLogin({ token, userId, accountId }) {
+  cancelPending(); clearCustomCache()
+  session.token = token; session.userId = userId; session.accountId = ''; session.registeredAt = 0
+  // Never infer ownership of old unscoped account or guest caches.
+  setAccountScope(''); session.space = 'guest'; initStores('guest')
+  const s = stamp()
+  if (accountId) enterAccount(accountId)
   try {
     const r = await api.sync.pull(token)
-    const cloud = r.items || []
-    if (cloud.length) {
-      replaceItems(cloud, { persistNow: false })
-    } else if (guest.length) {
-      // 云端为空：游客本地错题首次上云
-      replaceItems(guest, { persistNow: false })
-      await api.sync.push(token, guest, statsForCloud()).catch(() => {})
-    } else {
-      replaceItems(loadBook('account'), { persistNow: false })
-    }
-    // 打卡统计：先切到账号空间（并用错题本历史回填一次），再与云端合并
-    initStats('account', getItems())
-    initChat('account')
-    initRecords('account')
-    initCourses('account')
-    initExams('account')
-    // 云端试卷（含作答与成绩）：按 id 合并落地
-    if (Array.isArray(r.exams) && r.exams.length) {
-      replacePapers(mergeExams(examsCloudPayload(), r.exams))
-    }
-    if (r.stats) {
-      mergeStatsFromCloud(r.stats)
-      if (isRicherLocal(r.stats)) api.sync.push(token, getItems(), statsForCloud()).catch(() => {})
-    } else {
-      api.sync.push(token, getItems(), statsForCloud()).catch(() => {})
-    }
+    if (!valid(s)) return { ok: false, stale: true }
+    const id = r.account_id || accountId
+    if (!id) throw new Error('账号身份暂时无法确认，请稍后重试')
+    if (session.accountId && session.accountId !== String(id)) throw Object.assign(new Error('账号身份不一致'), {code: 'AUTH_INVALID'})
+    if (!session.accountId) enterAccount(id)
+    adoptSession(userId, token, id)
+    applyCloud(r)
+    await loadMeta()
+    return { ok: true }
   } catch (e) {
-    ElMessage.error(e.message)
-    logout(true)
+    if (!valid(s)) return { ok: false, stale: true }
+    if (authError(e)) logout(true)
+    else ElMessage.warning('暂时无法同步，已保留本机数据：' + e.message)
     return { ok: false, error: e.message }
   }
-  saveBook(getItems(), 'account')
-  // 个人资料：切到账号空间后拉取云端资料并合并
-  initProfile('account')
-  await loadMeta()
-  return { ok: true }
 }
-
-/** 退出登录（silent = 不提示，用于 token 失效） */
 export function logout(silent = false) {
-  clearSession()
-  clearCustomCache()   // 自定义角色属于账号：清本地缓存，避免换账号登录时首帧看到上个账号的角色
-  session.space = 'guest'
-  session.userId = ''
-  session.token = ''
-  session.registeredAt = 0
-  resetClientId()
-  initBook('guest')
-  initChat('guest')
-  initRecords('guest')
-  initCourses('guest')
-  initExams('guest')
-  initStats('guest', getItems())
-  initProfile('guest')
+  cancelPending(); clearCustomCache(); clearSession(); setAccountScope('')
+  Object.assign(session, { space: 'guest', userId: '', accountId: '', token: '', registeredAt: 0, syncing: false })
+  resetClientId(); initStores('guest')
   if (!silent) ElMessage.success('已退出登录')
 }
-
-/** 改昵称成功后换会话（token 里编码昵称，必须换新的） */
 export function renameSession({ token, nickname }) {
-  adoptSession(nickname, token)
-  session.userId = nickname
-  session.token = token
+  cancelPending()
+  adoptSession(nickname, token, session.accountId)
+  session.userId = nickname; session.token = token
   schedulePush()
 }
-
-/** 账号已注销：清空本地并回到游客空间 */
-export function resetAfterDelete() {
-  clearSession()
-  session.space = 'guest'
-  session.userId = ''
-  session.token = ''
-  session.registeredAt = 0
-  resetClientId()
-  replaceItems([], { persistNow: false })
-  initStats('guest', [])
-  initChat('guest')
-  initRecords('guest')
-  initCourses('guest')
-  initProfile('guest')
-  ElMessage.success('账号已注销')
-}
-
-// ---------------------------------------------------------------- 云端同步
+export function resetAfterDelete() { logout(true); ElMessage.success('账号已注销') }
 
 export function schedulePush() {
-  if (session.space !== 'account' || !session.token) return
-  if (pushTimer) clearTimeout(pushTimer)
-  pushTimer = setTimeout(() => {
-    api.sync.push(
-      session.token, getItems(), statsForCloud(), coursesCloudPayload(),
-      sessionsCloudPayload(), examsCloudPayload(),
-    )
-      .then((r) => {
-        // B1：后端如实返回丢弃数，不再"静默丢数据"——有丢弃时明确告知
-        if (r && r.dropped > 0) {
-          ElMessage.warning(`云同步：${r.dropped} 条数据因格式问题未保存，其余已同步`)
-        }
-      })
-      .catch(() => {})
+  if (session.space !== 'account' || !session.token || !session.accountId) return
+  clearTimeout(pushTimer)
+  const s = stamp()
+  pushTimer = setTimeout(async () => {
+    if (!valid(s)) return
+    try {
+      const r = await api.sync.push(...payload())
+      if (!valid(s)) return
+      if (r.dropped > 0) ElMessage.warning(`云同步：${r.dropped} 条数据因格式问题未保存`)
+      if (r.deleted_ids) mergeDeletedIds(r.deleted_ids)
+    } catch (e) {
+      if (valid(s) && authError(e)) logout(true)
+    }
   }, 500)
 }
-
 export function scheduleProfilePush() {
   if (session.space !== 'account' || !session.token) return
-  if (profileTimer) clearTimeout(profileTimer)
+  clearTimeout(profileTimer)
+  const s = stamp()
   profileTimer = setTimeout(() => {
-    api.account.saveProfile(session.token, profileForCloud()).catch(() => {})
+    if (valid(s)) api.account.saveProfile(s.token, profileForCloud()).catch(() => {})
   }, 800)
 }
-
-/** 拉取云端资料与账号元信息（知一 ID / 加入时间） */
 export async function loadMeta() {
-  if (session.space !== 'account' || !session.token) return
+  if (!session.token || !session.accountId) return
+  const s = stamp()
   try {
-    const r = await api.account.profile(session.token)
-    if (!r.ok) return
+    const r = await api.account.profile(s.token)
+    if (!valid(s) || !r.ok) return
     session.registeredAt = Number(r.registeredAt) || 0
-    if (r.profile && Object.keys(r.profile).length) {
-      mergeProfileFromCloud(r.profile)
-      if (isLocalRicher(r.profile)) {
-        api.account.saveProfile(session.token, profileForCloud()).catch(() => {})
-      }
-    }
-  } catch {
-    /* 资料拉取失败不影响主流程 */
-  }
+    if (r.profile) mergeProfileFromCloud(r.profile)
+  } catch (e) { if (valid(s) && authError(e)) logout(true) }
 }
-
-/** 会话恢复后拉取云端刷新（错题本按 id 合并取新，统计做合并） */
 export async function refreshCloud() {
+  if (!session.token) return false
+  const s = stamp()
   try {
-    const r = await api.sync.pull(session.token)
-    if (r.items && r.items.length) {
-      // 合并而非覆盖：本地 ∪ 云端，同 id 取 updatedAt 较新者（避免丢掉本端独有数据）
-      const merged = mergeErrorbook(getItems(), r.items)
-      replaceItems(merged, { persistNow: false })
-      saveBook(getItems(), 'account')
-    }
-    if (r.stats) {
-      mergeStatsFromCloud(r.stats)
-      if (isRicherLocal(r.stats)) api.sync.push(session.token, getItems(), statsForCloud()).catch(() => {})
-    }
-    // 批次1：课程与学习记录按合并语义落地（墓碑防止"删了又被拉回来"）
-    if (r.courses && Object.keys(r.courses).length) applyCloudCourses(r.courses)
-    if (Array.isArray(r.sessions) && r.sessions.length) applyCloudSessions(r.sessions)
-    // 模拟试卷：按 id 合并取新
-    if (Array.isArray(r.exams) && r.exams.length) {
-      replacePapers(mergeExams(examsCloudPayload(), r.exams))
-    }
+    const r = await api.sync.pull(s.token)
+    if (!valid(s)) return false
+    const id = r.account_id || session.accountId
+    if (!id) return false
+    if (session.accountId && session.accountId !== String(id)) throw Object.assign(new Error('账号身份不一致'), {code: 'AUTH_INVALID'})
+    if (!session.accountId) enterAccount(id)
+    adoptSession(session.userId, s.token, id)
+    applyCloud(r)
+    await loadMeta()
+    return true
   } catch (e) {
-    logout(true)
-    ElMessage.warning('登录状态已失效，请重新登录')
+    if (!valid(s)) return false
+    if (authError(e)) { logout(true); ElMessage.warning('登录状态已失效，请重新登录') }
+    return false
   }
 }
-
 let visibilityBound = false
-/** 从后台切回前台时静默拉取并合并（手机端页面常驻不刷新也能拿到另一端的改动） */
 export function bindVisibilitySync() {
   if (visibilityBound || typeof document === 'undefined') return
   visibilityBound = true
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState !== 'visible') return
-    if (session.space !== 'account' || !session.token || session.syncing) return
-    refreshCloud().catch(() => {})
+    if (document.visibilityState === 'visible' && session.token && !session.syncing) refreshCloud()
   })
 }
-
-/**
- * 手动「立即同步」：先拉取合并 → 再把合并结果推回云端（两端收敛到并集，不再互相覆盖）。
- * 覆盖：错题本 + 打卡统计 + 个人资料 + 课程/课表 + 学习记录。
- */
 export async function syncNow() {
-  if (session.space !== 'account' || !session.token) {
-    // 未登录就地弹出登录框（登录成功后用户再点一次同步即可）
-    openAuth('login')
-    return false
-  }
-  session.syncing = true
+  if (!session.token) { openAuth('login'); return false }
+  const s = stamp(); session.syncing = true
   try {
-    // ① 先拉云端并合并（错题本按 id 取新、统计合并、课表与记录按墓碑 + 取新合并）
-    const r = await api.sync.pull(session.token)
-    if (r.ok) {
-      if (Array.isArray(r.items) && r.items.length) {
-        const merged = mergeErrorbook(getItems(), r.items)
-        replaceItems(merged, { persistNow: false })
-        saveBook(getItems(), 'account')
-      }
-      if (r.stats) mergeStatsFromCloud(r.stats)
-      if (r.courses && Object.keys(r.courses).length) applyCloudCourses(r.courses)
-      if (Array.isArray(r.sessions) && r.sessions.length) applyCloudSessions(r.sessions)
-      if (Array.isArray(r.exams) && r.exams.length) {
-        replacePapers(mergeExams(examsCloudPayload(), r.exams))
-      }
-    }
-    // ② 再把合并后的结果推回云端
-    await api.sync.push(
-      session.token, getItems(), statsForCloud(), coursesCloudPayload(),
-      sessionsCloudPayload(), examsCloudPayload(),
-    )
-    await api.account.saveProfile(session.token, profileForCloud())
-    ElMessage.success('已同步到云端')
-    return true
-  } catch (e) {
-    ElMessage.error('同步失败：' + e.message)
-    return false
-  } finally {
-    session.syncing = false
-  }
+    if (!await refreshCloud() || !valid(s)) return false
+    await api.sync.push(...payload())
+    if (!valid(s)) return false
+    await api.account.saveProfile(s.token, profileForCloud())
+    if (valid(s)) ElMessage.success('已同步到云端')
+    return valid(s)
+  } catch (e) { if (valid(s)) ElMessage.error('同步失败：' + e.message); return false }
+  finally { if (valid(s)) session.syncing = false }
 }
-
-/** 以云端覆盖本地（错题本与统计直接替换，不做合并） */
 export async function pullOverwrite() {
-  if (!session.token) return false
-  session.syncing = true
+  if (!session.token || !session.accountId) return false
+  const s = stamp(); session.syncing = true
   try {
-    const r = await api.sync.pull(session.token)
-    replaceItems(r.items || [], { persistNow: false })
-    saveBook(getItems(), 'account')
-    replaceStats(r.stats || {})
-    applyCloudCourses(r.courses || {}, { merge: false })
-    applyCloudSessions(r.sessions || [], { merge: false })
-    replacePapers(r.exams || [])
-    const p = await api.account.profile(session.token)
-    if (p.ok && p.profile) mergeProfileFromCloud(p.profile)
-    ElMessage.success('已用云端数据覆盖本地')
-    return true
-  } catch (e) {
-    ElMessage.error(e.message)
-    return false
-  } finally {
-    session.syncing = false
-  }
+    const r = await api.sync.pull(s.token)
+    if (!valid(s)) return false
+    applyCloud(r, true)
+    await loadMeta()
+    if (valid(s)) ElMessage.success('已用云端数据覆盖本地')
+    return valid(s)
+  } catch (e) { if (valid(s)) ElMessage.error(e.message); return false }
+  finally { if (valid(s)) session.syncing = false }
 }
 
 // ---------------------------------------------------------------- 数据管理
@@ -332,10 +221,10 @@ export function clearLocalData() {
     'zhiyi_courses_v1', 'zhiyi_courses_account_v1',
     'zhiyi_timetable_v1', 'zhiyi_timetable_account_v1',
     'zhiyi_courses_deleted_v1', 'zhiyi_courses_deleted_account_v1',
-    'zhiyi_settings',
+    'zhiyi_settings_v1', 'zhiyi_schedule_account_v2', 'zhiyi_schedule_v2', 'zhiyi_exam_account_v1', 'zhiyi_exam_v1',
   ]
   try {
-    keys.forEach((k) => localStorage.removeItem(k))
+    keys.forEach((k) => localStorage.removeItem(session.space === 'account' ? accountKey(k) : k))
   } catch {
     /* 隐私模式忽略 */
   }
@@ -344,6 +233,7 @@ export function clearLocalData() {
   initChat(session.space)
   initRecords(session.space)
   initCourses(session.space)
+  initExams(session.space)
   initProfile(session.space)
   ElMessage.success('本机数据已清空（云端未动）')
 }
@@ -355,7 +245,10 @@ export function applyImport({ obj, mode }) {
     ElMessage.error(v.error)
     return { ok: false, error: v.error }
   }
+  const dead = new Set(getDeletedIds())
+  v.items = v.items.map(it => dead.has(String(it.id)) ? { ...it, id: nextId(), updatedAt: Date.now() } : it)
   if (mode === 'overwrite') {
+    mergeDeletedIds(getItems().filter(it => !v.items.some(n => String(n.id) === String(it.id))).map(it => it.id))
     replaceItems(v.items.filter((it) => it && it.id != null), { persistNow: false })
   } else {
     const next = [...getItems()]

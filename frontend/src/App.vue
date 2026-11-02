@@ -1,6 +1,6 @@
 <template>
   <AppShell :active="route.path" :initial="userInitial" @navigate="go">
-    <router-view />
+    <router-view :key="session.epoch" />
   </AppShell>
 
   <!-- 账号弹窗（全局，由 uiStore 唤起：页面不再需要把事件传回外壳） -->
@@ -96,8 +96,8 @@ const authMode = computed({
   set: (v) => (ui.authMode = v),
 })
 
-async function onAuth({ userId, token }) {
-  await adoptLogin({ token, userId })
+async function onAuth({ userId, token, accountId }) {
+  await adoptLogin({ token, userId, accountId })
 }
 
 /* ---------------- 启动 ---------------- */

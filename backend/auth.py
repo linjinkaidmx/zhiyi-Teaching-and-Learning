@@ -12,6 +12,9 @@ import hashlib
 import hmac
 import secrets
 import time
+import json
+import os
+from pathlib import Path
 
 # ---------------------------------------------------------------- 密码
 
@@ -41,14 +44,46 @@ def valid_password_len(pw) -> bool:
 
 # ---------------------------------------------------------------- 无状态 token
 
-ACC_SALT = "zhiyi::account::salt::v1"
+_LEGACY_KEY = "zhiyi::account::salt::v1"
 ACC_TTL_SECONDS = 30 * 24 * 3600  # 30 天
+
+
+def _signing_config():
+    """Persist random signing key and a one-time, bounded legacy migration window."""
+    supplied = os.getenv('ZHIYI_TOKEN_SECRET', '').strip()
+    if supplied and len(supplied) < 32:
+        raise RuntimeError('ZHIYI_TOKEN_SECRET must contain at least 32 characters')
+    database = Path(os.getenv('ZHIYI_DB') or Path(__file__).parent / 'data' / 'zhiyi.db')
+    path = Path(os.getenv('ZHIYI_TOKEN_KEY_FILE') or database.parent / 'token-key.json')
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if not path.exists():
+        value = {'key': secrets.token_hex(32), 'legacy_until': int(time.time()) + ACC_TTL_SECONDS}
+        try:
+            fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            with os.fdopen(fd, 'w', encoding='utf-8') as f:
+                json.dump(value, f)
+                f.flush()
+                os.fsync(f.fileno())
+        except FileExistsError:
+            pass
+    # Concurrent initial startup may observe the creator before its write finishes.
+    for attempt in range(10):
+        try:
+            value = json.loads(path.read_text(encoding='utf-8'))
+            if len(value['key']) < 32:
+                raise ValueError('invalid signing key')
+            return supplied or value['key'], int(value['legacy_until'])
+        except (ValueError, KeyError):
+            if attempt == 9:
+                raise RuntimeError('Invalid token key file; restore it from backup')
+            time.sleep(0.02)
 
 
 def make_token(profile: dict) -> str:
     exp = int(time.time()) + ACC_TTL_SECONDS
     body = f"{profile['nickname']}::{profile.get('auth_nonce', '')}::{exp}"
-    sig = hmac.new(ACC_SALT.encode(), body.encode(), hashlib.sha256).hexdigest()
+    key, _ = _signing_config()
+    sig = hmac.new(key.encode(), body.encode(), hashlib.sha256).hexdigest()
     user_b64 = base64.urlsafe_b64encode(profile["nickname"].encode("utf-8")).decode().rstrip("=")
     return f"{user_b64}.{exp}.{sig}"
 
@@ -63,7 +98,7 @@ def parse_token(token: str):
     if not isinstance(token, str) or not token:
         return None
     parts = token.split(".")
-    if len(parts) != 3:
+    if len(parts) != 3 or len(parts[2]) != 64 or any(c not in '0123456789abcdef' for c in parts[2]):
         return None
     try:
         nickname = base64.urlsafe_b64decode(parts[0] + "=" * (-len(parts[0]) % 4)).decode("utf-8")
@@ -76,9 +111,16 @@ def parse_token(token: str):
     if not profile or not profile.get("password_hash"):
         return None
     body = f"{nickname}::{profile.get('auth_nonce', '')}::{exp}"
-    expect = hmac.new(ACC_SALT.encode(), body.encode(), hashlib.sha256).hexdigest()
+    key, legacy_until = _signing_config()
+    expect = hmac.new(key.encode(), body.encode(), hashlib.sha256).hexdigest()
     if not hmac.compare_digest(expect, parts[2]):
-        return None
+        # Existing v1 sessions remain valid only until the original 30-day TTL
+        # passes; legacy signatures with later expiry are never accepted.
+        if time.time() > legacy_until or exp > legacy_until:
+            return None
+        legacy = hmac.new(_LEGACY_KEY.encode(), body.encode(), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(legacy, parts[2]):
+            return None
     return profile
 
 

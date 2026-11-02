@@ -2,6 +2,8 @@
 """作业题目图片（老师布置作业可拍照/上传，最多 9 张）接口层回归。MOCK 模式离线跑。
 用法：zhiyi 环境 python _test_hw_images.py
 """
+
+import test_support  # isolated database, no credentials or network
 import json
 import os
 import sys

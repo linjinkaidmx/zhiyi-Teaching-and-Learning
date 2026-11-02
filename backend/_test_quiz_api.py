@@ -5,6 +5,8 @@
 验证：接口接线正常 / source 标签正确 / 空库只出四方向 / 有错题优先出错题。
 用法：cd backend && python _test_quiz_api.py
 """
+
+import test_support  # isolated database, no credentials or network
 import os
 import shutil
 import sys
@@ -15,7 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 _TMP = tempfile.mkdtemp(prefix="quizapi_test_")
 _DB = os.path.join(_TMP, "test.db")
-shutil.copy(os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "zhiyi.db"), _DB)
+test_support.public_bank_fixture(_DB)
 os.environ["ZHIYI_DB"] = _DB
 
 import auth       # noqa: E402

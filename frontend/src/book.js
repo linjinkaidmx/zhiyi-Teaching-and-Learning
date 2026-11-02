@@ -1,3 +1,4 @@
+import { accountKey } from './lib/accountScope.js'
 // 错题本：本地双空间（游客 / 账号），不强依赖服务端账号
 // 两个空间完全隔离、互不覆盖：游客用游客 key，登录后切到账号 key，退出回到游客视图
 const KEY_GUEST = 'zhiyi_errorbook_v1'
@@ -6,7 +7,7 @@ const SETTINGS_KEY = 'zhiyi_settings_v1'
 const DAY = 86400000
 
 function bookKey(space) {
-  return space === 'account' ? KEY_ACCOUNT : KEY_GUEST
+  return space === 'account' ? accountKey(KEY_ACCOUNT) : KEY_GUEST
 }
 
 export function loadBook(space = 'guest') {
@@ -66,9 +67,9 @@ export function paceOf(settings) {
   return PACES.find((p) => p.key === key) || PACES[1]
 }
 
-export function loadSettings() {
+export function loadSettings(space = 'guest') {
   try {
-    const raw = localStorage.getItem(SETTINGS_KEY)
+    const raw = localStorage.getItem(space === 'account' ? accountKey(SETTINGS_KEY) : SETTINGS_KEY)
     const s = raw ? JSON.parse(raw) : {}
     const merged = { ...DEFAULT_SETTINGS, ...s }
     // 迁移旧的 SRS 设置：旧「关闭间隔复习」= 新默认（已掌握不回炉）；
@@ -84,8 +85,8 @@ export function loadSettings() {
   }
 }
 
-export function saveSettings(s) {
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s))
+export function saveSettings(s, space = 'guest') {
+  localStorage.setItem(space === 'account' ? accountKey(SETTINGS_KEY) : SETTINGS_KEY, JSON.stringify(s))
 }
 
 /** 答对后下一次回炉间隔（天）；0 = 当天就能再练（冲刺档）。 */
@@ -391,4 +392,10 @@ export function splitQuestions(text) {
 export function splitByBlank(text) {
   const parts = (text || '').split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean)
   return parts.length ? parts : [(text || '').trim()]
+}
+
+/** Explicit redo may include mastered questions; automatic review does not. */
+export function reviewSelection(list, focusId, count = 10) {
+  if (focusId) return list.filter(it => it.kind !== 'note' && String(it.id) === String(focusId))
+  return quizPool(list).slice().sort((a, b) => (Number(a.reviewAt) || 0) - (Number(b.reviewAt) || 0)).slice(0, count)
 }

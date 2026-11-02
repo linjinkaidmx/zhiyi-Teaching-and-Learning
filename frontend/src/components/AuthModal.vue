@@ -156,8 +156,8 @@ async function doLogin() {
   loading.value = true
   try {
     const r = await api.account.login(n, f.value.password)
-    adoptSession(r.userId, r.token)
-    emit('auth', { userId: r.userId, token: r.token })
+    adoptSession(r.userId, r.token, r.account_id || '')
+    emit('auth', { userId: r.userId, token: r.token, accountId: r.account_id })
     visible.value = false
     ElMessage.success(`登录成功，欢迎回来，${r.userId}！`)
   } catch (e) {
@@ -176,7 +176,7 @@ async function doRegister() {
   loading.value = true
   try {
     const r = await api.account.register(n, f.value.password, f.value.passwordConfirm, getClientId())
-    pending.value = { userId: r.userId, backup: r.backup, token: r.token }
+    pending.value = { userId: r.userId, backup: r.backup, token: r.token, accountId: r.account_id }
     mode.value = 'backup'
   } catch (e) {
     ElMessage.error(e.message)
@@ -186,8 +186,8 @@ async function doRegister() {
 }
 
 function confirmBackup() {
-  adoptSession(pending.value.userId, pending.value.token)
-  emit('auth', { userId: pending.value.userId, token: pending.value.token })
+  adoptSession(pending.value.userId, pending.value.token, pending.value.accountId || '')
+  emit('auth', { userId: pending.value.userId, token: pending.value.token, accountId: pending.value.accountId })
   visible.value = false
   ElMessage.success('注册成功，欢迎加入！')
 }
@@ -202,8 +202,8 @@ async function doRecover() {
   loading.value = true
   try {
     const r = await api.account.recover(n, f.value.backupCode, f.value.newPassword, f.value.passwordConfirm)
-    adoptSession(r.userId, r.token)
-    emit('auth', { userId: r.userId, token: r.token })
+    adoptSession(r.userId, r.token, r.account_id || '')
+    emit('auth', { userId: r.userId, token: r.token, accountId: r.account_id })
     visible.value = false
     ElMessage.success('密码已重设，已自动登录')
   } catch (e) {

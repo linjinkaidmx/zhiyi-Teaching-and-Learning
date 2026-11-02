@@ -5,6 +5,8 @@
 / 疑问解答后回到考试题 / 确认语服务端兜底 / 大纲增删改与重置 / 结课。
 用法：cd backend && python _test_teach_api.py
 """
+
+import test_support  # isolated database, no credentials or network
 import os
 import shutil
 import sys
@@ -14,7 +16,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 _TMP = tempfile.mkdtemp(prefix="teach_test_")
 _DB = os.path.join(_TMP, "test.db")
-shutil.copy(os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "zhiyi.db"), _DB)
+test_support.public_bank_fixture(_DB)
 os.environ["ZHIYI_DB"] = _DB
 
 import service      # noqa: E402

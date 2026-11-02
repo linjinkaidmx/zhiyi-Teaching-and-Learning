@@ -1,3 +1,4 @@
+import { accountKey } from './lib/accountScope.js'
 /**
  * 打卡 / 连续学习 / 成就 —— 纯逻辑层（不依赖 DOM/Vue，可直接在 Node 中测试）
  *
@@ -592,7 +593,7 @@ export function summary(stats) {
 // ---------------------------------------------------------------- 存储
 
 export function statsKey(space) {
-  return space === 'account' ? KEY_ACCOUNT : KEY_GUEST
+  return space === 'account' ? accountKey(KEY_ACCOUNT) : KEY_GUEST
 }
 
 export function loadStats(space = 'guest') {

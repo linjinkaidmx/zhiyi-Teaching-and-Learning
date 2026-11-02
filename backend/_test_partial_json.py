@@ -2,6 +2,8 @@
 """批次3 测试：增量 JSON 字段解析器（讲解流式的核心）
 用法：python _test_partial_json.py
 """
+
+import test_support  # isolated database, no credentials or network
 import os
 import sys
 import types

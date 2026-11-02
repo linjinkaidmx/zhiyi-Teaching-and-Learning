@@ -1,3 +1,4 @@
+import { accountKey } from '../lib/accountScope.js'
 /**
  * chatStore · AI 对话（会话列表 + 消息），本地存储先行
  * ---------------------------------------------------------------------------
@@ -17,7 +18,7 @@ export const conversations = ref([])
 const activeId = ref('')
 let space = 'guest'
 
-const keyOf = (sp) => (sp === 'account' ? ACCOUNT_KEY : GUEST_KEY)
+const keyOf = (sp) => (sp === 'account' ? accountKey(ACCOUNT_KEY) : GUEST_KEY)
 
 function readStore(sp) {
   try {

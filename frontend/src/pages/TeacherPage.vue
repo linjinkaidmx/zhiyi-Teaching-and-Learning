@@ -833,6 +833,7 @@
  * 规则由服务端状态机保证；本页只做展示、收集作答、按 teachFlow 判定确认语。
  * 立绘占位（B3 换真立绘）：用图形 + 表情色环表达状态。
  */
+import { refreshCloud } from '../stores/sessionStore.js'
 import { computed, nextTick, onMounted, ref, onUnmounted, watch } from 'vue'
 import UiButton from '../ui/UiButton.vue'
 import UiTour from '../ui/UiTour.vue'
@@ -1321,6 +1322,7 @@ async function doAnswer(payload) {
     state.value = r.state
     reveal.value = r.reveal || null
     wrongSaved.value = !!r.wrong_saved
+    if (r.wrong_saved) await refreshCloud()
     askLog.value = r.ask_log || askLog.value
     setFace(grade.value.verdict === 'correct' ? 'happy' : 'surprised', 9000)
     speak(grade.value.verdict === 'correct' ? '答对了，思路是对的。'
@@ -1536,6 +1538,7 @@ async function submitUnit() {
       toast(r.error || '批改失败，再交一次')
       return
     }
+    await refreshCloud()
     chEnd.value = { ...chEnd.value, state: 'graded', result: r.result }
     // 同步大纲里的单元测试状态（目录 ✓）
     syllabus.value = {

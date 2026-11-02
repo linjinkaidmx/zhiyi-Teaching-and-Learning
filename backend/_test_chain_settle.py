@@ -5,6 +5,8 @@
 / 知识点事件落 user_kp_state。
 用法：cd backend && python _test_chain_settle.py
 """
+
+import test_support  # isolated database, no credentials or network
 import os
 import shutil
 import sys
@@ -15,7 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 _TMP = tempfile.mkdtemp(prefix="settle_test_")
 _DB = os.path.join(_TMP, "test.db")
-shutil.copy(os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "zhiyi.db"), _DB)
+test_support.public_bank_fixture(_DB)
 os.environ["ZHIYI_DB"] = _DB
 os.environ["MOCK"] = "1"
 

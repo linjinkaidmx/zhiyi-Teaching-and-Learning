@@ -1,3 +1,4 @@
+import { accountKey } from '../lib/accountScope.js'
 /**
  * 练习本存储（localStorage 双空间 + 服务端同步钩子）
  *
@@ -42,7 +43,7 @@ export function setSyncHandler(fn) {
 }
 
 function key() {
-  return space === 'account' ? KEY_ACCOUNT : KEY_GUEST
+  return space === 'account' ? accountKey(KEY_ACCOUNT) : KEY_GUEST
 }
 
 /** 写操作后通知同步（失败静默，本地已成功优先） */

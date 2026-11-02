@@ -5,6 +5,8 @@
 
 用法：python _test_sync_stats.py
 """
+
+import test_support  # isolated database, no credentials or network
 import os
 import sys
 import tempfile

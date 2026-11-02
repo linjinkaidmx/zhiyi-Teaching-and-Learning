@@ -112,3 +112,4 @@ frontend/public/companions/nailong*
 frontend/public/companions/naiwa*
 frontend/public/companions/**/nailong*
 frontend/public/companions/**/naiwa*
+**/token-key.json

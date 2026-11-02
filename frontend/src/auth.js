@@ -4,6 +4,8 @@
 const LS_CID = 'zhiyi_client_id'
 const LS_ACC = 'zhiyi_account_token'
 const LS_UID = 'zhiyi_account_user'
+const LS_ID = 'zhiyi_account_id'
+export function getAccountId() { try { return localStorage.getItem(LS_ID) || '' } catch { return '' } }
 const CK_ACC = 'zy_acc'
 
 function readCookie(name) {
@@ -49,10 +51,11 @@ export function isLoggedIn() {
 }
 
 /** 登录/注册成功后写入会话（token + 当前昵称） */
-export function adoptSession(userId, token) {
+export function adoptSession(userId, token, accountId = getAccountId()) {
   try {
     localStorage.setItem(LS_ACC, token)
     localStorage.setItem(LS_UID, userId)
+    if (accountId) localStorage.setItem(LS_ID, String(accountId)); else localStorage.removeItem(LS_ID)
   } catch (e) {}
   writeCookie(CK_ACC, token)
 }
@@ -61,6 +64,7 @@ export function clearSession() {
   try {
     localStorage.removeItem(LS_ACC)
     localStorage.removeItem(LS_UID)
+    localStorage.removeItem(LS_ID)
   } catch (e) {}
   eraseCookie(CK_ACC)
 }

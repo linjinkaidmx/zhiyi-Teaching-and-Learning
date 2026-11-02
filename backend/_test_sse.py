@@ -2,8 +2,10 @@
 """SSE 接口层测试：用桩模块替代 Unix 专有 resource 模块，本地跑通 HTTP/SSE 全链路。
 
 用法：python _test_sse.py
-说明：默认 MOCK=1（不调模型，只验证协议层）；加 --real 则真实调用快答档。
+说明：默认 MOCK=1（不调模型，只验证协议层）；真实模型验证应使用独立的 _check 脚本。
 """
+
+import test_support  # isolated database, no credentials or network
 import json
 import os
 import sys
@@ -18,7 +20,9 @@ if sys.platform == "win32":
     stub.setrlimit = lambda *a, **k: None
     sys.modules["resource"] = stub
 
-REAL = "--real" in sys.argv
+if "--real" in sys.argv:
+    raise SystemExit("Offline tests do not accept --real")
+REAL = False
 os.environ["MOCK"] = "0" if REAL else "1"
 
 import main  # noqa: E402

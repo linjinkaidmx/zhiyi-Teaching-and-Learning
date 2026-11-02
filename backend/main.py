@@ -152,9 +152,11 @@ async def _validation_error_handler(request: Request, exc: RequestValidationErro
     return JSONResponse(status_code=422, content={"ok": False, "error": f"请求参数有误：{hint}"})
 
 
+_cors_default = "http://localhost:5173,http://127.0.0.1:5173" if os.getenv("ZHIYI_ENV") == "development" else ""
+_cors_origins = [origin.strip() for origin in os.getenv("ZHIYI_CORS_ORIGINS", _cors_default).split(",") if origin.strip() and origin.strip() != "*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -290,13 +292,8 @@ quota = _Quota()
 
 
 def _ip_from_scope(scope: dict) -> str:
-    """纯 ASGI 场景取客户端 IP（与 _client_ip 同语义）。"""
-    headers = {k: v for k, v in scope.get("headers") or []}
-    fwd = headers.get(b"x-forwarded-for", b"").decode("latin-1")
-    if fwd:
-        return fwd.split(",")[0].strip()
-    client = scope.get("client")
-    return client[0] if client else "unknown"
+    from request_security import client_ip
+    return client_ip(scope)
 
 
 class AIGuardMiddleware:
@@ -378,6 +375,8 @@ class AIGuardMiddleware:
 
 
 app.add_middleware(AIGuardMiddleware)
+from request_security import BodyLimitMiddleware
+app.add_middleware(BodyLimitMiddleware)
 
 
 db.init_db()
@@ -392,10 +391,7 @@ def _admin_token() -> str:
 
 
 def _client_ip(req: Request) -> str:
-    fwd = req.headers.get("x-forwarded-for", "")
-    if fwd:
-        return fwd.split(",")[0].strip()
-    return req.client.host if req.client else "unknown"
+    return _ip_from_scope(req.scope)
 
 
 # ---------------------------------------------------------------- 账号
@@ -419,7 +415,7 @@ def register(req: RegisterRequest):
     recovery_hash = auth.hash_password(auth.norm_backup(backup), salt)
     profile = db.create_profile(nickname, password_hash, salt, auth_nonce, recovery_hash, req.client_id.strip())
     token = auth.make_token(profile)
-    return {"ok": True, "userId": nickname, "token": token, "backup": backup}
+    return {"ok": True, "userId": nickname, "account_id": profile['id'], "token": token, "backup": backup}
 
 
 @app.post("/api/account/login")
@@ -436,15 +432,15 @@ def login(req: LoginRequest, request: Request):
         return {"ok": False, "error": "昵称或密码不正确" + hint}
     login_limiter.clear(nickname, ip)
     token = auth.make_token(profile)
-    return {"ok": True, "userId": nickname, "token": token}
+    return {"ok": True, "userId": nickname, "account_id": profile['id'], "token": token}
 
 
 @app.post("/api/account/verify")
 def verify(req: VerifyRequest):
     profile = auth.parse_token(req.token)
     if not profile:
-        return {"ok": False, "error": "登录状态已失效"}
-    return {"ok": True, "userId": profile["nickname"]}
+        return {"ok": False, "code": "AUTH_INVALID", "error": "登录状态已失效"}
+    return {"ok": True, "userId": profile["nickname"], "account_id": profile['id']}
 
 
 @app.post("/api/account/change-password")
@@ -467,8 +463,11 @@ def change_password(req: ChangePasswordRequest):
 
 
 @app.post("/api/account/recover")
-def recover(req: RecoverRequest):
+def recover(req: RecoverRequest, request: Request):
     nickname = req.nickname.strip()
+    ip = _client_ip(request)
+    if not quota.window_allow(f'recover-ip:{ip}', 20, 900) or not quota.window_allow(f'recover-user:{nickname.lower()}', 5, 900):
+        return {"ok": False, "error": "找回尝试过于频繁，请15分钟后再试"}
     profile = db.find_profile_by_nickname(nickname)
     if not profile or not profile.get("recovery_hash"):
         return {"ok": False, "error": "昵称或备份码不正确"}
@@ -483,13 +482,13 @@ def recover(req: RecoverRequest):
     auth_nonce = __import__("secrets").token_hex(16)
     updated = db.update_profile_password(nickname, password_hash, salt, auth_nonce)
     token = auth.make_token(updated)
-    return {"ok": True, "userId": nickname, "token": token}
+    return {"ok": True, "userId": nickname, "account_id": updated['id'], "token": token}
 
 
 @app.post("/api/admin/account/reset-password")
 def admin_reset(req: AdminResetRequest, request: Request):
     admin_token = request.headers.get("x-admin-token", "")
-    if not ADMIN_PASSWORD or admin_token != _admin_token():
+    if not ADMIN_PASSWORD or not __import__("hmac").compare_digest(admin_token, _admin_token()):
         return {"ok": False, "error": "仅管理员可重置密码"}
     nickname = req.nickname.strip()
     profile = db.find_profile_by_nickname(nickname)
@@ -510,8 +509,8 @@ def admin_reset(req: AdminResetRequest, request: Request):
 def sync_push(req: SyncPushRequest):
     profile = auth.parse_token(req.token)
     if not profile:
-        return {"ok": False, "error": "登录状态已失效，请重新登录"}
-    eb = db.save_errorbook(profile["nickname"], req.items)
+        return {"ok": False, "code": "AUTH_INVALID", "error": "登录状态已失效，请重新登录"}
+    eb = db.save_errorbook(profile["nickname"], req.items, req.deleted_ids, from_client=True)
     # 打卡/成就统计：非空才写，避免老客户端（不带 stats）把云端统计清空
     if req.stats:
         db.save_stats(profile["nickname"], req.stats)
@@ -535,14 +534,14 @@ def sync_push(req: SyncPushRequest):
 def sync_pull(req: SyncPullRequest):
     profile = auth.parse_token(req.token)
     if not profile:
-        return {"ok": False, "error": "登录状态已失效，请重新登录"}
+        return {"ok": False, "code": "AUTH_INVALID", "error": "登录状态已失效，请重新登录"}
     items = db.load_errorbook(profile["nickname"])
     stats = db.load_stats(profile["nickname"])
     courses = db.load_courses(profile["nickname"])
     sessions = db.load_sessions(profile["nickname"])
     exams = db.load_exams(profile["nickname"])
     return {
-        "ok": True, "items": items, "stats": stats, "courses": courses,
+        "ok": True, "account_id": profile['id'], "deleted_ids": db.errorbook_deleted_ids(profile['nickname']), "items": items, "stats": stats, "courses": courses,
         "sessions": sessions, "exams": exams,
     }
 
@@ -629,33 +628,9 @@ MAX_CODE_LEN = 20000
 RUN_TIMEOUT = 8
 
 
-def _run_in_sandbox(cmd, stdin_text, cwd):
-    """在资源受限的子进程中运行，防止死循环与资源滥用。"""
-    kwargs = {}
-    if resource is not None:  # Unix：rlimit 加固；Windows：仅超时兜底
-        def set_limits():
-            # CPU 5 秒；地址空间 512MB；禁止生成 core 文件
-            try:
-                resource.setrlimit(resource.RLIMIT_CPU, (5, 5))
-                resource.setrlimit(resource.RLIMIT_AS, (512 * 1024 * 1024, 512 * 1024 * 1024))
-                resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
-            except Exception:
-                pass
-        kwargs["preexec_fn"] = set_limits
-
-    return subprocess.run(
-        cmd,
-        input=stdin_text,
-        capture_output=True,
-        text=True,
-        timeout=RUN_TIMEOUT,
-        cwd=cwd,
-        **kwargs,
-    )
-
-
 @app.post("/api/run")
 def run_code(req: RunRequest):
+    from code_runner import run_code as isolated_run
     lang = (req.language or "").strip().lower()
     code = req.code or ""
     if lang not in ("python", "c"):
@@ -664,56 +639,7 @@ def run_code(req: RunRequest):
         return {"ok": False, "error": "代码为空"}
     if len(code) > MAX_CODE_LEN:
         return {"ok": False, "error": f"代码过长（上限 {MAX_CODE_LEN} 字符）"}
-
-    with tempfile.TemporaryDirectory() as d:
-        try:
-            if lang == "c":
-                src = os.path.join(d, "main.c")
-                exe = os.path.join(d, "main")
-                with open(src, "w", encoding="utf-8") as f:
-                    f.write(code)
-                c = subprocess.run(
-                    ["gcc", src, "-o", exe, "-std=c99", "-O0"],
-                    capture_output=True, text=True, timeout=30, cwd=d,
-                )
-                if c.returncode != 0:
-                    return {"ok": False, "error": "编译失败", "stderr": (c.stderr or "")[:2000]}
-                cmd = [exe]
-            else:
-                src = os.path.join(d, "main.py")
-                with open(src, "w", encoding="utf-8") as f:
-                    f.write(code)
-                cmd = [sys.executable, "-I", src]  # -I 隔离模式：忽略环境变量与用户 site
-
-            r = _run_in_sandbox(cmd, req.stdin or "", d)
-            # returncode < 0 表示被信号终止（多为 CPU/内存超限，如死循环）
-            if r.returncode < 0:
-                sig = -r.returncode
-                if sig == 24:  # SIGXCPU
-                    hint = "运行超时（CPU 时间超限，请检查是否有死循环）"
-                elif sig == 9:  # SIGKILL：超时兜底或资源超限
-                    hint = "运行被终止（超时或资源超限，请检查是否有死循环）"
-                else:
-                    hint = f"程序异常终止（信号 {sig}，可能超时或资源超限）"
-                return {
-                    "ok": False,
-                    "error": hint,
-                    "stdout": (r.stdout or "")[:4000],
-                    "stderr": (r.stderr or "")[:2000],
-                }
-            return {
-                "ok": True,
-                "stdout": (r.stdout or "")[:8000],
-                "stderr": (r.stderr or "")[:2000],
-                "exit_code": r.returncode,
-            }
-        except subprocess.TimeoutExpired:
-            return {"ok": False, "error": f"运行超时（超过 {RUN_TIMEOUT} 秒，请检查是否有死循环）"}
-        except FileNotFoundError:
-            return {"ok": False, "error": "服务器缺少运行环境（gcc 或 python 不可用）"}
-        except Exception as e:
-            log.exception("run failed")
-            return {"ok": False, "error": f"执行失败：{e}"}
+    return isolated_run(lang, code, req.stdin or "")
 
 
 # ---------------------------------------------------------------- 代码诊断
@@ -2516,12 +2442,13 @@ def account_profile(req: VerifyRequest):
     """读取个人资料 + 账号元信息（知一 ID / 加入时间）。"""
     profile = auth.parse_token(req.token)
     if not profile:
-        return {"ok": False, "error": "登录状态已失效，请重新登录"}
+        return {"ok": False, "code": "AUTH_INVALID", "error": "登录状态已失效，请重新登录"}
     return {
         "ok": True,
         "profile": db.load_profile_data(profile["nickname"]),
         "nickname": profile["nickname"],
         "userId": profile.get("id"),
+        "account_id": profile['id'],
         "registeredAt": profile.get("registered_at") or profile.get("created_at") or 0,
     }
 
@@ -2559,7 +2486,7 @@ def account_rename(req: RenameRequest):
     db.rename_user(old, new)
     new_profile = dict(db.find_profile_by_nickname(new) or {})
     token = auth.make_token(new_profile)
-    return {"ok": True, "nickname": new, "userId": new, "token": token}
+    return {"ok": True, "nickname": new, "userId": new, "account_id": new_profile['id'], "token": token}
 
 
 @app.post("/api/account/delete")
@@ -3407,14 +3334,30 @@ def class_test_generate(req: ClassTestGenerateRequest):
     prompt = (TEST_PAPER_PROMPT
               + "\n\n学科：" + subject + "\n考察范围：" + (topic or "基础内容") + "\n题型配比：\n" + "\n".join(lines)
               + "\n\n分值：选择题每题 " + str(cs) + " 分，填空题每题 " + str(bs) + " 分（放入每题的 score 字段）。")
-    text = service.chat_text([{"role": "user", "content": prompt}], temperature=0.4,
-                             slot=service.JUDGE_SLOT, timeout=240)
-    data = service.extract_json(text)
+    if service.MOCK:
+        data = {"questions": [
+            {"type": "choice", "question": f"演示选择题 {i + 1}：1 + 1 等于多少？",
+             "options": ["1", "2", "3", "4"], "answer": "B", "score": cs}
+            for i in range(cc)
+        ] + [
+            {"type": "blank", "question": f"演示填空题 {i + 1}：2 + 3 = ____。",
+             "answer": "5", "score": bs} for i in range(bc)
+        ]}
+    else:
+        try:
+            text = service.chat_text([{"role": "user", "content": prompt}], temperature=0.4,
+                                     slot=service.JUDGE_SLOT, timeout=240)
+            data = service.extract_json(text)
+        except Exception:
+            log.exception("class test generation failed")
+            return {"ok": False, "error": "AI 出题暂时失败，请稍后重试或改用手动出题"}
     raw = data.get("questions") if isinstance(data, dict) else data
     if not isinstance(raw, list) or not raw:
         return {"ok": False, "error": "AI 生成失败，请重试或改用手动出题"}
     items = []
     for q in raw:
+        if not isinstance(q, dict):
+            continue
         qtype = "choice" if q.get("type") == "choice" else "blank"
         score = cs if qtype == "choice" else bs
         try:
@@ -3492,6 +3435,8 @@ def class_test_submit(req: ClassTestSubmitRequest):
     t = db.get_test(req.test_id)
     if not t:
         return {"ok": False, "error": "测试不存在"}
+    if not db.is_group_member(t["class_id"], uid):
+        return {"ok": False, "error": "你不在这个班级里"}
     attempt = db.get_attempt(t["id"], uid)
     if not attempt:
         return {"ok": False, "error": "请先开始答题"}
@@ -3500,7 +3445,9 @@ def class_test_submit(req: ClassTestSubmitRequest):
     import time as _t
     now_ms = _t.time() * 1000
     deadline = attempt["started_at"] + t["duration_sec"] * 1000
-    is_timeout = now_ms > deadline + 30000
+    is_timeout = now_ms > deadline
+    if is_timeout:
+        return {"ok": False, "error": "测试已超时，不能提交成绩", "is_timeout": True}
     answers = req.answers if isinstance(req.answers, dict) else {}
     score, correct, items = _grade_attempt(t["paper"], answers, detail=True)
     duration = min(int((now_ms - attempt["started_at"]) / 1000), t["duration_sec"])
@@ -3657,10 +3604,12 @@ def homework_grade(req: HomeworkGradeRequest):
 # 原先由前端逐份循环调用 /api/homework/grade：老师一关页面批改就断了。
 # 现在改为「启动任务 → 服务端并发 3 跑完 → 前端轮询进度」，关页面也能继续，
 # 回来还能接着看进度与失败名单。
-# 任务表放内存：服务重启会丢（重启后重新发起即可，不引入新表）。
+# 任务进度写入独立 SQLite；重启后标记中断，由老师显式重试剩余提交。
 # ============================================================================
-_GRADE_TASKS: dict = {}          # task_id -> task
-_GRADE_TASK_BY_HW: dict = {}     # homework_id -> 最近的 task_id（用于查询与复用判断）
+from grade_jobs import GradeJobs
+_GRADE_JOB_STORE = GradeJobs(db.DB_FILE)
+_GRADE_TASKS: dict = {t["id"]: t for t in _GRADE_JOB_STORE.recover()}
+_GRADE_TASK_BY_HW: dict = {t["homework_id"]: t["id"] for t in _GRADE_TASKS.values()}
 _GRADE_TASKS_LOCK = threading.Lock()
 _GRADE_POOL = ThreadPoolExecutor(max_workers=3, thread_name_prefix="grade")
 
@@ -3675,6 +3624,8 @@ def _task_public(t: dict) -> dict:
         "started_at": t["started_at"],
         "finished": t["finished"],
         "finished_at": t.get("finished_at", 0),
+        "status": t.get("status", "completed" if t["finished"] else "running"),
+        "error": t.get("error", ""),
     }
 
 
@@ -3687,6 +3638,8 @@ def _run_grade_task(task_id: str, hw: dict, user_ids: list):
             if not sub_id:
                 raise ValueError("该学生还没有提交")
             sub = db.get_submission_full(sub_id)
+            if int(sub.get("graded_at") or 0) > 0:
+                return uid, True, ""  # A previous attempt may have committed before restart.
             if not sub.get("image") and not (sub.get("note") or "").strip():
                 raise ValueError("没有图片也没有文字说明")
             graded = _mock_grade_one(hw) if service.MOCK else _grade_one_submission(hw, sub)
@@ -3708,13 +3661,17 @@ def _run_grade_task(task_id: str, hw: dict, user_ids: list):
                     continue
                 if ok:
                     task["done"] += 1
+                    task["completed_ids"].append(uid)
                 else:
                     task["failed"].append(uid)
+                _GRADE_JOB_STORE.save(task)
         with _GRADE_TASKS_LOCK:
             task = _GRADE_TASKS.get(task_id)
             if task:
                 task["finished"] = True
                 task["finished_at"] = int(_t.time() * 1000)
+                task["status"] = "failed" if task["failed"] else "completed"
+                _GRADE_JOB_STORE.save(task)
                 log.info("grade task done: %s | done=%d failed=%d",
                          task_id, task["done"], len(task["failed"]))
     except Exception:
@@ -3724,6 +3681,10 @@ def _run_grade_task(task_id: str, hw: dict, user_ids: list):
             if task:
                 task["finished"] = True
                 task["finished_at"] = int(_t.time() * 1000)
+                task["status"] = "failed"
+                task["error"] = "批改中断，请重试尚未完成的提交"
+                task["failed"] = [u for u in task["user_ids"] if u not in task["completed_ids"]]
+                _GRADE_JOB_STORE.save(task)
 
 
 @app.post("/api/group/messages/stream")
@@ -3788,23 +3749,27 @@ def homework_grade_start(req: GradeTaskRequest):
         if cur and not cur["finished"]:
             return {"ok": True, "task": _task_public(cur), "reused": True}
 
-    pending = [x["user_id"] for x in db.list_submissions(hw["id"]) if int(x.get("graded_at") or 0) <= 0]
-    if not pending:
-        return {"ok": False, "error": "没有待批改的提交"}
+        pending = [x["user_id"] for x in db.list_submissions(hw["id"]) if int(x.get("graded_at") or 0) <= 0]
+        if not pending:
+            return {"ok": False, "error": "没有待批改的提交"}
 
-    task = {
-        "id": f"gt{int(_t.time() * 1000)}",
-        "homework_id": hw["id"],
-        "total": len(pending),
-        "done": 0,
-        "failed": [],
-        "started_at": int(_t.time() * 1000),
-        "finished": False,
-        "finished_at": 0,
-    }
-    with _GRADE_TASKS_LOCK:
-        _GRADE_TASKS[task["id"]] = task          # 主键用 task_id（后台线程按它取）
-        _GRADE_TASK_BY_HW[hw["id"]] = task["id"]  # 作业 -> 任务，供查询与复用
+        task = {
+            "id": "gt" + uuid.uuid4().hex,
+            "homework_id": hw["id"],
+            "total": len(pending),
+            "done": 0,
+            "failed": [],
+            "completed_ids": [],
+            "user_ids": pending,
+            "status": "running",
+            "error": "",
+            "started_at": int(_t.time() * 1000),
+            "finished": False,
+            "finished_at": 0,
+        }
+        _GRADE_JOB_STORE.save(task)
+        _GRADE_TASKS[task["id"]] = task
+        _GRADE_TASK_BY_HW[hw["id"]] = task["id"]
     threading.Thread(target=_run_grade_task, args=(task["id"], hw, pending), daemon=True).start()
     return {"ok": True, "task": _task_public(task)}
 
@@ -3869,6 +3834,8 @@ def _csv_cell(v) -> str:
     """CSV 单元格转义：含逗号/引号/换行时加引号并把内部引号翻倍。"""
     t = "" if v is None else str(v)
     t = t.replace("\r\n", " ").replace("\n", " ").replace("\r", " ")
+    if t.lstrip().startswith(("=", "+", "-", "@")):
+        t = "'" + t
     if any(ch in t for ch in [",", '"', "\t"]):
         t = '"' + t.replace('"', '""') + '"'
     return t

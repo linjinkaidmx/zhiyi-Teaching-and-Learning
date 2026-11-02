@@ -3,6 +3,8 @@
 流程：老师认证→建班→学生加入→布置作业→学生未交/已交→老师批改，逐段核对待办数。
 独立临时库，默认 MOCK=1。
 """
+
+import test_support  # isolated database, no credentials or network
 import json
 import os
 import sys

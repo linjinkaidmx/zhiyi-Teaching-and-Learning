@@ -209,7 +209,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import UiButton from '../ui/UiButton.vue'
 import UiTour from '../ui/UiTour.vue'
@@ -224,7 +224,7 @@ import { ROUTES } from '../lib/routes.js'
 import { api } from '../api'
 import ReviewSettingsDialog from '../components/ReviewSettingsDialog.vue'
 import { bookRef, upsert, settingsRef } from '../stores/bookStore'
-import { quizPool, applyAnswer } from '../book.js'
+import { quizPool, applyAnswer, reviewSelection } from '../book.js'
 import { recordAction } from '../stores/statsStore'
 import { toast } from '../ui/toast.js'
 import { toastError } from '../lib/errors.js'
@@ -323,15 +323,8 @@ function onWindowPaste(e) {
 }
 onMounted(() => window.addEventListener('paste', onWindowPaste))
 
-/* 错题本「重做此题」：?focus=<id> 存在且该题在池中 → 跳过选卷直接开始 */
-const focusId = ref('')
-onMounted(() => {
-  const fid = route.query.focus
-  if (fid && pool.value.some((it) => String(it.id) === String(fid))) {
-    focusId.value = String(fid)
-    startOriginal()
-  }
-})
+/* Explicit redo is resolved from the full book, including cloud data arriving later. */
+const focusId = ref(String(route.query.focus || ''))
 onBeforeUnmount(() => window.removeEventListener('paste', onWindowPaste))
 
 const reviewSettings = settingsRef() // 复习设置（SRS 开关/间隔），组卷与写回共用
@@ -379,7 +372,7 @@ const orderPool = computed(() => {
   })
 })
 const planItems = computed(() => {
-  if (focusId.value) return orderPool.value.filter((it) => String(it.id) === focusId.value)
+  if (focusId.value) return reviewSelection(book.value, focusId.value)
   return orderPool.value.slice(0, Math.min(count.value, orderPool.value.length))
 })
 const dueCount = computed(() => planItems.value.filter(
@@ -389,6 +382,7 @@ function dueLabel(it) {
   if (!it.reviewAt) return '待复习'
   const d = Math.floor((Date.now() - it.reviewAt) / 86400000)
   if (d >= 1) return `逾期 ${d} 天`
+  if (it.reviewAt > Date.now()) return `${Math.ceil((it.reviewAt - Date.now()) / 86400000)} 天后复习`
   return '今天到期'
 }
 
@@ -411,6 +405,21 @@ function startOriginal() {
   initPaper()
   stage.value = 'answering'
 }
+
+// Register after planItems exists: initial entry and later cloud hydration share this path.
+let startedFocus = ''
+watch(
+  () => [String(route.query.focus || ''), reviewSelection(book.value, String(route.query.focus || '')).map(it => String(it.id)).join(',')],
+  ([fid]) => {
+    focusId.value = fid
+    if (!fid) { startedFocus = ''; return }
+    if (fid === startedFocus || !reviewSelection(book.value, fid).length) return
+    startedFocus = fid
+    mode.value = 'original'
+    startOriginal()
+  },
+  { immediate: true },
+)
 
 /* 变式题：逐题调用 /api/variant（后端有缓存，重复练习同题不再计费）；不写回 SRS */
 async function startVariation() {

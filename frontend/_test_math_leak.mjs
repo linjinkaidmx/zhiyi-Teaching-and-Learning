@@ -9,12 +9,12 @@
  */
 import fs from 'node:fs'
 import path from 'node:path'
-import { pathToFileURL } from 'node:url'
+import { pathToFileURL, fileURLToPath } from 'node:url'
 import katex from 'katex'
 import 'katex/contrib/mhchem'
 import { hasBareMath, wrapBareMath, stripDelims, latexToPlain, normalizeLatex, sanitizePlain } from './src/mathtext.js'
 
-const R = path.resolve('.')
+const R = path.dirname(fileURLToPath(import.meta.url))
 const MATH_ON = true
 
 /* ============================ 泄漏特征 ============================ */
